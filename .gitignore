@@ -16,7 +16,7 @@ examples/
 log.out
 rapidjson/
 scratch/*
-!scratch/bitcoin-test.cc
+!scratch/dash-test.cc
 !scratch/selfish-miner-test.cc
 bindings/*
 doc/*
