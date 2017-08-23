@@ -11,6 +11,7 @@
 #include <map>
 #include "ns3/address.h"
 #include <algorithm>
+#include "transaction.h"
 
 namespace ns3 {
 	
@@ -162,7 +163,7 @@ class Block
 {
 public:
   Block (int blockHeight, int minerId, int parentBlockMinerId = 0, int blockSizeBytes = 0, 
-         double timeCreated = 0, double timeReceived = 0, Ipv4Address receivedFromIpv4 = Ipv4Address("0.0.0.0"));
+         double timeCreated = 0, double timeReceived = 0, int transactionCount=0, std::vector<Transaction> blockTransactions={ {Transaction(0,0)} }, Ipv4Address receivedFromIpv4 = Ipv4Address("0.0.0.0"));
   Block ();
   Block (const Block &blockSource);  // Copy constructor
   virtual ~Block (void);
@@ -181,6 +182,11 @@ public:
   
   double GetTimeCreated (void) const;
   double GetTimeReceived (void) const;
+
+	int GetTransactionCount (void) const;
+	void SetTransactionCount (int transactionCount);
+
+	std::vector<Transaction> GetBlockTransactions (void) const;
 
   Ipv4Address GetReceivedFromIpv4 (void) const;
   void SetReceivedFromIpv4 (Ipv4Address receivedFromIpv4);
@@ -207,6 +213,8 @@ protected:
   int           m_blockSizeBytes;             // The size of the block in bytes
   double        m_timeCreated;                // The time the block was created
   double        m_timeReceived;               // The time the block was received from the node
+	int 					m_transactionCount;           //number of transactions in the current block
+	std::vector<Transaction> m_blockTransactions;  //all transactions in the current block
   Ipv4Address   m_receivedFromIpv4;           // The Ipv4 of the node which sent the block to the receiving node
 };
 
@@ -214,7 +222,7 @@ class DashChunk : public Block
 {
 public:
   DashChunk (int blockHeight, int minerId, int chunkId, int parentBlockMinerId = 0, int blockSizeBytes = 0, 
-                double timeCreated = 0, double timeReceived = 0, Ipv4Address receivedFromIpv4 = Ipv4Address("0.0.0.0"));
+                double timeCreated = 0, double timeReceived = 0,int transactionCount=0, std::vector<Transaction> blockTransactions={ {Transaction(0,0)} }, Ipv4Address receivedFromIpv4 = Ipv4Address("0.0.0.0"));
   DashChunk ();
   DashChunk (const DashChunk &chunkSource);  // Copy constructor
   virtual ~DashChunk (void);

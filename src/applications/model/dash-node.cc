@@ -1254,6 +1254,8 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 int parentMinerId = d["blocks"][j]["parentBlockMinerId"].GetInt();
                 int height = d["blocks"][j]["height"].GetInt();
                 int minerId = d["blocks"][j]["minerId"].GetInt();
+								int transactionCount=0;
+								std::vector<Transaction> blockTransactions = { { Transaction(0,0) }};
 				
 				
                 EventId              timeout;
@@ -1265,10 +1267,10 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 blockHash = stringStream.str();
                 Block newBlockHeaders(d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
                                       d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
-                                      Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                      Simulator::Now ().GetSeconds (), transactionCount, blockTransactions, InetSocketAddress::ConvertFrom(from).GetIpv4 ());
                 m_onlyHeadersReceived[blockHash] = Block (d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
                                                           d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
-                                                          Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                                          Simulator::Now ().GetSeconds (), transactionCount, blockTransactions, InetSocketAddress::ConvertFrom(from).GetIpv4 ());
                 //PrintOnlyHeadersReceived();
 				
                 stringStream.clear();
@@ -1414,7 +1416,8 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 int height = d["blocks"][j]["height"].GetInt();
                 int minerId = d["blocks"][j]["minerId"].GetInt();
                 int blockSize = d["blocks"][j]["size"].GetInt();
-
+								int transactionCount=0;
+								std::vector<Transaction> blockTransactions = {{ Transaction(0,0) }};
 				
                 EventId              timeout;
                 std::ostringstream   stringStream;  
@@ -1429,12 +1432,12 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 blockHash = stringStream.str();
                 Block newBlockHeaders(d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
                                                          d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
-                                                         Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                                         Simulator::Now ().GetSeconds (),transactionCount,blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
                 if (!OnlyHeadersReceived(blockHash))														 
                 {
                   m_onlyHeadersReceived[blockHash] = Block (d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
                                                             d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
-                                                            Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                                            Simulator::Now ().GetSeconds (),transactionCount,blockTransactions, InetSocketAddress::ConvertFrom(from).GetIpv4 ());
                 }
                 //PrintOnlyHeadersReceived();
 				
@@ -1845,7 +1848,8 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
     int parentMinerId = d["blocks"][j]["parentBlockMinerId"].GetInt();
     int height = d["blocks"][j]["height"].GetInt();
     int minerId = d["blocks"][j]["minerId"].GetInt();
-				
+		int transactionCount = 0;
+		std::vector<Transaction> blockTransactions = {{ Transaction(0,0) }};
 
     EventId              timeout;
     std::ostringstream   stringStream;  
@@ -1885,7 +1889,7 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
     {
       Block newBlock (d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
                       d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
-                      Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                      Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
 
       ReceiveBlock (newBlock);
     }
@@ -1917,6 +1921,8 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
     int height = d["chunks"][j]["height"].GetInt();
     int minerId = d["chunks"][j]["minerId"].GetInt();
     int chunkId = d["chunks"][j]["chunk"].GetInt();
+		int transactionCount= 0;
+		std::vector<Transaction> blockTransactions = { {Transaction(0,0)}};
 
     EventId              timeout;
     std::ostringstream   stringStream;  
@@ -1972,7 +1978,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
         if (m_receivedChunks[blockHash].size() == 1 && m_spv)
           AdvertiseFirstChunk (Block (d["chunks"][j]["height"].GetInt(), d["chunks"][j]["minerId"].GetInt(), d["chunks"][j]["parentBlockMinerId"].GetInt(), 
                                       d["chunks"][j]["size"].GetInt(), d["chunks"][j]["timeCreated"].GetDouble(), 
-                                      Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ()));
+                                      Simulator::Now ().GetSeconds (), transactionCount ,blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ()));
 				
         if (m_receivedChunks[blockHash].size() == ceil(d["chunks"][j]["size"].GetInt()/static_cast<double>(m_chunkSize)))
         {
@@ -1991,7 +1997,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
 								   
             Block newBlock (d["chunks"][j]["height"].GetInt(), d["chunks"][j]["minerId"].GetInt(), d["chunks"][j]["parentBlockMinerId"].GetInt(), 
                             d["chunks"][j]["size"].GetInt(), d["chunks"][j]["timeCreated"].GetDouble(), 
-                            Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                            Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
 
             ReceivedLastChunk (newBlock);
           }
@@ -2001,7 +2007,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
             DashChunk newChunk(d["chunks"][j]["height"].GetInt(), d["chunks"][j]["minerId"].GetInt(), 
                                   -1, d["chunks"][j]["parentBlockMinerId"].GetInt(), //-1 if we are not going to request a chunk
                                   d["chunks"][j]["size"].GetInt(), d["chunks"][j]["timeCreated"].GetDouble(), 
-                                  Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                  Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
             chunkMessages[newChunk].push_back(d["chunks"][j]["requestChunks"][ii].GetInt());
           }
 		
@@ -2052,7 +2058,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
                 DashChunk newChunk (d["chunks"][j]["height"].GetInt(), d["chunks"][j]["minerId"].GetInt(), 
                                        candidateChunks[randomIndex], d["chunks"][j]["parentBlockMinerId"].GetInt(), 
                                        d["chunks"][j]["size"].GetInt(), d["chunks"][j]["timeCreated"].GetDouble(), 
-                                       Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                       Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
                 chunkMessages[newChunk].push_back(d["chunks"][j]["requestChunks"][ii].GetInt());
               }
             }
@@ -2073,7 +2079,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
               DashChunk newChunk(d["chunks"][j]["height"].GetInt(), d["chunks"][j]["minerId"].GetInt(), 
                                     -1, d["chunks"][j]["parentBlockMinerId"].GetInt(), //-1 if we are not going to request a chunk
                                     d["chunks"][j]["size"].GetInt(), d["chunks"][j]["timeCreated"].GetDouble(), 
-                                    Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                                    Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
               chunkMessages[newChunk].push_back(d["chunks"][j]["requestChunks"][ii].GetInt());
             }
           }
@@ -2090,7 +2096,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
         DashChunk newChunk(d["chunks"][j]["height"].GetInt(), d["chunks"][j]["minerId"].GetInt(), 
                               -1, d["chunks"][j]["parentBlockMinerId"].GetInt(), //-1 if we are not going to request a chunk
                               d["chunks"][j]["size"].GetInt(), d["chunks"][j]["timeCreated"].GetDouble(), 
-                              Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                              Simulator::Now ().GetSeconds (), transactionCount , blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
         chunkMessages[newChunk].push_back(d["chunks"][j]["requestChunks"][ii].GetInt());
       }
     }

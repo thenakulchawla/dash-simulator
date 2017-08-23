@@ -192,6 +192,7 @@ DashMiner::StartApplication ()    // Called at time specified by Start
                                          680, 685, 690, 695, 700, 705, 710, 715, 720, 725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 
                                          790, 795, 800, 805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880, 885, 890, 895, 
                                          900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960, 965, 970, 975, 980, 985, 990, 995, 1000};
+
         std::array<double,200> weights {4.96, 0.21, 0.17, 0.25, 0.27, 0.3, 0.34, 0.26, 0.26, 0.33, 0.35, 0.49, 0.42, 0.42, 0.48, 0.41, 0.46, 0.45, 
                                        0.58, 0.58, 0.57, 0.52, 0.54, 0.47, 0.53, 0.56, 0.5, 0.48, 0.53, 0.54, 0.49, 0.51, 0.56, 0.53, 0.56, 0.5, 
                                        0.47, 0.45, 0.52, 0.43, 0.46, 0.47, 0.6, 0.53, 0.42, 0.48, 0.55, 0.49, 0.63, 2.38, 0.47, 0.53, 0.43, 0.51, 
@@ -380,6 +381,34 @@ DashMiner::MineBlock (void)
   inv.SetObject();
   block.SetObject();
 
+	std::mt19937 m_gen(rdTrans());
+	std::vector<double> iCount{1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300};
+	std::vector<double> wCount{2,0,3,7,10,10,17,13,30,29,27,26,6};
+
+	std::vector<double> iSize{250,450,650};
+	std::vector<double> wSize{1,1};
+
+	m_transactionCountDistribution = std::piecewise_constant_distribution<double> (iCount.begin(),iCount.end(), wCount.begin());
+	m_transactionSizeDistribution = std::piecewise_constant_distribution<double> (iSize.begin(), iSize.end(), wSize.begin());
+
+	transactionCount = (int) m_transactionCountDistribution(m_gen);
+	transactionHeight = 0;
+
+
+	int i=0;
+
+	for(i=0;i<transactionCount;i++)
+	{
+		std::mt19937 m_gen(rdTrans_size());
+
+		transactionSize = m_transactionSizeDistribution(m_gen);
+		transactionHeight = i+1;
+		Transaction transaction(transactionSize, transactionHeight);
+
+		thisBlockTransactions.push_back(transaction);
+
+	}
+
   if (height == 1)
   {
     m_fistToMine = true;
@@ -417,7 +446,7 @@ DashMiner::MineBlock (void)
     m_nextBlockSize = m_averageTransactionSize + m_headersSizeBytes;
 
   Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
-                  currentTime, currentTime, Ipv4Address("127.0.0.1"));
+                  currentTime, currentTime,transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
 	  
   switch(m_blockBroadcastType)				  
   {
@@ -437,6 +466,9 @@ DashMiner::MineBlock (void)
           value = INV;
           inv.AddMember("message", value, inv.GetAllocator());
   		  
+					value = newBlock.GetTransactionCount();
+					inv.AddMember("transactionCount", value , inv.GetAllocator());
+
           value.SetString(blockHash.c_str(), blockHash.size(), inv.GetAllocator());
           array.PushBack(value, inv.GetAllocator());
 		
@@ -453,6 +485,9 @@ DashMiner::MineBlock (void)
 	      value = newBlock.GetBlockSizeBytes ();
           blockInfo.AddMember("size", value, inv.GetAllocator ());
 		  
+					value = newBlock.GetTransactionCount();
+					blockInfo.AddMember("transactionCount", value , inv.GetAllocator());
+
           value = true;
           blockInfo.AddMember("fullBlock", value, inv.GetAllocator ());
 		  
@@ -474,6 +509,9 @@ DashMiner::MineBlock (void)
 
         value = newBlock.GetBlockSizeBytes ();
         blockInfo.AddMember("size", value, inv.GetAllocator ());
+
+				value = newBlock.GetTransactionCount();
+				blockInfo.AddMember("transactionCount", value, inv.GetAllocator());
 
         value = newBlock.GetTimeCreated ();
         blockInfo.AddMember("timeCreated", value, inv.GetAllocator ());
@@ -523,6 +561,9 @@ DashMiner::MineBlock (void)
       value = newBlock.GetBlockSizeBytes ();
       blockInfo.AddMember("size", value, block.GetAllocator ());
 
+			value = newBlock.GetTransactionCount();
+			blockInfo.AddMember("transactionCount", value, block.GetAllocator());
+
       value = newBlock.GetTimeCreated ();
       blockInfo.AddMember("timeCreated", value, block.GetAllocator ());
 
@@ -568,6 +609,9 @@ DashMiner::MineBlock (void)
 
           value = newBlock.GetBlockSizeBytes ();
           chunkInfo.AddMember("size", value, inv.GetAllocator ());
+
+					value = newBlock.GetTransactionCount();
+					chunkInfo.AddMember("transactionCount", value, inv.GetAllocator());
 		  
           value = true;
           chunkInfo.AddMember("fullBlock", value, inv.GetAllocator ());
@@ -590,6 +634,9 @@ DashMiner::MineBlock (void)
 
         value = newBlock.GetBlockSizeBytes ();
         headersInfo.AddMember("size", value, inv.GetAllocator ());
+
+				value = newBlock.GetTransactionCount();
+				headersInfo.AddMember("transactionCount", value, inv.GetAllocator());
 
         value = newBlock.GetTimeCreated ();
         headersInfo.AddMember("timeCreated", value, inv.GetAllocator ());
@@ -636,6 +683,9 @@ DashMiner::MineBlock (void)
       value = newBlock.GetBlockSizeBytes ();
       blockInfo.AddMember("size", value, block.GetAllocator ());
 
+			value = newBlock.GetTransactionCount();
+			blockInfo.AddMember("transactionCount", value, block.GetAllocator());
+
       value = newBlock.GetTimeCreated ();
       blockInfo.AddMember("timeCreated", value, block.GetAllocator ());
 
@@ -674,6 +724,9 @@ DashMiner::MineBlock (void)
       value = newBlock.GetBlockSizeBytes ();
       blockNodesInfo.AddMember("size", value, inv.GetAllocator ());
 
+			value = newBlock.GetTransactionCount();
+			blockNodesInfo.AddMember("transactionCount", value , inv.GetAllocator());
+
       value = newBlock.GetTimeCreated ();
       blockNodesInfo.AddMember("timeCreated", value, inv.GetAllocator ());
 
@@ -702,6 +755,9 @@ DashMiner::MineBlock (void)
 
       value = newBlock.GetBlockSizeBytes ();
       blockInfo.AddMember("size", value, block.GetAllocator ());
+
+			value = newBlock.GetTransactionCount();
+			blockInfo.AddMember("transactionCount", value, block.GetAllocator());
 
       value = newBlock.GetTimeCreated ();
       blockInfo.AddMember("timeCreated", value, block.GetAllocator ());

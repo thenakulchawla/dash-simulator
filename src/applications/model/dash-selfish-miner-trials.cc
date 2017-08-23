@@ -209,6 +209,8 @@ DashSelfishMinerTrials::MineBlock (void)
   rapidjson::Document d; 
   int height =  m_blockchain.GetCurrentTopBlock()->GetBlockHeight() + 1;
   int minerId = GetNode ()->GetId ();
+	int transactionCount = m_blockchain.GetCurrentTopBlock()->GetTransactionCount();
+	std::vector<Transaction> blockTransactions = m_blockchain.GetCurrentTopBlock()->GetBlockTransactions();
   int parentBlockMinerId = m_blockchain.GetCurrentTopBlock()->GetMinerId();
   double currentTime = Simulator::Now ().GetSeconds ();
   std::ostringstream stringStream;  
@@ -257,7 +259,7 @@ DashSelfishMinerTrials::MineBlock (void)
 
 
   Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
-                  currentTime, currentTime, Ipv4Address("127.0.0.1"));
+                  currentTime, currentTime, transactionCount, blockTransactions ,Ipv4Address("127.0.0.1"));
 
   /**
    * Update m_meanBlockReceiveTime with the timeCreated of the newly generated block

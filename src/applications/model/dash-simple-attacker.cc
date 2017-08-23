@@ -210,6 +210,8 @@ DashSimpleAttacker::MineBlock (void)
   int height =  m_minerGeneratedBlocks + 1;
   int minerId = GetNode ()->GetId ();
   int parentBlockMinerId;
+	int transactionCount = m_blockchain.GetCurrentTopBlock()->GetTransactionCount();
+	std::vector<Transaction> blockTransactions = m_blockchain.GetCurrentTopBlock()->GetBlockTransactions();
   double currentTime = Simulator::Now ().GetSeconds ();
   std::ostringstream stringStream;  
   std::string blockHash = stringStream.str();
@@ -261,7 +263,7 @@ DashSimpleAttacker::MineBlock (void)
 
 
   Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
-                  currentTime, currentTime, Ipv4Address("127.0.0.1"));
+                  currentTime, currentTime, transactionCount, blockTransactions, Ipv4Address("127.0.0.1"));
 
   /**
    * Update m_meanBlockReceiveTime with the timeCreated of the newly generated block

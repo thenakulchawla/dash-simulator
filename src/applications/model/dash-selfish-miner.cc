@@ -215,6 +215,8 @@ DashSelfishMiner::MineBlock (void)
   int height =  m_attackerTopBlock.GetBlockHeight() + 1;
   int minerId = GetNode ()->GetId ();
   int parentBlockMinerId = m_attackerTopBlock.GetMinerId();
+	int transactionCount = m_attackerTopBlock.GetTransactionCount();
+	std::vector<Transaction> blockTransactions = m_attackerTopBlock.GetBlockTransactions();
   double currentTime = Simulator::Now ().GetSeconds ();
   std::ostringstream stringStream;  
   std::string blockHash;
@@ -258,7 +260,7 @@ DashSelfishMiner::MineBlock (void)
     m_nextBlockSize = m_averageTransactionSize + m_headersSizeBytes;
 
   Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
-                  currentTime, currentTime, Ipv4Address("127.0.0.1"));
+                  currentTime, currentTime, transactionCount, blockTransactions ,Ipv4Address("127.0.0.1"));
   m_attackerTopBlock = newBlock;
   m_blockchain.AddBlock(newBlock);
   

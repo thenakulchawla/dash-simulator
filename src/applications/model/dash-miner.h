@@ -2,6 +2,8 @@
 #define DASH_MINER_H
 
 #include "dash-node.h"
+#include <string>
+#include <sstream>
 #include <random>
 
 namespace ns3 {
@@ -144,6 +146,7 @@ protected:
   double            m_fixedBlockTimeGeneration; 	//!< Fixed Block Time Generation
   EventId           m_nextMiningEvent; 				//!< Event to mine the next block
   std::default_random_engine m_generator;
+	std::random_device rdTrans,rdTrans_size;
 
   /** 
    * The m_blockGenBinSize states binSize of the block generation time.
@@ -163,13 +166,21 @@ protected:
   int                                            m_nextBlockSize;
   int                                            m_maxBlockSize;
   double                                         m_minerAverageBlockSize;
-  std::piecewise_constant_distribution<double>   m_blockSizeDistribution;
+  std::piecewise_constant_distribution<double>   m_blockSizeDistribution,m_transactionCountDistribution, m_transactionSizeDistribution;
   
   const double  m_realAverageBlockGenIntervalSeconds;  //!< in seconds, 10 mins
   double        m_averageBlockGenIntervalSeconds;      //!< the new m_averageBlockGenInterval we set
   
   enum BlockBroadcastType   m_blockBroadcastType;      //!< the type of broadcast
   enum Cryptocurrency       m_cryptocurrency;
+
+	std::vector<double> iCount,wCount,iSize,wSize;			//interval and weight for piecewise distribution for transaction count and size
+
+	int transactionCount;
+	double transactionSize;
+	int transactionHeight;
+	Transaction transaction;
+	std::vector<Transaction> thisBlockTransactions;
 
   //debug
   double       m_timeStart;
