@@ -47,59 +47,61 @@ main (int argc, char *argv[])
   bool nullmsg = false;
   bool testScalability = false;
   bool unsolicited = false;
-  bool relayNetwork = true;
+  bool relayNetwork = false;
   bool unsolicitedRelayNetwork = false;
-  bool litecoin = false;
-  bool dogecoin = false;
   bool sendheaders = false;
   bool blockTorrent = false;
   bool spv = false;
   long blockSize = 1000000;
   int invTimeoutMins = -1;
   int chunkSize = -1;
-  enum Cryptocurrency  cryptocurrency = DASH;
   double tStart = get_wall_time(), tStartSimulation, tFinish;
   const int secsPerMin = 60;
-  const uint16_t dashPort = 8333;
-  const double realAverageBlockGenIntervalMinutes = 1; //minutes
-  int targetNumberOfBlocks = 10;
-  double averageBlockGenIntervalSeconds = secsPerMin; //seconds
+  const uint16_t dashPort = 9999;
+  const double realAverageBlockGenIntervalMinutes = 10; //minutes
+  int targetNumberOfBlocks = 100;
+  double averageBlockGenIntervalSeconds =10 * secsPerMin; //seconds
   double fixedHashRate = 0.5;
   int start = 0;
   
-  int totalNoNodes = 2048;
+  int totalNoNodes = 7200;
   int minConnectionsPerNode = -1;
-  int maxConnectionsPerNode = 2048;
+  int maxConnectionsPerNode = -1;
+  int minConnectionsPerMasterNode = 8;
+  int maxConnectionsPerMasterNode = 25;
   double *minersHash;
-  enum DashRegion *minersRegions;
-  int noMiners = 512;
+  enum DashRegion *minersRegions,*masterNodesRegions;
+  int noMiners = 16;
+	int noMasterNodes = 4400;
 
 #ifdef MPI_TEST
   
   double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
                                 0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
-                                0.005, 0.005, 0.002, 0.002};
+                               0.005, 0.005, 0.002, 0.002};
+	
+	//double dashMinersHash[] = {.40,.34,.08,.07,.04,.012,.012,.012,0,0,0,0,0,0,0,0};	
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
                                                NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA};
 
+  enum DashRegion dashMasterNodesRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
+                                               EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
+                                               NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA};
 #else
 	
 
 /*   double dashMinersHash[] = {1};
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC}; */
+
   double dashMinersHash[] = {0.5, 0.5};
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC};
+  enum DashRegion dashMasterNodesRegions[] = {EUROPE,EUROPE};
+
 /*   double dashMinersHash[] = {0.4, 0.3, 0.3};
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC}; */
-  
-  //double litecoinMinersHash[] = {0.366, 0.314, 0.122, 0.072, 0.028, 0.024, 0.022, 0.018, 0.012, 0.01, 0.006, 0.006};
-  enum DashRegion litecoinMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, EUROPE, NORTH_AMERICA,
-                                                NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA};	
 
-  //double dogecoinMinersHash[] = {0.33, 0.26, 0.19, 0.09, 0.03, 0.02, 0.02, 0.02, 0.04};
-  enum DashRegion dogecoinMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, EUROPE, NORTH_AMERICA,
-                                                NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA};
+  
 #endif
 
   double averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -111,6 +113,7 @@ main (int argc, char *argv[])
   std::map<uint32_t, std::map<Ipv4Address, double>>    peersUploadSpeeds;
   std::map<uint32_t, nodeInternetSpeeds>               nodesInternetSpeeds;
   std::vector<uint32_t>                                miners;
+  std::vector<uint32_t>                                masterNodes;
   int                                                  nodesInSystemId0 = 0;
   
   Time::SetResolution (Time::NS);
@@ -131,8 +134,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("relayNetwork", "Change the miners block broadcast type to RELAY_NETWORK", relayNetwork);
   cmd.AddValue ("unsolicitedRelayNetwork", "Change the miners block broadcast type to UNSOLICITED_RELAY_NETWORK", unsolicitedRelayNetwork);
   cmd.AddValue ("sendheaders", "Change the protocol to sendheaders", sendheaders);
-  cmd.AddValue ("litecoin", "Imitate the litecoin network behaviour", litecoin);
-  cmd.AddValue ("dogecoin", "Imitate the litecoin network behaviour", dogecoin);
   cmd.AddValue ("blockTorrent", "Enable the BlockTorrent protocol", blockTorrent);
   cmd.AddValue ("spv", "Enable the spv mechanism", spv);
 
@@ -140,7 +141,7 @@ main (int argc, char *argv[])
  
   if (noMiners % 16 != 0)
   {
-    std::cout << "The number of miners must be multiple of 16" << std::endl;
+    std::cout << "The number of miners must be multiple of 8" << std::endl;
 	return 0;
   }
   
@@ -156,6 +157,15 @@ main (int argc, char *argv[])
       }
     }	
 
+	masterNodesRegions = new enum DashRegion[noMasterNodes];
+	
+   for(int i = 0; i < noMasterNodes/16; i++)
+   {
+     for (int j = 0; j < 16 ; j++)
+     {
+       masterNodesRegions[i*16 + j] = dashMasterNodesRegions[j];
+     }
+   }	
 
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
   stop = targetNumberOfBlocks * averageBlockGenIntervalMinutes; //seconds
@@ -184,12 +194,6 @@ main (int argc, char *argv[])
   uint32_t systemCount = 1;
 #endif
 
-  //LogComponentEnable("DashNode", LOG_LEVEL_INFO);
-  //LogComponentEnable("DashMiner", LOG_LEVEL_INFO);
-  //LogComponentEnable("Ipv4AddressGenerator", LOG_LEVEL_FUNCTION);
-  //LogComponentEnable("OnOffApplication", LOG_LEVEL_DEBUG);
-  //LogComponentEnable("OnOffApplication", LOG_LEVEL_WARN);
-
   
   if (unsolicited && relayNetwork && unsolicitedRelayNetwork)
   {
@@ -197,9 +201,9 @@ main (int argc, char *argv[])
     return 0;
   }
   
-  DashTopologyHelper dashTopologyHelper (systemCount, totalNoNodes, noMiners, minersRegions,
-                                               cryptocurrency, minConnectionsPerNode, 
-                                               maxConnectionsPerNode, 5, systemId);
+  DashTopologyHelper dashTopologyHelper (systemCount, totalNoNodes, noMasterNodes ,noMiners, minersRegions,masterNodesRegions,
+                                                minConnectionsPerNode, 
+                                               maxConnectionsPerNode, minConnectionsPerMasterNode, maxConnectionsPerMasterNode, 5, systemId);
 
   // Install stack on Grid
   InternetStackHelper stack;
@@ -284,7 +288,8 @@ main (int argc, char *argv[])
   dashMiners.Start (Seconds (start));
   dashMiners.Stop (Minutes (stop));
 
-  
+	int noMasterNodesTempCount = noMasterNodes; 
+
   //Install simple nodes
   DashNodeHelper dashNodeHelper ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dashPort), 
                                         nodesConnections[0], peersDownloadSpeeds[0],  peersUploadSpeeds[0], nodesInternetSpeeds[0], stats);
@@ -296,7 +301,6 @@ main (int argc, char *argv[])
 	
 	if (systemId == targetNode->GetSystemId())
 	{
-  
       if ( std::find(miners.begin(), miners.end(), node.first) == miners.end() )
 	  {
 	    if (invTimeoutMins != -1)	 
@@ -307,7 +311,16 @@ main (int argc, char *argv[])
 	    dashNodeHelper.SetPeersDownloadSpeeds (peersDownloadSpeeds[node.first]);
 	    dashNodeHelper.SetPeersUploadSpeeds (peersUploadSpeeds[node.first]);
 	    dashNodeHelper.SetNodeInternetSpeeds (nodesInternetSpeeds[node.first]);
-		dashNodeHelper.SetNodeStats (&stats[node.first]);
+			dashNodeHelper.SetNodeStats (&stats[node.first]);
+
+			if (noMasterNodesTempCount != 0 && (rand()%10)> 6)
+			{
+				dashNodeHelper.SetNodeType(MASTER_NODE);
+			}
+			else
+			{
+				dashNodeHelper.SetNodeType(FULL_NODE);
+			}
 		
         if (sendheaders)	  
           dashNodeHelper.SetProtocolType(SENDHEADERS);	

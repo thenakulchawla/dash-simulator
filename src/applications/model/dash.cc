@@ -155,7 +155,7 @@ Block::IsParent(const Block &block) const
   if (GetBlockHeight() == block.GetBlockHeight() - 1 && GetMinerId() == block.GetParentBlockMinerId())
     return true;
   else
-	return false;
+		return false;
 }
 
 bool 
@@ -778,9 +778,14 @@ const char* getProtocolType(enum ProtocolType m)
   }
 }
 
-const char* getCryptocurrency(enum Cryptocurrency m)
+const char* getNodeType(enum NodeType m)
 {
-	return "DASH";
+  switch (m) 
+  {
+    case FULL_NODE: return "FULL_NODE";
+    case MASTER_NODE: return "MASTER_NODE";
+    case MINER: return "MINER";
+  }
 }
 
 const char* getDashRegion(enum DashRegion m)

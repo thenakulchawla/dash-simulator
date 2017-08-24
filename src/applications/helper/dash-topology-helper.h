@@ -55,11 +55,13 @@ public:
    *                     to connect all of the nodes together 
    *                     in the grid
    */
-  DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, uint32_t noMiners, enum DashRegion *minersRegions,
-                         enum Cryptocurrency cryptocurrency, int minConnectionsPerNode, int maxConnectionsPerNode, 
+  DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, uint32_t noMasterNodes ,uint32_t noMiners, enum DashRegion *minersRegions, enum DashRegion *masterNodesRegions,
+                          int minConnectionsPerNode, int maxConnectionsPerNode,int minConnectionsPerMasterNode,int maxConnectionsPerMasterNode, 
                          double latencyParetoShapeDivider, uint32_t systemId);
 
   ~DashTopologyHelper ();
+
+	Ptr<Node> GetNode (uint32_t id);
 
   /**
    * \param row the row address of the node desired
@@ -69,8 +71,6 @@ public:
    * \returns a pointer to the node specified by the 
    *          (row, col) address
    */
-  Ptr<Node> GetNode (uint32_t id);
-
   /**
    * This returns an Ipv4 address at the node specified by 
    * the (row, col) address.  Technically, a node will have 
@@ -87,6 +87,7 @@ public:
    * \returns Ipv4Address of one of the interfaces of the node 
    *          specified by the (row, col) address
    */
+
   Ipv4Address GetIpv4Address (uint32_t row, uint32_t col);
 
 
@@ -94,6 +95,7 @@ public:
    * \param stack an InternetStackHelper which is used to install 
    *              on every node in the grid
    */
+
   void InstallStack (InternetStackHelper stack);
 
   /**
@@ -105,8 +107,8 @@ public:
    * \param ip the Ipv4AddressHelper used to assign Ipv4 addresses 
    *              to all of the row interfaces in the grid
    */
-  void AssignIpv4Addresses (Ipv4AddressHelperCustom ip);
 
+  void AssignIpv4Addresses (Ipv4AddressHelperCustom ip);
 
   /**
    * Sets up the node canvas locations for every node in the grid.
@@ -117,19 +119,17 @@ public:
    * \param lrx lower right x value
    * \param lry lower right y value
    */
+
   void BoundingBox (double ulx, double uly, double lrx, double lry);
 
   /**
    * Get the interface container
    */
+
    Ipv4InterfaceContainer GetIpv4InterfaceContainer (void) const;
-   
    std::map<uint32_t, std::vector<Ipv4Address>> GetNodesConnectionsIps (void) const;
-   
    std::vector<uint32_t> GetMiners (void) const;
-   
    uint32_t* GetDashNodesRegions (void);
-   
    std::map<uint32_t, std::map<Ipv4Address, double>> GetPeersDownloadSpeeds(void) const;
    std::map<uint32_t, std::map<Ipv4Address, double>> GetPeersUploadSpeeds(void) const;
 
@@ -142,10 +142,13 @@ private:
   
   uint32_t     m_totalNoNodes;                  //!< The total number of nodes
   uint32_t     m_noMiners;                      //!< The total number of miners
+	uint32_t		 m_noMasterNodes;                 //!< The total number of master nodes
   uint32_t     m_noCpus;                        //!< The number of the available cpus in the simulation
   double       m_latencyParetoShapeDivider;     //!<  The pareto shape for the latency of the point-to-point links
   int          m_minConnectionsPerNode;         //!<  The minimum connections per node
   int          m_maxConnectionsPerNode;         //!<  The maximum connections per node
+  int          m_minConnectionsPerMasterNode;         //!<  The minimum connections per master node
+  int          m_maxConnectionsPerMasterNode;         //!<  The maximum connections per master node
   int          m_minConnectionsPerMiner;        //!<  The minimum connections per node
   int          m_maxConnectionsPerMiner;        //!<  The maximum connections per node
   double       m_minerDownloadSpeed;            //!<  The download speed of miners
@@ -154,17 +157,21 @@ private:
   uint32_t     m_systemId;
   
   enum DashRegion                             *m_minersRegions;
-  enum Cryptocurrency                             m_cryptocurrency;
+  enum DashRegion                             *m_masterNodesRegions;
   std::vector<uint32_t>                           m_miners;                  //!< The ids of the miners
+	std::vector<uint32_t> 													m_masterNodes;             //!< The ids of the masterNodes 
   std::map<uint32_t, std::vector<uint32_t>>       m_nodesConnections;        //!< key = nodeId
   std::map<uint32_t, std::vector<Ipv4Address>>    m_nodesConnectionsIps;     //!< key = nodeId
   std::vector<NodeContainer>                      m_nodes;                   //!< all the nodes in the network
   std::vector<NetDeviceContainer>                 m_devices;                 //!< NetDevices in the network
   std::vector<Ipv4InterfaceContainer>             m_interfaces;              //!< IPv4 interfaces in the network
   uint32_t                                       *m_dashNodesRegion;      //!< The region in which the dash nodes are located
+  uint32_t                                       *m_dashMasterNodesRegion;      //!< The region in which the dash master nodes are located
   double                                          m_regionLatencies[6][6];   //!< The inter- and intra-region latencies
   double                                          m_regionDownloadSpeeds[6];     
   double                                          m_regionUploadSpeeds[6];     
+  double                                          m_regionMasterDownloadSpeeds[6];     
+  double                                          m_regionMasterUploadSpeeds[6];     
   
 
   std::map<uint32_t, std::map<Ipv4Address, double>>    m_peersDownloadSpeeds;     //!< key1 = nodeId, key2 = Ipv4Address of peer
@@ -188,6 +195,9 @@ private:
   std::piecewise_constant_distribution<double>   m_southAmericaUploadBandwidthDistribution;
   std::piecewise_constant_distribution<double>   m_australiaDownloadBandwidthDistribution;
   std::piecewise_constant_distribution<double>   m_australiaUploadBandwidthDistribution;
+  std::piecewise_constant_distribution<double>   m_masterNodesDownloadBandwidthDistribution;
+  std::piecewise_constant_distribution<double>   m_masterNodesUploadBandwidthDistribution;
+
 };
 
 

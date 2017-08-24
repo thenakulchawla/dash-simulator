@@ -70,15 +70,11 @@ enum ProtocolType
   SENDHEADERS
 };
 
-
-/** 
- * The different cryptocurrency networks that the simulation supports.
- */
-enum Cryptocurrency
+enum NodeType
 {
-  DASH,                     //DEFAULT
-  LITECOIN,
-  DOGECOIN
+	FULL_NODE,                 //DEFAULT
+	MASTER_NODE,
+	MINER
 };
 
 
@@ -155,8 +151,8 @@ const char* getMessageName(enum Messages m);
 const char* getMinerType(enum MinerType m);
 const char* getBlockBroadcastType(enum BlockBroadcastType m);
 const char* getProtocolType(enum ProtocolType m);
+const char* getNodeType(enum NodeType m);
 const char* getDashRegion(enum DashRegion m);
-const char* getCryptocurrency(enum Cryptocurrency m);
 enum DashRegion getDashEnum(uint32_t n);
 
 class Block
@@ -336,7 +332,6 @@ private:
   int                                m_totalBlocks;       //total number of blocks including the genesis block
   std::vector<std::vector<Block>>    m_blocks;            //2d vector containing all the blocks of the blockchain. (row->blockHeight, col->sibling blocks)
   std::vector<Block>                 m_orphans;           //vector containing the orphans
-
 
 };
 

@@ -35,6 +35,7 @@ public:
    * \param internetSpeeds a reference to a struct containing the internet speeds of the node
    * \param stats a pointer to struct holding the node statistics
    */
+
   DashNodeHelper (std::string protocol, Address address, std::vector<Ipv4Address> &peers, 
                      std::map<Ipv4Address, double> &peersDownloadSpeeds, std::map<Ipv4Address, double> &peersUploadSpeeds,
                      nodeInternetSpeeds &internetSpeeds, nodeStatistics *stats);
@@ -57,6 +58,7 @@ public:
    * \param internetSpeeds a reference to a struct containing the internet speeds of the node
    * \param stats a pointer to struct holding the node statistics
    */
+
    void commonConstructor(std::string protocol, Address address, std::vector<Ipv4Address> &peers, 
                           std::map<Ipv4Address, double> &peersDownloadSpeeds, std::map<Ipv4Address, double> &peersUploadSpeeds,
                           nodeInternetSpeeds &internetSpeeds, nodeStatistics *stats);
@@ -95,11 +97,13 @@ public:
    * \param nodeName The name of the node on which a PacketSinkApplication will be installed.
    * \returns Container of Ptr to the applications installed.
    */
+
   ApplicationContainer Install (std::string nodeName);
 
   void SetPeersAddresses (std::vector<Ipv4Address> &peersAddresses);
   
   void SetPeersDownloadSpeeds (std::map<Ipv4Address, double> &peersDownloadSpeeds);
+
   void SetPeersUploadSpeeds (std::map<Ipv4Address, double> &peersUploadSpeeds);
   
   void SetNodeInternetSpeeds (nodeInternetSpeeds &internetSpeeds);
@@ -107,7 +111,9 @@ public:
   void SetNodeStats (nodeStatistics *nodeStats);
 
   void SetProtocolType (enum ProtocolType protocolType);
-  
+
+	void SetNodeType (enum NodeType nodeType);
+
 protected:
   /**
    * Install an ns3::PacketSink on the node configured with all the
@@ -116,6 +122,7 @@ protected:
    * \param node The node on which an PacketSink will be installed.
    * \returns Ptr to the application installed.
    */
+
   virtual Ptr<Application> InstallPriv (Ptr<Node> node);
   
   ObjectFactory                                       m_factory;              //!< Object factory.
@@ -127,6 +134,7 @@ protected:
   nodeInternetSpeeds                                  m_internetSpeeds;       //!< The internet speeds of the node
   nodeStatistics                                      *m_nodeStats;           //!< The struct holding the node statistics
   enum ProtocolType									  m_protocolType;         //!< The protocol that the nodes use to advertise new blocks (DEFAULT: STANDARD)
+	enum NodeType												m_nodeType;
 
 };
 

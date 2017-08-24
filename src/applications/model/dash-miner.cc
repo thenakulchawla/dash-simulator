@@ -103,11 +103,6 @@ DashMiner::GetTypeId (void)
                    DoubleValue (10*60),
                    MakeDoubleAccessor (&DashMiner::m_averageBlockGenIntervalSeconds),
                    MakeDoubleChecker<double> ())
-    .AddAttribute ("Cryptocurrency", 
-                   "DASH, LITECOIN, DOGECOIN",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&DashMiner::m_cryptocurrency),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("ChunkSize", 
                    "The fixed size of the block chunk",
                    UintegerValue (100000),
@@ -124,7 +119,7 @@ DashMiner::GetTypeId (void)
 DashMiner::DashMiner () : DashNode(), m_realAverageBlockGenIntervalSeconds(10*m_secondsPerMin),
                                 m_timeStart (0), m_timeFinish (0), m_fistToMine (false)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_minerAverageBlockGenInterval = 0;
   m_minerGeneratedBlocks = 0;
   m_previousBlockGenerationTime = 0;
@@ -148,7 +143,7 @@ DashMiner::DashMiner () : DashNode(), m_realAverageBlockGenIntervalSeconds(10*m_
 
 DashMiner::~DashMiner(void)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
 }
 
 
@@ -156,13 +151,12 @@ void
 DashMiner::StartApplication ()    // Called at time specified by Start
 {
   DashNode::StartApplication ();
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_noMiners = " << m_noMiners << "");
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_realAverageBlockGenIntervalSeconds = " << m_realAverageBlockGenIntervalSeconds << "s");
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_averageBlockGenIntervalSeconds = " << m_averageBlockGenIntervalSeconds << "s");
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_fixedBlockTimeGeneration = " << m_fixedBlockTimeGeneration << "s");
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_hashRate = " << m_hashRate );
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_blockBroadcastType = " << getBlockBroadcastType(m_blockBroadcastType));
-  NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_cryptocurrency = " << getCryptocurrency(m_cryptocurrency));
+  //NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_noMiners = " << m_noMiners << "");
+  //NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_realAverageBlockGenIntervalSeconds = " << m_realAverageBlockGenIntervalSeconds << "s");
+  //NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_averageBlockGenIntervalSeconds = " << m_averageBlockGenIntervalSeconds << "s");
+  //NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_fixedBlockTimeGeneration = " << m_fixedBlockTimeGeneration << "s");
+  //NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_hashRate = " << m_hashRate );
+  //NS_LOG_WARN ("Miner " << GetNode()->GetId() << " m_blockBroadcastType = " << getBlockBroadcastType(m_blockBroadcastType));
 
   if (m_blockGenBinSize < 0 && m_blockGenParameter < 0)
   {
@@ -179,42 +173,43 @@ DashMiner::StartApplication ()    // Called at time specified by Start
     m_nextBlockSize = m_fixedBlockSize;
   else
   {
-    switch(m_cryptocurrency)
-    {
-      case DASH:
-      {
-        std::array<double,201> intervals {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 
-                                         130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 
-                                         240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 
-                                         350, 355, 360, 365, 370, 375, 380, 385, 390, 395, 400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 
-                                         460, 465, 470, 475, 480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560, 565, 
-                                         570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 630, 635, 640, 645, 650, 655, 660, 665, 670, 675, 
-                                         680, 685, 690, 695, 700, 705, 710, 715, 720, 725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 
-                                         790, 795, 800, 805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880, 885, 890, 895, 
-                                         900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960, 965, 970, 975, 980, 985, 990, 995, 1000};
+        //std::array<double,201> intervals {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 
+        //                                 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 
+        //                                 240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 
+        //                                 350, 355, 360, 365, 370, 375, 380, 385, 390, 395, 400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 
+        //                                 460, 465, 470, 475, 480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560, 565, 
+        //                                 570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 630, 635, 640, 645, 650, 655, 660, 665, 670, 675, 
+        //                                 680, 685, 690, 695, 700, 705, 710, 715, 720, 725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 
+        //                                 790, 795, 800, 805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880, 885, 890, 895, 
+        //                                 900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960, 965, 970, 975, 980, 985, 990, 995, 1000};
 
-        std::array<double,200> weights {4.96, 0.21, 0.17, 0.25, 0.27, 0.3, 0.34, 0.26, 0.26, 0.33, 0.35, 0.49, 0.42, 0.42, 0.48, 0.41, 0.46, 0.45, 
-                                       0.58, 0.58, 0.57, 0.52, 0.54, 0.47, 0.53, 0.56, 0.5, 0.48, 0.53, 0.54, 0.49, 0.51, 0.56, 0.53, 0.56, 0.5, 
-                                       0.47, 0.45, 0.52, 0.43, 0.46, 0.47, 0.6, 0.53, 0.42, 0.48, 0.55, 0.49, 0.63, 2.38, 0.47, 0.53, 0.43, 0.51, 
-                                       0.44, 0.46, 0.44, 0.41, 0.47, 0.46, 0.45, 0.37, 0.49, 0.4, 0.41, 0.41, 0.41, 0.37, 0.43, 0.47, 0.48, 0.37, 
-                                       0.4, 0.46, 0.34, 0.35, 0.37, 0.36, 0.37, 0.31, 0.35, 0.39, 0.34, 0.38, 0.29, 0.41, 0.37, 0.34, 0.36, 0.34, 
-                                       0.29, 0.3, 0.36, 0.26, 0.29, 0.31, 0.3, 0.29, 0.35, 0.5, 0.28, 0.37, 0.31, 0.33, 0.32, 0.28, 0.34, 0.31, 
-                                       0.26, 0.24, 0.22, 0.25, 0.24, 0.25, 0.26, 0.25, 0.24, 0.33, 0.24, 0.23, 0.2, 0.24, 0.26, 0.27, 0.27, 0.21, 
-                                       0.22, 0.3, 0.25, 0.21, 0.26, 0.21, 0.21, 0.21, 0.23, 0.48, 0.2, 0.19, 0.21, 0.2, 0.17, 0.19, 0.21, 0.22, 
-                                       0.24, 0.25, 0.23, 0.31, 0.46, 8.32, 0.22, 0.11, 0.13, 0.17, 0.12, 0.16, 0.15, 0.16, 0.19, 0.21, 0.18, 0.24, 
-                                       0.19, 0.2, 0.16, 0.17, 0.19, 0.17, 0.22, 0.33, 0.17, 0.22, 0.25, 0.19, 0.2, 0.17, 0.28, 0.25, 0.24, 0.25, 0.3,
-                                       0.34, 0.46, 0.49, 0.67, 3.13, 2.94, 0.14, 0.36, 3.88, 0.07, 0.11, 0.11, 0.11, 0.26, 0.12, 0.13, 0.88, 5.84, 4.11};
-        m_blockSizeDistribution = std::piecewise_constant_distribution<double> (intervals.begin(), intervals.end(), weights.begin());
-        break;
-      }
-    }
+        //std::array<double,200> weights {4.96, 0.21, 0.17, 0.25, 0.27, 0.3, 0.34, 0.26, 0.26, 0.33, 0.35, 0.49, 0.42, 0.42, 0.48, 0.41, 0.46, 0.45, 
+        //                               0.58, 0.58, 0.57, 0.52, 0.54, 0.47, 0.53, 0.56, 0.5, 0.48, 0.53, 0.54, 0.49, 0.51, 0.56, 0.53, 0.56, 0.5, 
+        //                               0.47, 0.45, 0.52, 0.43, 0.46, 0.47, 0.6, 0.53, 0.42, 0.48, 0.55, 0.49, 0.63, 2.38, 0.47, 0.53, 0.43, 0.51, 
+        //                               0.44, 0.46, 0.44, 0.41, 0.47, 0.46, 0.45, 0.37, 0.49, 0.4, 0.41, 0.41, 0.41, 0.37, 0.43, 0.47, 0.48, 0.37, 
+        //                               0.4, 0.46, 0.34, 0.35, 0.37, 0.36, 0.37, 0.31, 0.35, 0.39, 0.34, 0.38, 0.29, 0.41, 0.37, 0.34, 0.36, 0.34, 
+        //                               0.29, 0.3, 0.36, 0.26, 0.29, 0.31, 0.3, 0.29, 0.35, 0.5, 0.28, 0.37, 0.31, 0.33, 0.32, 0.28, 0.34, 0.31, 
+        //                               0.26, 0.24, 0.22, 0.25, 0.24, 0.25, 0.26, 0.25, 0.24, 0.33, 0.24, 0.23, 0.2, 0.24, 0.26, 0.27, 0.27, 0.21, 
+        //                               0.22, 0.3, 0.25, 0.21, 0.26, 0.21, 0.21, 0.21, 0.23, 0.48, 0.2, 0.19, 0.21, 0.2, 0.17, 0.19, 0.21, 0.22, 
+        //                               0.24, 0.25, 0.23, 0.31, 0.46, 8.32, 0.22, 0.11, 0.13, 0.17, 0.12, 0.16, 0.15, 0.16, 0.19, 0.21, 0.18, 0.24, 
+        //                               0.19, 0.2, 0.16, 0.17, 0.19, 0.17, 0.22, 0.33, 0.17, 0.22, 0.25, 0.19, 0.2, 0.17, 0.28, 0.25, 0.24, 0.25, 0.3,
+        //                               0.34, 0.46, 0.49, 0.67, 3.13, 2.94, 0.14, 0.36, 3.88, 0.07, 0.11, 0.11, 0.11, 0.26, 0.12, 0.13, 0.88, 5.84, 4.11};
+        //m_blockSizeDistribution = std::piecewise_constant_distribution<double> (intervals.begin(), intervals.end(), weights.begin());
+
+				//std::array<double,14> iCount{1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300};
+				//std::array<double,13> wCount{2,0,3,7,10,10,17,13,30,29,27,26,6};
+				//m_transactionCountDistribution = std::piecewise_constant_distribution<double> (iCount.begin(),iCount.end(), wCount.begin());
+
+				//std::array<double,3> iSize{250,450,650};
+				//std::array<double,2> wSize{1,1};
+				//m_transactionSizeDistribution = std::piecewise_constant_distribution<double> (iSize.begin(), iSize.end(), wSize.begin());
   }
   
-/*   if (GetNode()->GetId() == 0)
+/**   if (GetNode()->GetId() == 0)
   {
     Block newBlock(1, 0, -1, 500000, 0, 0, Ipv4Address("0.0.0.0"));
     m_blockchain.AddBlock(newBlock); 
-  } */
+  } **/
   
   m_nodeStats->hashRate = m_hashRate;
   m_nodeStats->miner = 1;
@@ -228,12 +223,12 @@ DashMiner::StopApplication ()
   DashNode::StopApplication ();  
   Simulator::Cancel (m_nextMiningEvent);
   
-  NS_LOG_WARN ("The miner " << GetNode ()->GetId () << " with hash rate = " << m_hashRate << " generated " << m_minerGeneratedBlocks 
-                << " blocks "<< "(" << 100. * m_minerGeneratedBlocks / (m_blockchain.GetTotalBlocks() - 1) 
-                << "%) with average block generation time = " << m_minerAverageBlockGenInterval
-                << "s or " << static_cast<int>(m_minerAverageBlockGenInterval) / m_secondsPerMin << "min and " 
-                << m_minerAverageBlockGenInterval - static_cast<int>(m_minerAverageBlockGenInterval) / m_secondsPerMin * m_secondsPerMin << "s"
-                << " and average size " << m_minerAverageBlockSize << " Bytes");
+  //NS_LOG_WARN ("The miner " << GetNode ()->GetId () << " with hash rate = " << m_hashRate << " generated " << m_minerGeneratedBlocks 
+  //              << " blocks "<< "(" << 100. * m_minerGeneratedBlocks / (m_blockchain.GetTotalBlocks() - 1) 
+  //              << "%) with average block generation time = " << m_minerAverageBlockGenInterval
+  //              << "s or " << static_cast<int>(m_minerAverageBlockGenInterval) / m_secondsPerMin << "min and " 
+  //              << m_minerAverageBlockGenInterval - static_cast<int>(m_minerAverageBlockGenInterval) / m_secondsPerMin * m_secondsPerMin << "s"
+  //              << " and average size " << m_minerAverageBlockSize << " Bytes");
 				
   
   m_nodeStats->minerGeneratedBlocks = m_minerGeneratedBlocks;
@@ -250,63 +245,63 @@ DashMiner::StopApplication ()
 void 
 DashMiner::DoDispose (void)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   DashNode::DoDispose ();
 }
 
 double 
 DashMiner::GetFixedBlockTimeGeneration(void) const
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   return m_fixedBlockTimeGeneration;
 }
 
 void 
 DashMiner::SetFixedBlockTimeGeneration(double fixedBlockTimeGeneration) 
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_fixedBlockTimeGeneration = fixedBlockTimeGeneration;
 }
 
 uint32_t 
 DashMiner::GetFixedBlockSize(void) const
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   return m_fixedBlockSize;
 }
 
 void 
 DashMiner::SetFixedBlockSize(uint32_t fixedBlockSize) 
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_fixedBlockSize = fixedBlockSize;
 }
 
 double 
 DashMiner::GetBlockGenBinSize(void) const
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   return m_blockGenBinSize;	
 }
 
 void 
 DashMiner::SetBlockGenBinSize (double blockGenBinSize)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_blockGenBinSize = blockGenBinSize;	
 }
 
 double 
 DashMiner::GetBlockGenParameter(void) const
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   return m_blockGenParameter;	
 }
 
 void 
 DashMiner::SetBlockGenParameter (double blockGenParameter)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_blockGenParameter = blockGenParameter;
   m_blockGenTimeDistribution.param(std::geometric_distribution<int>::param_type(m_blockGenParameter));
 
@@ -315,28 +310,28 @@ DashMiner::SetBlockGenParameter (double blockGenParameter)
 double 
 DashMiner::GetHashRate(void) const
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   return m_hashRate;	
 }
 
 void 
 DashMiner::SetHashRate (double hashRate)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_hashRate = hashRate;
 }
 
 void 
 DashMiner::SetBlockBroadcastType (enum BlockBroadcastType blockBroadcastType)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_blockBroadcastType = blockBroadcastType;
 }
 
 void
 DashMiner::ScheduleNextMiningEvent (void)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   
   if(m_fixedBlockTimeGeneration > 0)
   {
@@ -364,7 +359,7 @@ DashMiner::ScheduleNextMiningEvent (void)
 void 
 DashMiner::MineBlock (void)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   rapidjson::Document inv; 
   rapidjson::Document block; 
 
@@ -381,39 +376,50 @@ DashMiner::MineBlock (void)
   inv.SetObject();
   block.SetObject();
 
-	std::mt19937 m_gen(rdTrans());
-	std::vector<double> iCount{1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300};
-	std::vector<double> wCount{2,0,3,7,10,10,17,13,30,29,27,26,6};
-
-	std::vector<double> iSize{250,450,650};
-	std::vector<double> wSize{1,1};
-
+	std::array<double,14> iCount{1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300};
+	std::array<double,13> wCount{2,0,3,7,10,10,17,13,30,29,27,26,6};
 	m_transactionCountDistribution = std::piecewise_constant_distribution<double> (iCount.begin(),iCount.end(), wCount.begin());
+	
+	std::array<double,3> iSize{250,450,650};
+	std::array<double,2> wSize{1,1};
 	m_transactionSizeDistribution = std::piecewise_constant_distribution<double> (iSize.begin(), iSize.end(), wSize.begin());
 
-	transactionCount = (int) m_transactionCountDistribution(m_gen);
-	transactionHeight = 0;
+  std::random_device rdTrans;
+  m_gen_count.seed(rdTrans());
 
+	transactionCount = (int) m_transactionCountDistribution(m_gen_count);
+	transactionHeight = 0;
+	blockSize = 0;
 
 	int i=0;
 
 	for(i=0;i<transactionCount;i++)
 	{
-		std::mt19937 m_gen(rdTrans_size());
 
-		transactionSize = m_transactionSizeDistribution(m_gen);
+  	std::random_device rdTransSize;
+  	m_gen_size.seed(rdTransSize());
+		transactionSize = m_transactionSizeDistribution(m_gen_size);
 		transactionHeight = i+1;
 		Transaction transaction(transactionSize, transactionHeight);
+		blockSize += transactionSize;
 
 		thisBlockTransactions.push_back(transaction);
 
 	}
+
+	averageTransactionSize = blockSize/transactionCount;
+	transactionsPerSec = ((double) transactionCount)/600;
+
+	std::cout<<"Transactions per second for this block ; "<<transactionsPerSec <<"\n";
+	std::cout<<"Transactions in this block ; "<<transactionCount<<"\n";
+
 
   if (height == 1)
   {
     m_fistToMine = true;
 		m_timeStart = GetWallTime();
   }
+
 /*   //For attacks
    if (GetNode ()->GetId () == 0)
      height = 2 - m_minerGeneratedBlocks; 
@@ -431,22 +437,23 @@ DashMiner::MineBlock (void)
     m_nextBlockSize = m_fixedBlockSize;
   else
   {
-    m_nextBlockSize = m_blockSizeDistribution(m_generator) * 1000;	// *1000 because the m_blockSizeDistribution returns KBytes
+    //m_nextBlockSize = m_blockSizeDistribution(m_generator) * 1000;	// *1000 because the m_blockSizeDistribution returns KBytes
+		m_nextBlockSize = blockSize;
 
       // The block size is linearly dependent on the averageBlockGenIntervalSeconds
       if(m_nextBlockSize < m_maxBlockSize - m_headersSizeBytes)
-        m_nextBlockSize = m_nextBlockSize*m_averageBlockGenIntervalSeconds / m_realAverageBlockGenIntervalSeconds
+        m_nextBlockSize = m_nextBlockSize * m_averageBlockGenIntervalSeconds / m_realAverageBlockGenIntervalSeconds
                         + m_headersSizeBytes;	
       else
-        m_nextBlockSize = m_nextBlockSize*m_averageBlockGenIntervalSeconds / m_realAverageBlockGenIntervalSeconds;
+        m_nextBlockSize = m_nextBlockSize * m_averageBlockGenIntervalSeconds / m_realAverageBlockGenIntervalSeconds;
     
   }
 
-  if (m_nextBlockSize < m_averageTransactionSize)
-    m_nextBlockSize = m_averageTransactionSize + m_headersSizeBytes;
+  if (m_nextBlockSize < averageTransactionSize)
+    m_nextBlockSize = averageTransactionSize + m_headersSizeBytes;
 
   Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
-                  currentTime, currentTime,transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
+                  currentTime, currentTime, transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
 	  
   switch(m_blockBroadcastType)				  
   {
@@ -776,8 +783,10 @@ DashMiner::MineBlock (void)
   /**
    * Update m_meanBlockReceiveTime with the timeCreated of the newly generated block
    */
+
   m_meanBlockReceiveTime = (m_blockchain.GetTotalBlocks() - 1)/static_cast<double>(m_blockchain.GetTotalBlocks())*m_meanBlockReceiveTime 
                          + (currentTime - m_previousBlockReceiveTime)/(m_blockchain.GetTotalBlocks());
+
   m_previousBlockReceiveTime = currentTime;	
   
   m_meanBlockPropagationTime = (m_blockchain.GetTotalBlocks() - 1)/static_cast<double>(m_blockchain.GetTotalBlocks())*m_meanBlockPropagationTime;
@@ -796,11 +805,10 @@ DashMiner::MineBlock (void)
   rapidjson::Writer<rapidjson::StringBuffer> blockWriter(blockInfo);
   block.Accept(blockWriter);
 
-
 	uint256 toPrintInv = GetHash(invInfo.GetString());
 	uint256 toPrintBlock = GetHash(blockInfo.GetString());
-	std::cout<<"My uint256 cheaphash for Inv is : "<<toPrintInv.GetCheapHash()<<'\n';
-	std::cout<<"My uint256 cheaphash for Block is : "<<toPrintBlock.GetCheapHash()<<'\n';
+	std::cout<<"My uint256 cheaphash for Inv is : "<< toPrintInv.GetCheapHash()<<'\n';
+	std::cout<<"My uint256 cheaphash for Block is : "<< toPrintBlock.GetCheapHash()<<'\n';
   
   int count = 0;
 
@@ -885,8 +893,9 @@ DashMiner::MineBlock (void)
       {
         if(count < m_noMiners - 1)
         {
-          int    noTransactions = static_cast<int>((m_nextBlockSize - m_blockHeadersSizeBytes)/m_averageTransactionSize);
-          long   blockSize = m_blockHeadersSizeBytes + m_transactionIndexSize*noTransactions;
+          //int    transactionCount = static_cast<int>((m_nextBlockSize - m_blockHeadersSizeBytes)/m_averageTransactionSize);
+          //long   blockSize = m_blockHeadersSizeBytes + m_transactionIndexSize * transactionCount;
+          long   blockSize = m_blockHeadersSizeBytes + 2 * transactionCount;
           double sendTime = blockSize / m_uploadSpeed;
           double eventTime;
 		  
@@ -968,8 +977,9 @@ DashMiner::MineBlock (void)
 							
         if(count < m_noMiners - 1)
         {
-          int    noTransactions = static_cast<int>((m_nextBlockSize - m_blockHeadersSizeBytes)/m_averageTransactionSize);
-          long   blockSize = m_blockHeadersSizeBytes + m_transactionIndexSize*noTransactions;
+          //int    noTransactions = static_cast<int>((m_nextBlockSize - m_blockHeadersSizeBytes)/m_averageTransactionSize);
+          //long   blockSize = m_blockHeadersSizeBytes + m_transactionIndexSize*noTransactions;
+          long   blockSize = m_blockHeadersSizeBytes + 2 * transactionCount;
           sendTime = blockSize / m_uploadSpeed;
 
           m_nodeStats->blockSentBytes += m_dashMessageHeader + blockSize;
@@ -1038,10 +1048,14 @@ DashMiner::MineBlock (void)
   
   m_minerAverageBlockGenInterval = m_minerGeneratedBlocks/static_cast<double>(m_minerGeneratedBlocks+1)*m_minerAverageBlockGenInterval 
                                  + (Simulator::Now ().GetSeconds () - m_previousBlockGenerationTime)/(m_minerGeneratedBlocks+1);
+
   m_minerAverageBlockSize = m_minerGeneratedBlocks/static_cast<double>(m_minerGeneratedBlocks+1)*m_minerAverageBlockSize 
                           + static_cast<double>(m_nextBlockSize)/(m_minerGeneratedBlocks+1);
+
   m_previousBlockGenerationTime = Simulator::Now ().GetSeconds ();
+
 	std::cout<<"Previous block generation time : " << m_previousBlockGenerationTime << "\n";
+
   m_minerGeneratedBlocks++;
 
   ScheduleNextMiningEvent ();
@@ -1050,7 +1064,7 @@ DashMiner::MineBlock (void)
 void 
 DashMiner::ReceivedHigherBlock(const Block &newBlock)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   NS_LOG_WARN("Dash miner " << GetNode ()->GetId () << " added a new block in the m_blockchain with higher height: " << newBlock);
   Simulator::Cancel (m_nextMiningEvent);
   ScheduleNextMiningEvent ();
@@ -1060,7 +1074,7 @@ DashMiner::ReceivedHigherBlock(const Block &newBlock)
 void 
 DashMiner::SendBlock(std::string packetInfo, Ptr<Socket> to) 
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
 
   NS_LOG_INFO ("SendBlock: At time " << Simulator::Now ().GetSeconds ()
                << "s dash miner " << GetNode ()->GetId () << " send " 

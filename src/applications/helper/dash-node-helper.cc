@@ -27,6 +27,7 @@ DashNodeHelper::commonConstructor(std::string protocol, Address address, std::ve
                                      std::map<Ipv4Address, double> &peersDownloadSpeeds, std::map<Ipv4Address, double> &peersUploadSpeeds,
                                      nodeInternetSpeeds &internetSpeeds, nodeStatistics *stats) 
 {
+
   m_protocol = protocol;
   m_address = address;
   m_peersAddresses = peers;
@@ -35,6 +36,7 @@ DashNodeHelper::commonConstructor(std::string protocol, Address address, std::ve
   m_internetSpeeds = internetSpeeds;
   m_nodeStats = stats;
   m_protocolType = STANDARD_PROTOCOL;
+	m_nodeType = FULL_NODE;
   
   m_factory.Set ("Protocol", StringValue (m_protocol));
   m_factory.Set ("Local", AddressValue (m_address));
@@ -83,6 +85,7 @@ DashNodeHelper::InstallPriv (Ptr<Node> node)
   app->SetNodeInternetSpeeds(m_internetSpeeds);
   app->SetNodeStats(m_nodeStats);
   app->SetProtocolType(m_protocolType);
+  app->SetNodeType(m_nodeType);
 
   node->AddApplication (app);
 
@@ -107,7 +110,6 @@ DashNodeHelper::SetPeersUploadSpeeds (std::map<Ipv4Address, double> &peersUpload
   m_peersUploadSpeeds = peersUploadSpeeds;
 }
 
-
 void 
 DashNodeHelper::SetNodeInternetSpeeds (nodeInternetSpeeds &internetSpeeds)
 {
@@ -125,4 +127,11 @@ DashNodeHelper::SetProtocolType (enum ProtocolType protocolType)
 {
   m_protocolType = protocolType;
 }
+
+void 
+DashNodeHelper::SetNodeType (enum NodeType nodeType)
+{
+  m_nodeType = nodeType;
+}
+
 } // namespace ns3

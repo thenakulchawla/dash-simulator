@@ -94,7 +94,7 @@ DashSelfishMiner::GetTypeId (void)
 
 DashSelfishMiner::DashSelfishMiner () : DashMiner(), m_attackFinished(false), m_la(0), m_lh(0), m_forkType(IRRELEVANT)
 {
-  NS_LOG_FUNCTION (this);
+  //NS_LOG_FUNCTION (this);
   m_attackerTopBlock = *(m_blockchain.GetCurrentTopBlock());
   m_honestNetworkTopBlock = *(m_blockchain.GetCurrentTopBlock());
   m_maxAttackBlocks = sqrt(sizeof(m_decisionMatrix)/sizeof(char)/3);
@@ -132,28 +132,31 @@ DashSelfishMiner::StartApplication ()    // Called at time specified by Start
     m_nextBlockSize = m_fixedBlockSize;
   else
   {
-    std::array<double,201> intervals {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 
-                                     130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 
-                                     240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 
-                                     350, 355, 360, 365, 370, 375, 380, 385, 390, 395, 400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 
-                                     460, 465, 470, 475, 480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560, 565, 
-                                     570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 630, 635, 640, 645, 650, 655, 660, 665, 670, 675, 
-                                     680, 685, 690, 695, 700, 705, 710, 715, 720, 725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 
-                                     790, 795, 800, 805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880, 885, 890, 895, 
-                                     900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960, 965, 970, 975, 980, 985, 990, 995, 1000};
-    std::array<double,200> weights {3.58, 0.33, 0.35, 0.4, 0.38, 0.4, 0.53, 0.46, 0.43, 0.48, 0.56, 0.69, 0.62, 0.62, 0.63, 0.62, 0.62, 0.63, 0.73, 
-                                    1.96, 0.75, 0.76, 0.73, 0.64, 0.66, 0.66, 0.66, 0.7, 0.66, 0.73, 0.68, 0.66, 0.67, 0.66, 0.72, 0.68, 0.64, 0.61, 
-                                    0.63, 0.58, 0.66, 0.6, 0.7, 0.62, 0.49, 0.59, 0.58, 0.59, 0.63, 1.59, 0.6, 0.58, 0.54, 0.62, 0.55, 0.54, 0.52, 
-                                    0.5, 0.53, 0.55, 0.49, 0.47, 0.51, 0.49, 0.52, 0.49, 0.49, 0.49, 0.56, 0.75, 0.51, 0.42, 0.46, 0.47, 0.43, 0.38, 
-                                    0.39, 0.39, 0.41, 0.43, 0.38, 0.41, 0.36, 0.41, 0.38, 0.42, 0.42, 0.37, 0.41, 0.41, 0.34, 0.32, 0.37, 0.32, 0.34, 
-                                    0.34, 0.34, 0.32, 0.41, 0.62, 0.33, 0.4, 0.32, 0.32, 0.29, 0.35, 0.32, 0.32, 0.28, 0.26, 0.25, 0.29, 0.26, 0.27, 
-                                    0.27, 0.24, 0.28, 0.3, 0.27, 0.23, 0.23, 0.28, 0.25, 0.29, 0.24, 0.21, 0.26, 0.29, 0.23, 0.2, 0.24, 0.25, 0.23, 
-                                    0.21, 0.26, 0.38, 0.24, 0.21, 0.25, 0.23, 0.22, 0.22, 0.24, 0.23, 0.23, 0.26, 0.24, 0.28, 0.64, 9.96, 0.15, 0.11, 
-                                    0.11, 0.1, 0.1, 0.1, 0.11, 0.11, 0.12, 0.13, 0.12, 0.16, 0.12, 0.13, 0.12, 0.1, 0.13, 0.13, 0.13, 0.25, 0.1, 0.14, 
-                                    0.14, 0.12, 0.14, 0.14, 0.17, 0.15, 0.19, 0.38, 0.2, 0.19, 0.24, 0.26, 0.36, 1.58, 1.49, 0.1, 0.2, 1.98, 0.05, 0.08, 
-                                    0.07, 0.07, 0.14, 0.08, 0.08, 0.53, 3.06, 3.31};
-                                
-    m_blockSizeDistribution = std::piecewise_constant_distribution<double> (intervals.begin(), intervals.end(), weights.begin());
+//    std::array<double,201> intervals {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 
+//                                     130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 
+//                                     240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 
+//                                     350, 355, 360, 365, 370, 375, 380, 385, 390, 395, 400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 
+//                                     460, 465, 470, 475, 480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560, 565, 
+//                                     570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 630, 635, 640, 645, 650, 655, 660, 665, 670, 675, 
+//                                     680, 685, 690, 695, 700, 705, 710, 715, 720, 725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 
+//                                     790, 795, 800, 805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880, 885, 890, 895, 
+//                                     900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960, 965, 970, 975, 980, 985, 990, 995, 1000};
+//    std::array<double,200> weights {3.58, 0.33, 0.35, 0.4, 0.38, 0.4, 0.53, 0.46, 0.43, 0.48, 0.56, 0.69, 0.62, 0.62, 0.63, 0.62, 0.62, 0.63, 0.73, 
+//                                    1.96, 0.75, 0.76, 0.73, 0.64, 0.66, 0.66, 0.66, 0.7, 0.66, 0.73, 0.68, 0.66, 0.67, 0.66, 0.72, 0.68, 0.64, 0.61, 
+//                                    0.63, 0.58, 0.66, 0.6, 0.7, 0.62, 0.49, 0.59, 0.58, 0.59, 0.63, 1.59, 0.6, 0.58, 0.54, 0.62, 0.55, 0.54, 0.52, 
+//                                    0.5, 0.53, 0.55, 0.49, 0.47, 0.51, 0.49, 0.52, 0.49, 0.49, 0.49, 0.56, 0.75, 0.51, 0.42, 0.46, 0.47, 0.43, 0.38, 
+//                                    0.39, 0.39, 0.41, 0.43, 0.38, 0.41, 0.36, 0.41, 0.38, 0.42, 0.42, 0.37, 0.41, 0.41, 0.34, 0.32, 0.37, 0.32, 0.34, 
+//                                    0.34, 0.34, 0.32, 0.41, 0.62, 0.33, 0.4, 0.32, 0.32, 0.29, 0.35, 0.32, 0.32, 0.28, 0.26, 0.25, 0.29, 0.26, 0.27, 
+//                                    0.27, 0.24, 0.28, 0.3, 0.27, 0.23, 0.23, 0.28, 0.25, 0.29, 0.24, 0.21, 0.26, 0.29, 0.23, 0.2, 0.24, 0.25, 0.23, 
+//                                    0.21, 0.26, 0.38, 0.24, 0.21, 0.25, 0.23, 0.22, 0.22, 0.24, 0.23, 0.23, 0.26, 0.24, 0.28, 0.64, 9.96, 0.15, 0.11, 
+//                                    0.11, 0.1, 0.1, 0.1, 0.11, 0.11, 0.12, 0.13, 0.12, 0.16, 0.12, 0.13, 0.12, 0.1, 0.13, 0.13, 0.13, 0.25, 0.1, 0.14, 
+//                                    0.14, 0.12, 0.14, 0.14, 0.17, 0.15, 0.19, 0.38, 0.2, 0.19, 0.24, 0.26, 0.36, 1.58, 1.49, 0.1, 0.2, 1.98, 0.05, 0.08, 
+//                                    0.07, 0.07, 0.14, 0.08, 0.08, 0.53, 3.06, 3.31};
+//                                
+//    m_blockSizeDistribution = std::piecewise_constant_distribution<double> (intervals.begin(), intervals.end(), weights.begin());
+
+
+
   }
   
 /*   if (GetNode()->GetId() == 0)
@@ -225,6 +228,35 @@ DashSelfishMiner::MineBlock (void)
   stringStream << height << "/" << minerId;
   blockHash = stringStream.str();
 
+  std::random_device rdTrans;
+  m_gen_count.seed(rdTrans());
+
+	transactionCount = (int) m_transactionCountDistribution(m_gen_count);
+	transactionHeight = 0;
+	blockSize = 0;
+
+
+	int i=0;
+
+	for(i=0;i<transactionCount;i++)
+	{
+
+  	std::random_device rdTransSize;
+  	m_gen_size.seed(rdTransSize());
+		transactionSize = m_transactionSizeDistribution(m_gen_size);
+		transactionHeight = i+1;
+		Transaction transaction(transactionSize, transactionHeight);
+		blockSize += transactionSize;
+
+		thisBlockTransactions.push_back(transaction);
+
+	}
+
+	averageTransactionSize = blockSize/transactionCount;
+	transactionsPerSec = ((double) transactionCount)/600;
+
+	//std::cout<<"Transactions per second for this block ; "<<transactionsPerSec <<"\n";
+	//std::cout<<"Transactions in this block ; "<<transactionCount<<"\n";
 
 /*   //For attacks
    if (GetNode ()->GetId () == 0)
@@ -243,21 +275,22 @@ DashSelfishMiner::MineBlock (void)
     m_nextBlockSize = m_fixedBlockSize;
   else
   {
-    m_nextBlockSize = m_blockSizeDistribution(m_generator) * 1000;	// *1000 because the m_blockSizeDistribution returns KBytes
+    //m_nextBlockSize = m_blockSizeDistribution(m_generator) * 1000;	// *1000 because the m_blockSizeDistribution returns KBytes
+		m_nextBlockSize = blockSize;
 
-    if (m_cryptocurrency == DASH)
-    {
+    //if (m_cryptocurrency == DASH)
+    //{
       // The block size is linearly dependent on the averageBlockGenIntervalSeconds
       if(m_nextBlockSize < m_maxBlockSize - m_headersSizeBytes)
         m_nextBlockSize = m_nextBlockSize*m_averageBlockGenIntervalSeconds / m_realAverageBlockGenIntervalSeconds
                         + m_headersSizeBytes;	
       else
         m_nextBlockSize = m_nextBlockSize*m_averageBlockGenIntervalSeconds / m_realAverageBlockGenIntervalSeconds;
-    }
+    //}
   }
 
-  if (m_nextBlockSize < m_averageTransactionSize)
-    m_nextBlockSize = m_averageTransactionSize + m_headersSizeBytes;
+  if (m_nextBlockSize < averageTransactionSize)
+    m_nextBlockSize = averageTransactionSize + m_headersSizeBytes;
 
   Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
                   currentTime, currentTime, transactionCount, blockTransactions ,Ipv4Address("127.0.0.1"));
@@ -959,8 +992,8 @@ DashSelfishMiner::ReleaseChain(std::vector<Block> blocks)
 		  
           for (int j=0; j<block["blocks"].Size(); j++)
           {  
-            int    noTransactions = static_cast<int>((block["blocks"][j]["size"].GetInt() - m_blockHeadersSizeBytes)/m_averageTransactionSize);
-            long   blockSize = m_blockHeadersSizeBytes + m_transactionIndexSize*noTransactions;
+            int transactionCount = static_cast<int>(block["blocks"][j]["transactionCount"].GetInt());
+            long blockSize = m_blockHeadersSizeBytes + 2*transactionCount;
             blockMessageSize += blockSize;
           }
 		  
@@ -1049,8 +1082,8 @@ DashSelfishMiner::ReleaseChain(std::vector<Block> blocks)
 		  
           for (int j=0; j<block["blocks"].Size(); j++)
           {  
-            int    noTransactions = static_cast<int>((block["blocks"][j]["size"].GetInt() - m_blockHeadersSizeBytes)/m_averageTransactionSize);
-            long   blockSize = m_blockHeadersSizeBytes + m_transactionIndexSize*noTransactions;
+            int transactionCount = static_cast<int>(block["blocks"][j]["transactionCount"].GetInt());
+            long   blockSize = m_blockHeadersSizeBytes + 2 * transactionCount;
             blockMessageSize += blockSize;
           }
 		  

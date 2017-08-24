@@ -34,7 +34,6 @@ public:
    */
   static TypeId GetTypeId (void);
   DashNode (void);
-
   virtual ~DashNode (void);
 
   /**
@@ -42,12 +41,10 @@ public:
    */
   Ptr<Socket> GetListeningSocket (void) const;
 
-
   /**
    * \return a vector containing the addresses of peers
    */  
   std::vector<Ipv4Address> GetPeersAddresses (void) const;
-  
   
   /**
    * \brief Set the addresses of peers
@@ -84,12 +81,8 @@ public:
    * \param protocolType the type of protocol used for advertising new blocks
    */
   void SetProtocolType (enum ProtocolType protocolType);
+	void SetNodeType (enum NodeType nodeType);
 
-protected:
-  virtual void DoDispose (void);           // inherited from Application base class.
-
-  virtual void StartApplication (void);    // Called at time specified by Start
-  virtual void StopApplication (void);     // Called at time specified by Stop
 
   /**
    * \brief Handle a packet received by the application
@@ -334,8 +327,6 @@ protected:
   bool            m_isMiner;                          //!< True if the node is also a miner, False otherwise
   double          m_downloadSpeed;                    //!< The download speed of the node in Bytes/s
   double          m_uploadSpeed;                      //!< The upload speed of the node in Bytes/s
-  double          m_averageTransactionSize;           //!< The average transaction size. Needed for compressed blocks
-  int             m_transactionIndexSize;             //!< The transaction index size in bytes. Needed for compressed blocks
   bool            m_blockTorrent;                     //!< True if the blockTorrent mechanism is used, False otherwise
   uint32_t        m_chunkSize;                        //!< The size of the chunk in Bytes, when blockTorrent is used
   bool            m_spv;                              //!< Simplified Payment Verification. Used only in conjuction with blockTorrent
@@ -359,6 +350,7 @@ protected:
   std::vector<double>                                 m_receiveBlockTimes;              //!< contains the times of the next sendBlock events
   std::vector<double>                                 m_receiveCompressedBlockTimes;    //!< contains the times of the next sendBlock events
   enum ProtocolType                                   m_protocolType;                   //!< protocol type
+	enum NodeType																				m_nodeType;                       //!< normal or master node
 
   const int       m_dashPort;               //!< 8333
   const int       m_secondsPerMin;             //!< 60
@@ -372,6 +364,11 @@ protected:
   /// Traced Callback: received packets, source address.
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
   
+protected:
+  virtual void DoDispose (void);           // inherited from Application base class.
+
+  virtual void StartApplication (void);    // Called at time specified by Start
+  virtual void StopApplication (void);     // Called at time specified by Stop
 };
 
 } // namespace ns3

@@ -50,7 +50,6 @@ main (int argc, char *argv[])
   bool unsolicitedRelayNetwork = false;
   double ud = 0;
   double r = 0;
-  enum Cryptocurrency  cryptocurrency = DASH;
   double tStart = get_wall_time(), tFinish, tSimStart, tSimFinish;
   const int secsPerMin = 60;
   const uint16_t dashPort = 8333;
@@ -70,14 +69,21 @@ main (int argc, char *argv[])
   enum DashRegion minersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
                                                NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, ASIA_PACIFIC};
+  enum DashRegion masterNodesRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
+                                               EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
+                                               NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, ASIA_PACIFIC};
+
 /*   double minersHash[] = {0.4, 0.4, 0.3};
   enum DashRegion minersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC}; */
 
   int totalNoNodes = sizeof(minersHash)/sizeof(double);
   int noMiners = totalNoNodes;
+	int noMasterNodes = 0;
   int attackerId = totalNoNodes - 1;
   int minConnectionsPerNode = 1;
   int maxConnectionsPerNode = 1;
+	int minConnectionsPerMasterNode=0;
+	int maxConnectionsPerMasterNode=0;
   
   int iterations = 1;
   int successfullAttacks = 0;
@@ -153,9 +159,9 @@ main (int argc, char *argv[])
     std::vector<uint32_t>                                miners;
   
 	
-    DashTopologyHelper dashTopologyHelper (systemCount, totalNoNodes, noMiners, minersRegions,
-                                                 cryptocurrency, minConnectionsPerNode, 
-                                                 maxConnectionsPerNode, 2, systemId);
+    DashTopologyHelper dashTopologyHelper (systemCount, totalNoNodes, noMasterNodes ,noMiners, minersRegions, masterNodesRegions, 
+                                                  minConnectionsPerNode, 
+                                                 maxConnectionsPerNode, minConnectionsPerMasterNode, maxConnectionsPerMasterNode, 2, systemId);
 
     // Install stack on Grid
     InternetStackHelper stack;
@@ -169,6 +175,7 @@ main (int argc, char *argv[])
     peersDownloadSpeeds = dashTopologyHelper.GetPeersDownloadSpeeds();
     peersUploadSpeeds = dashTopologyHelper.GetPeersUploadSpeeds();
     nodesInternetSpeeds = dashTopologyHelper.GetNodesInternetSpeeds();
+
     if (systemId == 0)
       PrintDashRegionStats(dashTopologyHelper.GetDashNodesRegions(), totalNoNodes);
 

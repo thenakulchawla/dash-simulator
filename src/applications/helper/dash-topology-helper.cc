@@ -33,18 +33,19 @@
 #include <array>
 
 static double GetWallTime();
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("DashTopologyHelper");
 
-DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, uint32_t noMiners, enum DashRegion *minersRegions,
-                                              enum Cryptocurrency cryptocurrency, int minConnectionsPerNode, int maxConnectionsPerNode,  
+DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, uint32_t noMasterNodes ,uint32_t noMiners, enum DashRegion *minersRegions,enum DashRegion *masterNodesRegions,
+                                               int minConnectionsPerNode, int maxConnectionsPerNode, int minConnectionsPerMasterNode, int maxConnectionsPerMasterNode,  
 						                      double latencyParetoShapeDivider, uint32_t systemId)
-  : m_noCpus(noCpus), m_totalNoNodes (totalNoNodes), m_noMiners (noMiners),
+  : m_noCpus(noCpus), m_totalNoNodes (totalNoNodes), m_noMasterNodes(noMasterNodes) ,m_noMiners (noMiners),
     m_minConnectionsPerNode (minConnectionsPerNode), m_maxConnectionsPerNode (maxConnectionsPerNode), 
-	m_totalNoLinks (0), m_latencyParetoShapeDivider (latencyParetoShapeDivider), 
+	m_minConnectionsPerMasterNode (minConnectionsPerMasterNode), m_maxConnectionsPerMasterNode (maxConnectionsPerMasterNode),m_totalNoLinks (0), m_latencyParetoShapeDivider (latencyParetoShapeDivider), 
 	m_systemId (systemId), m_minConnectionsPerMiner (700), m_maxConnectionsPerMiner (800),
-	m_minerDownloadSpeed (100), m_minerUploadSpeed (100), m_cryptocurrency (cryptocurrency)
+	m_minerDownloadSpeed (100), m_minerUploadSpeed (100)
 {
   
   std::vector<uint32_t>     nodes;    //nodes contain the ids of the nodes
@@ -239,7 +240,6 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
    96.3, 96.4, 96.5, 96.6, 96.7, 96.8, 96.9, 97.0, 97.1, 97.2, 97.3, 97.4,
    97.5, 97.6, 97.7, 97.8, 97.9, 98.0, 98.1, 98.2, 98.3, 98.4, 98.5, 98.6,
    98.7, 98.8, 98.9, 99.0, 99.1, 99.2, 99.3, 99.4, 99.5, 99.6, 99.7, 99.8, 99.9, 100};
-
 
   std::array<double,1000> EuropeDownloadWeights {
     134, 77, 65, 58, 43, 44, 48, 42, 34, 41, 42, 41, 33, 35, 35, 38, 37, 30, 36, 37, 34, 24, 21, 23,
@@ -633,7 +633,20 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	
+
+std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38,38.5,39,39.5,40,40.5,41,41.5,42,42.5,43,43.5,44,44.5,45,45.5,46,46.5,47,47.5,48,48.5,49,49.5,50,50.5,51,51.5,52,52.5,53,53.5,54,54.5,55,55.5,56,56.5,
+        57,57.5,58,58.5,59,59.5,60,60.5,61,61.5,62,62.5,63,63.5,64,64.5,65,65.5,66,66.5,67,67.5,68,68.5,69,69.5,70,70.5,71,71.5,72,72.5,73,73.5,74,74.5,75,75.5,76,76.5,77,77.5,78,78.5,79,79.5,80,80.5,81,81.5,82,82.5,83,83.5,84,84.5 
+};
+    
+    std::array<double,99> masterNodesDownloadWeights { 20,25,20,20,25,25,30,30,30,30,30,30,30,30,30,30,70,80,90,100,90,450,350,350,350,300,250,240,260,300,300,289,150,149,150,90,89,55,60,67,69,56,58,67,78,57,67,58,57,54,52,45,48,49,
+			48,50,51,40,42,43,44,40,39,37,38,39,35,39,38,25,27,28,29,27,25,28,23,25,26,30,31,32,33,16,17,12,11,9,7,7,6,5,1,1,4,2,3,2 };
+
+    std::array<double,100> masterNodesUploadIntervals { 35,38.5,42,45.5,49,52.5,56,59.5,63,66.5,70,73.5,77,80.5,84,87.5,91,94.5,98,101.5,105,108.5,112,115.5,119,122.5,126,129.5,133,136.5,140,143.5,147,150.5,154,157.5,161,164.5,168,
+        171.5,174,177.5,181,184.5,188,191.5,195,198.5,202,205.5,209,212.5,216,219.5,223,226.5,230,233.5,237,240.5,244,247.5,248,251.5,254,257.5,261,264.5,268,271.5,275,278.5,282,285.5,289,292.5,296,299.5,303,306.5,310,313.5,317,
+				320.5,324,327.5,331,334.5,338,341.5,345,348.5,352,355.5,359,362.5,366,369.5,373,376.5 };
+    
+    std::array<double,99> masterNodesUploadWeights { 80,85,90,150,160,165,170,180,190,200,205,220,230,350,350,300,280,270,260,250,220,210,190,180,160,150,145,130,110,105,100,95,80,60,40,30,20,10,9,8,7,6,5,4,3,2,1,1,1,1,1,1,1,1,1,1,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
 	
   for (int k = 0; k < 6; k++)
     for (int j = 0; j < 6; j++)
@@ -646,12 +659,27 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   m_regionDownloadSpeeds[JAPAN] = 6.9;
   m_regionDownloadSpeeds[AUSTRALIA] = 16;
 
-  m_regionUploadSpeeds[NORTH_AMERICA] = 6.74;
-  m_regionUploadSpeeds[EUROPE] = 6.72;
-  m_regionUploadSpeeds[SOUTH_AMERICA] = 2.2;
-  m_regionUploadSpeeds[ASIA_PACIFIC] = 6.53;
-  m_regionUploadSpeeds[JAPAN] = 1.7;
-  m_regionUploadSpeeds[AUSTRALIA] = 6.1;
+  m_regionUploadSpeeds[NORTH_AMERICA] = 11.74;
+  m_regionUploadSpeeds[EUROPE] = 11.72;
+  m_regionUploadSpeeds[SOUTH_AMERICA] = 7.2;
+  m_regionUploadSpeeds[ASIA_PACIFIC] = 11.53;
+  m_regionUploadSpeeds[JAPAN] = 6.7;
+  m_regionUploadSpeeds[AUSTRALIA] = 11.1;
+
+	m_regionMasterDownloadSpeeds[NORTH_AMERICA] = 45.68;
+  m_regionMasterDownloadSpeeds[EUROPE] = 25.29;
+  m_regionMasterDownloadSpeeds[SOUTH_AMERICA] = 15.89;
+  m_regionMasterDownloadSpeeds[ASIA_PACIFIC] = 20.56;
+  m_regionMasterDownloadSpeeds[JAPAN] = 11.9;
+  m_regionMasterDownloadSpeeds[AUSTRALIA] = 21;
+
+	m_regionMasterUploadSpeeds[NORTH_AMERICA] = 11.74;
+  m_regionMasterUploadSpeeds[EUROPE] = 11.72;
+  m_regionMasterUploadSpeeds[SOUTH_AMERICA] = 7.2;
+  m_regionMasterUploadSpeeds[ASIA_PACIFIC] = 11.53;
+  m_regionMasterUploadSpeeds[JAPAN] = 6.7;
+  m_regionMasterUploadSpeeds[AUSTRALIA] = 11.1;
+
   srand (1000);
 
   // Bounds check
@@ -665,73 +693,72 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
     NS_FATAL_ERROR ("You need at least one miner\n");
   }
 
+	if(m_noMasterNodes > m_totalNoNodes)
+	{
+		NS_FATAL_ERROR ("Master nodes can't be more than total number of nodes\n");
+	}
+
+	if(m_noMasterNodes < 1)
+	{
+		NS_FATAL_ERROR ("Master nodes can't be less than 1\n");
+	}
+
   m_dashNodesRegion = new uint32_t[m_totalNoNodes];
-  
+	m_dashMasterNodesRegion = new uint32_t [m_noMasterNodes];
   
   std::array<double,7> nodesDistributionIntervals {NORTH_AMERICA, EUROPE, SOUTH_AMERICA, ASIA_PACIFIC, JAPAN, AUSTRALIA, OTHER};
 
-//  switch (m_cryptocurrency) 
-//  {
-//    case DASH: 
-//    {
   if (m_systemId == 0)
-    std::cout << "DASH Mode selected\n";
-  std::array<double,6> nodesDistributionWeights {38.69, 51.59, 1.13, 5.74, 1.19, 1.66};
+    std::cout << "DASH cryptocurrency \n";
+  std::array<double,6> nodesDistributionWeights {30, 60, 0, 8, 1, 1};
   m_nodesDistribution = std::piecewise_constant_distribution<double> (nodesDistributionIntervals.begin(), nodesDistributionIntervals.end(), nodesDistributionWeights.begin());
 
-//      break;		
-//    }
-    //case LITECOIN: 
-    //{
-    //  if (m_systemId == 0)
-    //    std::cout << "LITECOIN Mode selected\n";
-    //  std::array<double,6> nodesDistributionWeights {36.61, 47.91, 1.49, 10.22, 2.38, 1.39};
-    //  m_nodesDistribution = std::piecewise_constant_distribution<double> (nodesDistributionIntervals.begin(), nodesDistributionIntervals.end(), nodesDistributionWeights.begin());
-
-    //  break;		
-    //}
-    //case DOGECOIN: 
-    //{
-    //  if (m_systemId == 0)
-    //    std::cout << "DOGECOIN Mode selected\n";
-    //  std::array<double,6> nodesDistributionWeights {39.24, 48.79, 2.12, 6.97, 1.06, 1.82};
-    //  m_nodesDistribution = std::piecewise_constant_distribution<double> (nodesDistributionIntervals.begin(), nodesDistributionIntervals.end(), nodesDistributionWeights.begin());
-
-    //  break;		
-    //}
-//  }
-  
-
-  std::array<double,7> connectionsDistributionIntervals {1, 5, 10, 15, 20, 30, 125};
-  for (int i = 0; i < 7; i++)
+  std::array<double,6> connectionsDistributionIntervals {1, 5, 10, 15, 20, 25};
+  for (int i = 0; i < 6; i++)
 	connectionsDistributionIntervals[i] -= i;
 	
-  std::array<double,6> connectionsDistributionWeights {10, 40, 30, 13, 6, 1};
+  std::array<double,5> connectionsDistributionWeights {10, 10, 30, 45, 5};
                                 
   m_connectionsDistribution = std::piecewise_constant_distribution<double> (connectionsDistributionIntervals.begin(), connectionsDistributionIntervals.end(), connectionsDistributionWeights.begin());
 
   m_europeDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), EuropeDownloadWeights.begin());
   m_europeUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), EuropeUploadWeights.begin());
+
   m_northAmericaDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), NorthAmericaDownloadWeights.begin());
   m_northAmericaUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), NorthAmericaUploadWeights.begin());
+
   m_asiaPacificDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), AsiaPacificDownloadWeights.begin());
   m_asiaPacificUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), AsiaPacificUploadWeights.begin());
+
   m_japanDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), JapanDownloadWeights.begin());
   m_japanUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), JapanUploadWeights.begin());
+
   m_southAmericaDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), SouthAmericaDownloadWeights.begin());
   m_southAmericaUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), SouthAmericaUploadWeights.begin());
+
   m_australiaDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), AustraliaDownloadWeights.begin());
   m_australiaUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), AustraliaUploadWeights.begin());
   
+ m_masterNodesDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (masterNodesDownloadIntervals.begin(), masterNodesDownloadIntervals.end(), masterNodesDownloadWeights.begin());
+  m_masterNodesUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (masterNodesUploadIntervals.begin(), masterNodesUploadIntervals.end(), masterNodesUploadWeights.begin());
+  
+
   m_minersRegions = new enum DashRegion[m_noMiners];
   for (int i = 0; i < m_noMiners; i++)
   {
     m_minersRegions[i] = minersRegions[i];
   }
   
+  m_masterNodesRegions = new enum DashRegion[m_noMasterNodes];
+  for (int i = 0; i < m_noMasterNodes; i++)
+  {
+    m_masterNodesRegions[i] = masterNodesRegions[i];
+  }
+
   /**
    * Create a vector containing all the nodes ids
    */
+
   for (int i = 0; i < m_totalNoNodes; i++)
   {
     nodes.push_back(i);
@@ -746,12 +773,24 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
     }
   } */
 
-  //Choose the miners randomly. They should be unique (no miner should be chosen twice).
-  //So, remove each chose miner from nodes vector
-  for (int i = 0; i < noMiners; i++)
+  //Choose the miners and masterNodes randomly. They should be unique (no miner should be chosen twice).
+  //So, remove each chosen miner from nodes vector
+	//First fill the miners vector, then fill the masternode vector
+	
+	int tempNoMiners = noMiners;
+
+  for (int i = 0; i < (noMiners + noMasterNodes); i++)
   {
     uint32_t index = rand() % nodes.size();
-    m_miners.push_back(nodes[index]);
+		if(tempNoMiners != 0)
+		{
+    	m_miners.push_back(nodes[index]);
+			tempNoMiners--;
+		}
+		else
+		{
+			m_masterNodes.push_back(nodes[index]);
+		}
 	
 /*     if (m_systemId == 0)
       std::cout << "\n" << "Chose " << nodes[index] << "     "; */
@@ -765,9 +804,12 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
 	    std::cout << *it << " " ;
       }
 	} */
+
   }
 
+
   sort(m_miners.begin(), m_miners.end());
+	sort(m_masterNodes.begin(),m_masterNodes.end());
   
 /*   //Print the miners
   if (m_systemId == 0)
@@ -781,14 +823,15 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   } */
   
   //Interconnect the miners
-  for(auto &miner : m_miners)
-  {
-    for(auto &peer : m_miners)
-    {
-      if (miner != peer)
-        m_nodesConnections[miner].push_back(peer);
+
+	for(auto &miner : m_miners)
+	{
+		for(auto &peer : m_miners)
+		{
+			if (miner != peer)
+				m_nodesConnections[miner].push_back(peer);
+		}
 	}
-  }
   
   
 /*   //Print the miners' connections
@@ -807,7 +850,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   } */
   
   //Interconnect the nodes
- 
+	
   //nodes contain the ids of the nodes
   nodes.clear();
 
@@ -828,6 +871,11 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
       m_minConnections[i] = m_minConnectionsPerMiner;
       m_maxConnections[i] = m_maxConnectionsPerMiner;
     }
+	else if(std::find(m_masterNodes.begin(),m_masterNodes.end(),i) != m_masterNodes.end())
+	{
+		m_minConnections[i] = m_minConnectionsPerMasterNode;
+		m_maxConnections[i] = m_maxConnectionsPerMasterNode;
+	}
 	else
 	{
       if (m_minConnectionsPerNode > 0 && m_maxConnectionsPerNode > 0)
@@ -865,7 +913,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
     while (m_nodesConnections[i].size() < m_minConnections[i] && count < 10*m_minConnections[i])
     {
       uint32_t index = rand() % nodes.size();
-	  uint32_t candidatePeer = nodes[index];
+	  	uint32_t candidatePeer = nodes[index];
 		
       if (candidatePeer == i)
       {
@@ -891,13 +939,15 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
         {
 /* 		  if (m_systemId == 0)
             std::cout << "Node " << nodes[index] << " is removed from index\n"; */
+
           nodes.erase(nodes.begin() + index);
         }
       }
       count++;
 	}
   }
-  
+
+
   //Then the rest of nodes
   for(int i = 0; i < m_totalNoNodes; i++)
   {
@@ -906,7 +956,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
     while (m_nodesConnections[i].size() < m_minConnections[i] && count < 10*m_minConnections[i])
     {
       uint32_t index = rand() % nodes.size();
-	  uint32_t candidatePeer = nodes[index];
+	  	uint32_t candidatePeer = nodes[index];
 		   
       if (candidatePeer == i)
       {
@@ -940,14 +990,14 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   }
   
   //Print the nodes with fewer than required connections
-  if (m_systemId == 0)
-  {
-    for(int i = 0; i < m_totalNoNodes; i++)
-    {
-	  if (m_nodesConnections[i].size() < m_minConnections[i])
-	    std::cout << "Node " << i << " should have at least " << m_minConnections[i] << " connections but it has only " << m_nodesConnections[i].size() << " connections\n";
-    }
-  }
+  //if (m_systemId == 0)
+  //{
+  //  for(int i = 0; i < m_totalNoNodes; i++)
+  //  {
+	//  if (m_nodesConnections[i].size() < m_minConnections[i])
+	//    std::cout << "Node " << i << " should have at least " << m_minConnections[i] << " connections but it has only " << m_nodesConnections[i].size() << " connections\n";
+  //  }
+  //}
   
 /*   //Print the nodes' connections
   if (m_systemId == 0)
@@ -968,9 +1018,10 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   if (m_systemId == 0)
   {
     int *intervals =  new int[connectionsDistributionIntervals.size() + 1];
-	int *stats = new int[connectionsDistributionIntervals.size()];
-	double averageNoConnectionsPerNode = 0;
-	double averageNoConnectionsPerMiner = 0;
+		int *stats = new int[connectionsDistributionIntervals.size()];
+		double averageNoConnectionsPerNode = 0;
+		double averageNoConnectionsPerMasterNode = 0;
+		double averageNoConnectionsPerMiner = 0;
 
 	for(int i = 0; i < connectionsDistributionIntervals.size(); i++)
       intervals[i] = connectionsDistributionIntervals[i] + i;
@@ -985,10 +1036,18 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   	  //std::cout << "\nNode " << node.first << ": " << m_minConnections[node.first] << ", " << m_maxConnections[node.first] << ", " << node.second.size();
       bool placed = false;
 	  
-      if ( std::find(m_miners.begin(), m_miners.end(), node.first) == m_miners.end() )
-        averageNoConnectionsPerNode += node.second.size();
+      if ( std::find(m_miners.begin(), m_miners.end(), node.first) == m_miners.end() 
+					&& std::find(m_masterNodes.begin(), m_masterNodes.end(), node.first) == m_masterNodes.end() )
+			{
+				averageNoConnectionsPerNode += node.second.size();}
+			else if(std::find(m_miners.begin(), m_miners.end(), node.first) == m_miners.end())
+			{
+        averageNoConnectionsPerMasterNode += node.second.size();
+			}
       else
+			{
         averageNoConnectionsPerMiner += node.second.size();
+			}
 	  
 	  for (int i = 1; i < connectionsDistributionIntervals.size(); i++)
       {
@@ -1006,19 +1065,23 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
       }
     }
 	
-    std::cout << "Average Number of Connections Per Node = " << averageNoConnectionsPerNode / (m_totalNoNodes - m_noMiners) 
-	          << "\nAverage Number of Connections Per Miner = " << averageNoConnectionsPerMiner / (m_noMiners) << "\nConnections distribution: \n";
+    std::cout << "Average Number of Connections Per Full Node = " << averageNoConnectionsPerNode / (m_totalNoNodes - m_noMiners -m_noMasterNodes) 
+	          << "\nAverage Number of Connections Per Miner = " << averageNoConnectionsPerMiner / (m_noMiners) << "\nAverage Number of Connections Per Master Node = "<< averageNoConnectionsPerMasterNode / (m_noMasterNodes) <<  "\nConnections distribution: \n";
 			  
+//    std::cout << "Average Number of Connections Per Full Node = " << averageNoConnectionsPerNode / (m_totalNoNodes - m_noMiners -m_noMasterNodes) 
+//	          << "\nAverage Number of Connections Per Miner = " << averageNoConnectionsPerMiner / (m_noMiners) << "\nConnections distribution: \n";
+
     for (uint32_t i = 0; i < connectionsDistributionIntervals.size(); i++)
     {
       std::cout << intervals[i] << "-" << intervals[i+1] << ": " << stats[i] << "(" << stats[i] * 100.0 / m_totalNoNodes << "%)\n";
     }
 	
     delete[] intervals;
-	delete[] stats;
+		delete[] stats;
   }
  
   tFinish = GetWallTime();
+
   if (m_systemId == 0)
   {
     std::cout << "The nodes connections were created in " << tFinish - tStart << "s.\n";
@@ -1035,6 +1098,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   PointToPointHelper pointToPoint;
   
   tStart = GetWallTime();
+
   //Create the dash nodes
   for (uint32_t i = 0; i < m_totalNoNodes; i++)
   {
@@ -1043,7 +1107,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
 /* 	if (m_systemId == 0)
       std::cout << "Creating a node with Id = " << i << " and systemId = " << i % m_noCpus << "\n"; */
     m_nodes.push_back (currentNode);
-	AssignRegion(i);
+		AssignRegion(i);
     AssignInternetSpeeds(i);
   }
 
@@ -1087,12 +1151,13 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
   }
   
   tFinish = GetWallTime();
+
   if (m_systemId == 0)
     std::cout << "The nodes were created in " << tFinish - tStart << "s.\n";
 
   tStart = GetWallTime();
   
-  //Create first the links between miners
+  //First create the links between miners
   for(auto miner = m_miners.begin(); miner != m_miners.end(); miner++)  
   {
 
@@ -1147,6 +1212,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
       }
     }
   }
+
   
   for(auto &node : m_nodesConnections)  
   {
@@ -1166,11 +1232,11 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
                                     std::min(m_nodesInternetSpeeds[m_nodes.at (*it).Get (0)->GetId()].uploadSpeed, 
                                     m_nodesInternetSpeeds[m_nodes.at (*it).Get (0)->GetId()].downloadSpeed));					
 		bandwidthStream.str("");
-        bandwidthStream.clear();
+    bandwidthStream.clear();
 		bandwidthStream << bandwidth << "Mbps";
 		
-        latencyStringStream.str("");
-        latencyStringStream.clear();
+    latencyStringStream.str("");
+    latencyStringStream.clear();
 		
 		if (m_latencyParetoShapeDivider > 0)
         {
@@ -1213,6 +1279,7 @@ DashTopologyHelper::DashTopologyHelper (uint32_t noCpus, uint32_t totalNoNodes, 
 DashTopologyHelper::~DashTopologyHelper ()
 {
   delete[] m_dashNodesRegion;
+	delete[] m_dashMasterNodesRegion;
   delete[] m_minersRegions;
 }
 
@@ -1274,6 +1341,7 @@ DashTopologyHelper::AssignIpv4Addresses (Ipv4AddressHelperCustom ip)
 	m_peersDownloadSpeeds[node2][interfaceAddress1] = m_nodesInternetSpeeds[node1].downloadSpeed;
 	m_peersUploadSpeeds[node1][interfaceAddress2] = m_nodesInternetSpeeds[node2].uploadSpeed;
 	m_peersUploadSpeeds[node2][interfaceAddress1] = m_nodesInternetSpeeds[node1].uploadSpeed;
+
   }
 
   
@@ -1295,6 +1363,7 @@ DashTopologyHelper::AssignIpv4Addresses (Ipv4AddressHelperCustom ip)
   tFinish = GetWallTime();
   if (m_systemId == 0)
     std::cout << "The Ip addresses have been assigned in " << tFinish - tStart << "s.\n";
+
 }
 
 
@@ -1308,8 +1377,6 @@ DashTopologyHelper::GetNode (uint32_t id)
 
   return (m_nodes.at (id)).Get (0);
 }
-
-
 
 Ipv4InterfaceContainer
 DashTopologyHelper::GetIpv4InterfaceContainer (void) const
@@ -1340,6 +1407,9 @@ void
 DashTopologyHelper::AssignRegion (uint32_t id)
 {
   auto index = std::find(m_miners.begin(), m_miners.end(), id);
+  //auto indexMasterNode = std::find(m_masterNodes.begin(), m_masterNodes.end(), id);
+	//using the same distribution for full nodes and master nodes, so if not a
+	//miner, goes else section for region assignment
   if ( index != m_miners.end() )
   {
     m_dashNodesRegion[id] = m_minersRegions[index - m_miners.begin()];
@@ -1353,16 +1423,22 @@ DashTopologyHelper::AssignRegion (uint32_t id)
     std::cout << "SystemId = " << m_systemId << " assigned node " << id << " in " << getDashRegion(getDashEnum(m_dashNodesRegion[id])) << "\n"; */
 }
 
-
 void 
 DashTopologyHelper::AssignInternetSpeeds(uint32_t id)
 {
   auto index = std::find(m_miners.begin(), m_miners.end(), id);
+  auto indexMasterNode = std::find(m_masterNodes.begin(), m_masterNodes.end(), id);
   if ( index != m_miners.end() )
   {
     m_nodesInternetSpeeds[id].downloadSpeed = m_minerDownloadSpeed;
     m_nodesInternetSpeeds[id].uploadSpeed = m_minerUploadSpeed;
   }
+	else if ( indexMasterNode != m_masterNodes.end())
+	{
+		m_nodesInternetSpeeds[id].downloadSpeed = m_masterNodesDownloadBandwidthDistribution(m_generator);
+		m_nodesInternetSpeeds[id].uploadSpeed = m_masterNodesUploadBandwidthDistribution(m_generator);
+	}
+
   else{
     switch(m_dashNodesRegion[id])
     {
@@ -1410,13 +1486,11 @@ DashTopologyHelper::AssignInternetSpeeds(uint32_t id)
               << " with download speed = " << m_nodesInternetSpeeds[id].downloadSpeed << " Mbps and upload speed " << m_nodesInternetSpeeds[id].uploadSpeed << " Mbps\n"; */
 }
 
-
 uint32_t* 
 DashTopologyHelper::GetDashNodesRegions (void)
 {
   return m_dashNodesRegion;
 }
-
 
 std::map<uint32_t, std::map<Ipv4Address, double>> 
 DashTopologyHelper::GetPeersDownloadSpeeds (void) const
@@ -1424,13 +1498,11 @@ DashTopologyHelper::GetPeersDownloadSpeeds (void) const
   return m_peersDownloadSpeeds;
 }
 
-
 std::map<uint32_t, std::map<Ipv4Address, double>> 
 DashTopologyHelper::GetPeersUploadSpeeds (void) const
 {
   return m_peersUploadSpeeds;
 }
-
 
 std::map<uint32_t, nodeInternetSpeeds> 
 DashTopologyHelper::GetNodesInternetSpeeds (void) const
