@@ -33,12 +33,15 @@ enum Messages
   EXT_GET_BLOCKS,   //10
   CHUNK,            //11
   EXT_GET_DATA,     //12
+  COMPACT_BLOCK,       //13
+  GET_BLOCK_TXNS      //16
 };
 
 
 /**
  * The dash miner types that have been implemented. The first one is the normal miner (default), the last 3 are used to simulate different attacks.
  */
+
 enum MinerType
 {
   NORMAL_MINER,                //DEFAULT
@@ -67,7 +70,8 @@ enum BlockBroadcastType
 enum ProtocolType
 {
   STANDARD_PROTOCOL,           //DEFAULT
-  SENDHEADERS
+  SENDHEADERS,
+  COMPACT
 };
 
 enum NodeType
@@ -96,7 +100,10 @@ enum DashRegion
 /**
  * The struct used for collecting node statistics.
  */
+
+
 typedef struct {
+
   int      nodeId;
   double   meanBlockReceiveTime;
   double   meanBlockPropagationTime;
@@ -116,6 +123,7 @@ typedef struct {
   long     headersReceivedBytes;
   long     headersSentBytes;
   long     getDataReceivedBytes;
+  long     getBlockTransactionsBytes;       //compact blocks high bandwidth requests for missing transactions
   long     getDataSentBytes;
   long     blockReceivedBytes;
   long     blockSentBytes;
@@ -135,8 +143,8 @@ typedef struct {
   long     blockTimeouts;
   long     chunkTimeouts;
   int      minedBlocksInMainChain;
-} nodeStatistics;
 
+} nodeStatistics;
 
 typedef struct {
   double downloadSpeed;

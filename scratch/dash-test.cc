@@ -43,6 +43,12 @@ NS_LOG_COMPONENT_DEFINE ("MyMpiTest");
 int 
 main (int argc, char *argv[])
 {
+    LogComponentEnable("DashNode", LOG_LEVEL_INFO);
+    //LogComponentEnable("MyMpiTest", LOG_LEVEL_ALL);
+    LogComponentEnable("DashMiner", LOG_LEVEL_INFO);
+    //LogComponentEnable("Ipv4AddressGenerator", LOG_LEVEL_FUNCTION);
+    //LogComponentEnable("OnOffApplication", LOG_LEVEL_DEBUG);
+    //LogComponentEnable("OnOffApplication", LOG_LEVEL_WARN);
 #ifdef NS3_MPI
   bool nullmsg = false;
   bool testScalability = false;
@@ -50,44 +56,49 @@ main (int argc, char *argv[])
   bool relayNetwork = false;
   bool unsolicitedRelayNetwork = false;
   bool sendheaders = false;
+  bool compact = false;
   bool blockTorrent = false;
   bool spv = false;
-  long blockSize = 1000000;
+  long blockSize = -1;
   int invTimeoutMins = -1;
   int chunkSize = -1;
   double tStart = get_wall_time(), tStartSimulation, tFinish;
   const int secsPerMin = 60;
   const uint16_t dashPort = 9999;
-  const double realAverageBlockGenIntervalMinutes = 10; //minutes
-  int targetNumberOfBlocks = 100;
-  double averageBlockGenIntervalSeconds =10 * secsPerMin; //seconds
+  const double realAverageBlockGenIntervalMinutes = 2.5; //minutes
+  int targetNumberOfBlocks = 500;
+  double averageBlockGenIntervalSeconds = 2.5 * secsPerMin; //seconds
   double fixedHashRate = 0.5;
   int start = 0;
   
-  int totalNoNodes = 7200;
+  int totalNoNodes = 48;
+  //int totalNoNodes = 11008;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
-  int minConnectionsPerMasterNode = 8;
-  int maxConnectionsPerMasterNode = 25;
+  int minConnectionsPerMasterNode = -1;
+  int maxConnectionsPerMasterNode = -1;
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 16;
-	int noMasterNodes = 4400;
+	//int noMasterNodes = 4400;
+	int noMasterNodes = 16;
 
 #ifdef MPI_TEST
   
-  double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
-                                0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
-                               0.005, 0.005, 0.002, 0.002};
+  //double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
+  //                              0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
+  //                             0.005, 0.005, 0.002, 0.002};
 	
-	//double dashMinersHash[] = {.40,.34,.08,.07,.04,.012,.012,.012,0,0,0,0,0,0,0,0};	
+	double dashMinersHash[] = {.40,.34,.08,.07,.04,.012,.012,.012,.0001,.0001,.00001,.0001,.0001,.00001,.0001,.00001};	
+
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
                                                NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA};
 
-  enum DashRegion dashMasterNodesRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
+  enum DashRegion dashMasterNodesRegions[] = { ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
-                                               NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA};
+                                               NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA	};
+
 #else
 	
 
@@ -136,16 +147,17 @@ main (int argc, char *argv[])
   cmd.AddValue ("sendheaders", "Change the protocol to sendheaders", sendheaders);
   cmd.AddValue ("blockTorrent", "Enable the BlockTorrent protocol", blockTorrent);
   cmd.AddValue ("spv", "Enable the spv mechanism", spv);
+  cmd.AddValue ("compact", "Change the protocol to compact block relay", compact);
 
   cmd.Parse(argc, argv);
  
   if (noMiners % 16 != 0)
   {
-    std::cout << "The number of miners must be multiple of 8" << std::endl;
+    std::cout << "The number of miners must be multiple of 16" << std::endl;
 	return 0;
   }
   
-    minersHash = new double[noMiners];
+  minersHash = new double[noMiners];
 	minersRegions = new enum DashRegion[noMiners];
 	
     for(int i = 0; i < noMiners/16; i++)
@@ -168,7 +180,9 @@ main (int argc, char *argv[])
    }	
 
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
-  stop = targetNumberOfBlocks * averageBlockGenIntervalMinutes; //seconds
+  //the simulator should run enough time to complete all blocks as expected
+  stop = 4 * targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
 
@@ -224,6 +238,7 @@ main (int argc, char *argv[])
   DashMinerHelper dashMinerHelper ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dashPort),
                                           nodesConnections[miners[0]], noMiners, peersDownloadSpeeds[0], peersUploadSpeeds[0],
                                           nodesInternetSpeeds[0], stats, minersHash[0], averageBlockGenIntervalSeconds);
+
   ApplicationContainer dashMiners;
   int count = 0;
   if (testScalability == true)
@@ -249,6 +264,8 @@ main (int argc, char *argv[])
 
       if (sendheaders)	  
         dashMinerHelper.SetProtocolType(SENDHEADERS);	  
+      if (compact)
+        dashMinerHelper.SetProtocolType(COMPACT);
       if (blockTorrent)	
       {		  
         dashMinerHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -285,8 +302,10 @@ main (int argc, char *argv[])
 	  dashMinerHelper.SetAttribute("FixedBlockIntervalGeneration", DoubleValue(3*averageBlockGenIntervalSeconds));
 	}
   }
+
   dashMiners.Start (Seconds (start));
-  dashMiners.Stop (Minutes (stop));
+  //dashMiners.Stop (Minutes (stop));
+  dashMiners.Stop (Seconds (stop));
 
 	int noMasterNodesTempCount = noMasterNodes; 
 
@@ -324,6 +343,8 @@ main (int argc, char *argv[])
 		
         if (sendheaders)	  
           dashNodeHelper.SetProtocolType(SENDHEADERS);	
+        if (compact)	  
+          dashNodeHelper.SetProtocolType(COMPACT);	
         if (blockTorrent)	  
         {
           dashNodeHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -341,6 +362,7 @@ main (int argc, char *argv[])
 	  }	
 	}	  
   }
+
   dashNodes.Start (Seconds (start));
   dashNodes.Stop (Minutes (stop));
   

@@ -276,7 +276,6 @@ Blockchain::GetNoStaleBlocks (void) const
   return m_noStaleBlocks;
 }
 
-
 int 
 Blockchain::GetNoOrphans (void) const
 {
@@ -508,6 +507,7 @@ Blockchain::AddBlock (const Block& newBlock)
   {
     /* The new block doesn't have a new blockHeight, so we have to add it in an existing row */
 	
+		//std::cout<<"Received an orphan block  or forking chain: \n";
     if (m_blocks[newBlock.GetBlockHeight()].size() > 0)
       m_noStaleBlocks++;									
 
@@ -552,13 +552,16 @@ void
 Blockchain::PrintOrphans (void)
 {
   std::vector<Block>::iterator  block_it;
+	int orphanCount =0;
   
   std::cout << "The orphans are:\n";
   
   for (block_it = m_orphans.begin();  block_it < m_orphans.end(); block_it++)
   {
     std::cout << *block_it << "\n";
+		orphanCount++;
   }
+	std::cout<<"The orphan count is : " << orphanCount;
   
   std::cout << "\n";
 }
@@ -573,7 +576,10 @@ Blockchain::GetBlocksInForks (void)
   for (blockHeight_it = m_blocks.begin(); blockHeight_it < m_blocks.end(); blockHeight_it++) 
   {
     if (blockHeight_it->size() > 1)
+		{
+			//std::cout<<"Block Iterator height : "<< blockHeight_it->size()<<"\n";
       count += blockHeight_it->size();
+		}
   }
   
   return count;
@@ -744,6 +750,8 @@ const char* getMessageName(enum Messages m)
     case EXT_GET_BLOCKS: return "EXT_GET_BLOCKS";
     case CHUNK: return "CHUNK";
     case EXT_GET_DATA: return "EXT_GET_DATA";
+    case COMPACT_BLOCK: return "COMPACT_BLOCK";
+    case GET_BLOCK_TXNS: return "GET_BLOCK_TXNS";
   }
 }
 
@@ -775,6 +783,7 @@ const char* getProtocolType(enum ProtocolType m)
   {
     case STANDARD_PROTOCOL: return "STANDARD_PROTOCOL";
     case SENDHEADERS: return "SENDHEADERS";
+    case COMPACT: return "COMPACT";
   }
 }
 
@@ -816,4 +825,4 @@ enum DashRegion getDashEnum(uint32_t n)
     case 6: return OTHER;
   }
 }
-}// Namespace ns3
+} // Namespace ns3

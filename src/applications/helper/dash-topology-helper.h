@@ -183,6 +183,7 @@ private:
   std::default_random_engine                     m_generator;
   std::piecewise_constant_distribution<double>   m_nodesDistribution;
   std::piecewise_constant_distribution<double>   m_connectionsDistribution;
+  std::piecewise_constant_distribution<double>   m_masterConnectionsDistribution;
   std::piecewise_constant_distribution<double>   m_europeDownloadBandwidthDistribution;
   std::piecewise_constant_distribution<double>   m_europeUploadBandwidthDistribution;
   std::piecewise_constant_distribution<double>   m_northAmericaDownloadBandwidthDistribution;

@@ -713,11 +713,20 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
   std::array<double,6> nodesDistributionWeights {30, 60, 0, 8, 1, 1};
   m_nodesDistribution = std::piecewise_constant_distribution<double> (nodesDistributionIntervals.begin(), nodesDistributionIntervals.end(), nodesDistributionWeights.begin());
 
-  std::array<double,6> connectionsDistributionIntervals {1, 5, 10, 15, 20, 25};
+  std::array<double,6> masterConnectionsDistributionIntervals {1, 5, 10, 15, 20, 25};
   for (int i = 0; i < 6; i++)
+	masterConnectionsDistributionIntervals[i] -= i;
+	
+  std::array<double,5> masterConnectionsDistributionWeights {0, 10, 25, 60, 5};
+                                
+
+  std::array<double,7> connectionsDistributionIntervals {1, 5, 10, 15, 20 ,30, 125};
+  for (int i = 0; i < 7; i++)
 	connectionsDistributionIntervals[i] -= i;
 	
-  std::array<double,5> connectionsDistributionWeights {10, 10, 30, 45, 5};
+  std::array<double,6> connectionsDistributionWeights {10, 40, 30, 13, 6, 1};
+
+  m_masterConnectionsDistribution = std::piecewise_constant_distribution<double> (masterConnectionsDistributionIntervals.begin(), masterConnectionsDistributionIntervals.end(), masterConnectionsDistributionWeights.begin());
                                 
   m_connectionsDistribution = std::piecewise_constant_distribution<double> (connectionsDistributionIntervals.begin(), connectionsDistributionIntervals.end(), connectionsDistributionWeights.begin());
 
@@ -739,7 +748,7 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
   m_australiaDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (downloadBandwitdhIntervals.begin(), downloadBandwitdhIntervals.end(), AustraliaDownloadWeights.begin());
   m_australiaUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (uploadBandwitdhIntervals.begin(), uploadBandwitdhIntervals.end(), AustraliaUploadWeights.begin());
   
- m_masterNodesDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (masterNodesDownloadIntervals.begin(), masterNodesDownloadIntervals.end(), masterNodesDownloadWeights.begin());
+ 	m_masterNodesDownloadBandwidthDistribution = std::piecewise_constant_distribution<double> (masterNodesDownloadIntervals.begin(), masterNodesDownloadIntervals.end(), masterNodesDownloadWeights.begin());
   m_masterNodesUploadBandwidthDistribution = std::piecewise_constant_distribution<double> (masterNodesUploadIntervals.begin(), masterNodesUploadIntervals.end(), masterNodesUploadWeights.begin());
   
 
@@ -789,6 +798,7 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
 		}
 		else
 		{
+			//std::cout<<"Adding master nodes to nodes index \n";
 			m_masterNodes.push_back(nodes[index]);
 		}
 	
@@ -860,50 +870,75 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
   }
 
   
-  for(int i = 0; i < m_totalNoNodes; i++)
-  {
+for(int i = 0; i < m_totalNoNodes; i++)
+{
 	int count = 0;
 	int minConnections;
 	int maxConnections;
-	
+
 	if ( std::find(m_miners.begin(), m_miners.end(), i) != m_miners.end() )
-    {
-      m_minConnections[i] = m_minConnectionsPerMiner;
-      m_maxConnections[i] = m_maxConnectionsPerMiner;
-    }
+	{
+		m_minConnections[i] = m_minConnectionsPerMiner;
+		m_maxConnections[i] = m_maxConnectionsPerMiner;
+	}
 	else if(std::find(m_masterNodes.begin(),m_masterNodes.end(),i) != m_masterNodes.end())
 	{
-		m_minConnections[i] = m_minConnectionsPerMasterNode;
-		m_maxConnections[i] = m_maxConnectionsPerMasterNode;
+		if(m_minConnectionsPerMasterNode > 0 && m_maxConnectionsPerMasterNode >0)
+		{
+			minConnections = m_minConnectionsPerMasterNode;
+			maxConnections = m_maxConnectionsPerMasterNode;
+		}
+		else
+		{
+			minConnections = static_cast<int>(m_masterConnectionsDistribution(m_generator));
+			if (minConnections < 1)
+				minConnections = 1;
+
+			int index = 0;
+			for (int k = 1; k < masterConnectionsDistributionIntervals.size(); k++)	
+			{	
+				if (minConnections < masterConnectionsDistributionIntervals[k])
+				{
+					index = k;
+					break;
+				}
+			}
+			maxConnections = minConnections + index;
+			//std::cout<<"Minimum connections per master node : "<<minConnections<<"\n";
+			//std::cout<<"Maximum connections per master node : "<<maxConnections<<"\n";
+		}
+		m_minConnections[i] = minConnections;
+		m_maxConnections[i] = maxConnections;
 	}
 	else
 	{
-      if (m_minConnectionsPerNode > 0 && m_maxConnectionsPerNode > 0)
-      {
-	    minConnections = m_minConnectionsPerNode;
-	    maxConnections = m_maxConnectionsPerNode;
-      }
-      else
-	  {
-	    minConnections = static_cast<int>(m_connectionsDistribution(m_generator));
-	    if (minConnections < 1)
-	      minConnections = 1;
-	  
-	    int index = 0;
-        for (int k = 1; k < connectionsDistributionIntervals.size(); k++)	
-        {	
-          if (minConnections < connectionsDistributionIntervals[k])
-          {
-            index = k;
-            break;
-          }
+		if (m_minConnectionsPerNode > 0 && m_maxConnectionsPerNode > 0)
+		{
+			minConnections = m_minConnectionsPerNode;
+			maxConnections = m_maxConnectionsPerNode;
 		}
-        maxConnections = minConnections + index;
-	  }
-	  m_minConnections[i] = minConnections;
-	  m_maxConnections[i] = maxConnections;
+		else
+		{
+			minConnections = static_cast<int>(m_connectionsDistribution(m_generator));
+			if (minConnections < 1)
+				minConnections = 1;
+
+			int index = 0;
+			for (int k = 1; k < connectionsDistributionIntervals.size(); k++)	
+			{	
+				if (minConnections < connectionsDistributionIntervals[k])
+				{
+					index = k;
+					break;
+				}
+			}
+			maxConnections = minConnections + index;
+		}
+		m_minConnections[i] = minConnections;
+		m_maxConnections[i] = maxConnections;
 	}
-  }
+
+}
   
   //First the miners
   for(auto &i : m_miners)
@@ -986,18 +1021,8 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
         }
       }
       count++;
-	}
+		}
   }
-  
-  //Print the nodes with fewer than required connections
-  //if (m_systemId == 0)
-  //{
-  //  for(int i = 0; i < m_totalNoNodes; i++)
-  //  {
-	//  if (m_nodesConnections[i].size() < m_minConnections[i])
-	//    std::cout << "Node " << i << " should have at least " << m_minConnections[i] << " connections but it has only " << m_nodesConnections[i].size() << " connections\n";
-  //  }
-  //}
   
 /*   //Print the nodes' connections
   if (m_systemId == 0)
@@ -1039,9 +1064,11 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
       if ( std::find(m_miners.begin(), m_miners.end(), node.first) == m_miners.end() 
 					&& std::find(m_masterNodes.begin(), m_masterNodes.end(), node.first) == m_masterNodes.end() )
 			{
-				averageNoConnectionsPerNode += node.second.size();}
+				averageNoConnectionsPerNode += node.second.size();
+			}
 			else if(std::find(m_miners.begin(), m_miners.end(), node.first) == m_miners.end())
 			{
+				//std::cout<<"Add master nodes :"<<node.second.size()<<"\n";
         averageNoConnectionsPerMasterNode += node.second.size();
 			}
       else
@@ -1052,11 +1079,11 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
 	  for (int i = 1; i < connectionsDistributionIntervals.size(); i++)
       {
         if (node.second.size() <= intervals[i])
-        {
-          stats[i-1]++;
-          placed = true;
-          break;
-		}
+				{
+					stats[i-1]++;
+					placed = true;
+					break;
+				}
       }
 	  if (!placed)
       { 
@@ -1064,6 +1091,7 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
         stats[connectionsDistributionIntervals.size() - 1]++;
       }
     }
+		std::cout<<"Total master nodes :"<<averageNoConnectionsPerMasterNode<<"\n";
 	
     std::cout << "Average Number of Connections Per Full Node = " << averageNoConnectionsPerNode / (m_totalNoNodes - m_noMiners -m_noMasterNodes) 
 	          << "\nAverage Number of Connections Per Miner = " << averageNoConnectionsPerMiner / (m_noMiners) << "\nAverage Number of Connections Per Master Node = "<< averageNoConnectionsPerMasterNode / (m_noMasterNodes) <<  "\nConnections distribution: \n";
@@ -1174,7 +1202,7 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
                                     std::min(m_nodesInternetSpeeds[m_nodes.at (*it).Get (0)->GetId()].uploadSpeed, 
                                     m_nodesInternetSpeeds[m_nodes.at (*it).Get (0)->GetId()].downloadSpeed));					
 		bandwidthStream.str("");
-        bandwidthStream.clear();
+    bandwidthStream.clear();
 		bandwidthStream << bandwidth << "Mbps";
 		
         latencyStringStream.str("");
@@ -1199,16 +1227,18 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
 		pointToPoint.SetDeviceAttribute ("DataRate", StringValue (bandwidthStream.str()));
 		pointToPoint.SetChannelAttribute ("Delay", StringValue (latencyStringStream.str()));
 		
-        newDevices.Add (pointToPoint.Install (m_nodes.at (*miner).Get (0), m_nodes.at (*it).Get (0)));
+    newDevices.Add (pointToPoint.Install (m_nodes.at (*miner).Get (0), m_nodes.at (*it).Get (0)));
 		m_devices.push_back (newDevices);
-/* 		if (m_systemId == 0)
-          std::cout << "Creating link " << m_totalNoLinks << " between nodes " 
-                    << (m_nodes.at (*miner).Get (0))->GetId() << " (" 
-                    <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (*miner).Get (0))->GetId()]))
-                    << ") and node " << (m_nodes.at (*it).Get (0))->GetId() << " (" 
-                    <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (*it).Get (0))->GetId()]))
-                    << ") with latency = " << latencyStringStream.str() 
-                    << " and bandwidth = " << bandwidthStream.str() << ".\n"; */
+
+ 		//if (m_systemId == 0)
+    //      std::cout << "Creating link " << m_totalNoLinks << " between nodes " 
+    //                << (m_nodes.at (*miner).Get (0))->GetId() << " (" 
+    //                <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (*miner).Get (0))->GetId()]))
+    //                << ") and node " << (m_nodes.at (*it).Get (0))->GetId() << " (" 
+    //                <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (*it).Get (0))->GetId()]))
+    //                << ") with latency = " << latencyStringStream.str() 
+    //                << " and bandwidth = " << bandwidthStream.str() << ".\n"; 
+    
       }
     }
   }
@@ -1256,16 +1286,18 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
 		pointToPoint.SetDeviceAttribute ("DataRate", StringValue (bandwidthStream.str()));
 		pointToPoint.SetChannelAttribute ("Delay", StringValue (latencyStringStream.str()));
 		
-        newDevices.Add (pointToPoint.Install (m_nodes.at (node.first).Get (0), m_nodes.at (*it).Get (0)));
+    newDevices.Add (pointToPoint.Install (m_nodes.at (node.first).Get (0), m_nodes.at (*it).Get (0)));
 		m_devices.push_back (newDevices);
-/* 		if (m_systemId == 0)
-          std::cout << "Creating link " << m_totalNoLinks << " between nodes " 
-                    << (m_nodes.at (node.first).Get (0))->GetId() << " (" 
-                    <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (node.first).Get (0))->GetId()]))
-                    << ") and node " << (m_nodes.at (*it).Get (0))->GetId() << " (" 
-                    <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (*it).Get (0))->GetId()]))
-                    << ") with latency = " << latencyStringStream.str() 
-                    << " and bandwidth = " << bandwidthStream.str() << ".\n"; */
+
+ 		//if (m_systemId == 0)
+    //      std::cout << "Creating link " << m_totalNoLinks << " between nodes " 
+    //                << (m_nodes.at (node.first).Get (0))->GetId() << " (" 
+    //                <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (node.first).Get (0))->GetId()]))
+    //                << ") and node " << (m_nodes.at (*it).Get (0))->GetId() << " (" 
+    //                <<  getDashRegion(getDashEnum(m_dashNodesRegion[(m_nodes.at (*it).Get (0))->GetId()]))
+    //                << ") with latency = " << latencyStringStream.str() 
+    //                << " and bandwidth = " << bandwidthStream.str() << ".\n";
+
       }
     }
   }
@@ -1324,41 +1356,42 @@ DashTopologyHelper::AssignIpv4Addresses (Ipv4AddressHelperCustom ip)
     uint32_t node1 = (currentContainer.Get (0))->GetNode()->GetId();
     uint32_t node2 = (currentContainer.Get (1))->GetNode()->GetId();
 
-/*     if (m_systemId == 0)
-      std::cout << i << "/" << m_devices.size () << "\n"; */
-/* 	if (m_systemId == 0)
-	  std::cout << "Node " << node1 << "(" << interfaceAddress1 << ") is connected with node  " 
-                << node2 << "(" << interfaceAddress2 << ")\n"; */
-				
-	m_nodesConnectionsIps[node1].push_back(interfaceAddress2);
-	m_nodesConnectionsIps[node2].push_back(interfaceAddress1);
+    //if (m_systemId == 0)
+    // std::cout << i << "/" << m_devices.size () << "\n"; 
+
+ 	  //if (m_systemId == 0)
+	  //  std::cout << "Node " << node1 << "(" << interfaceAddress1 << ") is connected with node  " 
+    //              << node2 << "(" << interfaceAddress2 << ")\n"; 
+	  			
+	  m_nodesConnectionsIps[node1].push_back(interfaceAddress2);
+	  m_nodesConnectionsIps[node2].push_back(interfaceAddress1);
 
     ip.NewNetwork ();
-        
+          
     m_interfaces.push_back (newInterfaces);
-	
-	m_peersDownloadSpeeds[node1][interfaceAddress2] = m_nodesInternetSpeeds[node2].downloadSpeed;
-	m_peersDownloadSpeeds[node2][interfaceAddress1] = m_nodesInternetSpeeds[node1].downloadSpeed;
-	m_peersUploadSpeeds[node1][interfaceAddress2] = m_nodesInternetSpeeds[node2].uploadSpeed;
-	m_peersUploadSpeeds[node2][interfaceAddress1] = m_nodesInternetSpeeds[node1].uploadSpeed;
+	  
+	  m_peersDownloadSpeeds[node1][interfaceAddress2] = m_nodesInternetSpeeds[node2].downloadSpeed;
+	  m_peersDownloadSpeeds[node2][interfaceAddress1] = m_nodesInternetSpeeds[node1].downloadSpeed;
+	  m_peersUploadSpeeds[node1][interfaceAddress2] = m_nodesInternetSpeeds[node2].uploadSpeed;
+	  m_peersUploadSpeeds[node2][interfaceAddress1] = m_nodesInternetSpeeds[node1].uploadSpeed;
 
   }
 
   
-/*   //Print the nodes' connections
-  if (m_systemId == 0)
-  {
-    std::cout << "The nodes connections are:" << std::endl;
-    for(auto &node : m_nodesConnectionsIps)
-    {
-  	  std::cout << "\nNode " << node.first << ":    " ;
-	  for(std::vector<Ipv4Address>::const_iterator it = node.second.begin(); it != node.second.end(); it++)
-	  {
-        std::cout  << "\t" << *it ;
-	  }
-    }
-    std::cout << "\n" << std::endl;
-  } */
+   //Print the nodes' connections
+  //if (m_systemId == 0)
+  //{
+  //  std::cout << "The nodes connections are:" << std::endl;
+  //  for(auto &node : m_nodesConnectionsIps)
+  //  {
+  //	  std::cout << "\nNode " << node.first << ":    " ;
+	//  for(std::vector<Ipv4Address>::const_iterator it = node.second.begin(); it != node.second.end(); it++)
+	//  {
+  //      std::cout  << "\t" << *it ;
+	//  }
+  //  }
+  //  std::cout << "\n" << std::endl;
+  //} 
   
   tFinish = GetWallTime();
   if (m_systemId == 0)
@@ -1419,8 +1452,8 @@ DashTopologyHelper::AssignRegion (uint32_t id)
     m_dashNodesRegion[id] = number;
   }
   
-/*   if (m_systemId == 0)
-    std::cout << "SystemId = " << m_systemId << " assigned node " << id << " in " << getDashRegion(getDashEnum(m_dashNodesRegion[id])) << "\n"; */
+   //if (m_systemId == 0)
+   // std::cout << "SystemId = " << m_systemId << " assigned node " << id << " in " << getDashRegion(getDashEnum(m_dashNodesRegion[id])) << "\n"; 
 }
 
 void 
@@ -1439,7 +1472,8 @@ DashTopologyHelper::AssignInternetSpeeds(uint32_t id)
 		m_nodesInternetSpeeds[id].uploadSpeed = m_masterNodesUploadBandwidthDistribution(m_generator);
 	}
 
-  else{
+  else
+  {
     switch(m_dashNodesRegion[id])
     {
       case ASIA_PACIFIC: 
@@ -1481,9 +1515,9 @@ DashTopologyHelper::AssignInternetSpeeds(uint32_t id)
     }
   }
   
-/*  if (m_systemId == 0)
-    std::cout << "SystemId = " << m_systemId << " assigned node " << id << " in " << getDashRegion(getDashEnum(m_dashNodesRegion[id])) 
-              << " with download speed = " << m_nodesInternetSpeeds[id].downloadSpeed << " Mbps and upload speed " << m_nodesInternetSpeeds[id].uploadSpeed << " Mbps\n"; */
+  //if (m_systemId == 0)
+  //  std::cout << "SystemId = " << m_systemId << " assigned node " << id << " in " << getDashRegion(getDashEnum(m_dashNodesRegion[id])) 
+  //            << " with download speed = " << m_nodesInternetSpeeds[id].downloadSpeed << " Mbps and upload speed " << m_nodesInternetSpeeds[id].uploadSpeed << " Mbps\n"; 
 }
 
 uint32_t* 

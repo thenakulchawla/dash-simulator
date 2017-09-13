@@ -81,8 +81,12 @@ public:
    * \param protocolType the type of protocol used for advertising new blocks
    */
   void SetProtocolType (enum ProtocolType protocolType);
-	void SetNodeType (enum NodeType nodeType);
 
+  /**
+   * \brief Set the node type(default: FULL_NODE)
+   * \param nodeType the type of node 
+   */
+	void SetNodeType (enum NodeType nodeType);
 
   /**
    * \brief Handle a packet received by the application

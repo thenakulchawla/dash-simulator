@@ -36,7 +36,19 @@ Ptr<Application>
 DashMinerHelper::InstallPriv (Ptr<Node> node) //FIX ME
 {
 
-   switch (m_minerType) 
+	Ptr<DashMiner> app = m_factory.Create<DashMiner> ();
+	app->SetPeersAddresses(m_peersAddresses);
+	app->SetPeersDownloadSpeeds(m_peersDownloadSpeeds);
+	app->SetPeersUploadSpeeds(m_peersUploadSpeeds);
+	app->SetNodeInternetSpeeds(m_internetSpeeds);
+	app->SetNodeStats(m_nodeStats);
+	app->SetBlockBroadcastType(m_blockBroadcastType);
+	app->SetProtocolType(m_protocolType);
+
+	node->AddApplication (app);
+	return app;
+
+ /*  switch (m_minerType) 
    {
       case NORMAL_MINER: 
       {
@@ -94,7 +106,7 @@ DashMinerHelper::InstallPriv (Ptr<Node> node) //FIX ME
         node->AddApplication (app);
         return app;
       }
-   }
+   } */
    
 }
 
@@ -107,9 +119,11 @@ DashMinerHelper::GetMinerType(void)
 void 
 DashMinerHelper::SetMinerType (enum MinerType m)  //FIX ME
 {
-   m_minerType = m;
+   m_minerType = NORMAL_MINER;
+	 m_factory.SetTypeId ("ns3::DashMiner");
+	 SetFactoryAttributes();
   
-   switch (m) 
+  /* switch (m) 
    {
       case NORMAL_MINER: 
       {
@@ -140,7 +154,7 @@ DashMinerHelper::SetMinerType (enum MinerType m)  //FIX ME
 
         break;
       }
-   }
+   } */
 }
 
 

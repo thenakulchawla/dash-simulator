@@ -6,9 +6,9 @@
 #define DASH_MINER_HELPER_H
 
 #include "ns3/dash-node-helper.h"
-#include "ns3/dash-simple-attacker.h"
-#include "ns3/dash-selfish-miner.h"
-#include "ns3/dash-selfish-miner-trials.h"
+//#include "ns3/dash-simple-attacker.h"
+//#include "ns3/dash-selfish-miner.h"
+//#include "ns3/dash-selfish-miner-trials.h"
 
 
 namespace ns3 {

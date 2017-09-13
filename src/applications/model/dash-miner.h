@@ -145,7 +145,7 @@ protected:
   double          	m_fixedBlockSize;  
   double            m_fixedBlockTimeGeneration; 	//!< Fixed Block Time Generation
   EventId           m_nextMiningEvent; 				//!< Event to mine the next block
-  std::default_random_engine m_generator,m_gen_count,m_gen_size;
+  std::default_random_engine m_generator;
 
   /** 
    * The m_blockGenBinSize states binSize of the block generation time.
@@ -181,6 +181,7 @@ protected:
 	double blockSize;
 	double averageTransactionSize;
 	int transactionHeight;
+  int shortTransactionSizeInBytes=6;
 	Transaction transaction;
 	std::vector<Transaction> thisBlockTransactions;
 
