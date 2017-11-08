@@ -32,9 +32,15 @@ enum Messages
   EXT_HEADERS,      //9
   EXT_GET_BLOCKS,   //10
   CHUNK,            //11
-  EXT_GET_DATA,     //12
-  COMPACT_BLOCK,       //13
-  GET_BLOCK_TXNS      //16
+  EXT_GET_DATA,      //12
+  COMPACT_BLOCK,    //13
+  GET_BLOCK_TXNS,   //16
+  BLOCK_TXNS,       //17
+  // BLOOM_FILTER,     //18
+  // XTHIN_INV,        //19
+	TXN               //20
+
+
 };
 
 
@@ -59,7 +65,9 @@ enum BlockBroadcastType
   STANDARD,                    //DEFAULT
   UNSOLICITED,
   RELAY_NETWORK,
-  UNSOLICITED_RELAY_NETWORK
+  UNSOLICITED_RELAY_NETWORK,
+  COMPACT //Change from protocol to blockBroadcastType
+  // XTHIN //Change from protocol to blockBroadcastType
 };
 
 
@@ -71,7 +79,8 @@ enum ProtocolType
 {
   STANDARD_PROTOCOL,           //DEFAULT
   SENDHEADERS,
-  COMPACT
+  COMPACT_PROTOCOL
+  // XTHIN
 };
 
 enum NodeType
@@ -123,7 +132,7 @@ typedef struct {
   long     headersReceivedBytes;
   long     headersSentBytes;
   long     getDataReceivedBytes;
-  long     getBlockTransactionsBytes;       //compact blocks high bandwidth requests for missing transactions
+  // long     getBlockTransactionsBytes;       //compact blocks high bandwidth requests for missing transactions
   long     getDataSentBytes;
   long     blockReceivedBytes;
   long     blockSentBytes;
@@ -143,6 +152,8 @@ typedef struct {
   long     blockTimeouts;
   long     chunkTimeouts;
   int      minedBlocksInMainChain;
+	double		 transactionReceivedBytes;    //transaction received bytes
+	double     transactionSentBytes;        //transaction sent bytes
 
 } nodeStatistics;
 
@@ -166,8 +177,8 @@ enum DashRegion getDashEnum(uint32_t n);
 class Block
 {
 public:
-  Block (int blockHeight, int minerId, int parentBlockMinerId = 0, int blockSizeBytes = 0, 
-         double timeCreated = 0, double timeReceived = 0, int transactionCount=0, std::vector<Transaction> blockTransactions={ {Transaction(0,0)} }, Ipv4Address receivedFromIpv4 = Ipv4Address("0.0.0.0"));
+  Block (int blockHeight, int minerId, int parentBlockMinerId, int blockSizeBytes, 
+         double timeCreated , double timeReceived, int transactionCount, std::vector<Transaction> blockTransactions, Ipv4Address receivedFromIpv4 );
   Block ();
   Block (const Block &blockSource);  // Copy constructor
   virtual ~Block (void);
@@ -225,8 +236,8 @@ protected:
 class DashChunk : public Block
 {
 public:
-  DashChunk (int blockHeight, int minerId, int chunkId, int parentBlockMinerId = 0, int blockSizeBytes = 0, 
-                double timeCreated = 0, double timeReceived = 0,int transactionCount=0, std::vector<Transaction> blockTransactions={ {Transaction(0,0)} }, Ipv4Address receivedFromIpv4 = Ipv4Address("0.0.0.0"));
+  DashChunk (int blockHeight, int minerId, int chunkId, int parentBlockMinerId, int blockSizeBytes, 
+                double timeCreated, double timeReceived,int transactionCount, std::vector<Transaction> blockTransactions, Ipv4Address receivedFromIpv4);
   DashChunk ();
   DashChunk (const DashChunk &chunkSource);  // Copy constructor
   virtual ~DashChunk (void);
@@ -270,6 +281,7 @@ public:
    * Should be called after HasBlock() to make sure that the block exists.
    * Returns the orphan blocks too.
    */
+
   Block ReturnBlock(int height, int minerId);  
 
   /**

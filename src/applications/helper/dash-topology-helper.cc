@@ -773,14 +773,14 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
     nodes.push_back(i);
   }
 
-/*   //Print the initialized nodes
-  if (m_systemId == 0)
-  {
-    for (std::vector<uint32_t>::iterator j = nodes.begin(); j != nodes.end(); j++)
-    {
-	  std::cout << *j << " " ;
-    }
-  } */
+  //  //Print the initialized nodes
+  // if (m_systemId == 0)
+  // {
+  //   for (std::vector<uint32_t>::iterator j = nodes.begin(); j != nodes.end(); j++)
+  //   {
+	//   std::cout << *j << " " ;
+  //   }
+  // } 
 
   //Choose the miners and masterNodes randomly. They should be unique (no miner should be chosen twice).
   //So, remove each chosen miner from nodes vector
@@ -802,18 +802,18 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
 			m_masterNodes.push_back(nodes[index]);
 		}
 	
-/*     if (m_systemId == 0)
-      std::cout << "\n" << "Chose " << nodes[index] << "     "; */
+     // if (m_systemId == 0)
+     //  std::cout << "\n" << "Chose " << nodes[index] << "     "; 
 
     nodes.erase(nodes.begin() + index);
 	  
-/* 	if (m_systemId == 0) 
-	{		
-      for (std::vector<uint32_t>::iterator it = nodes.begin(); it != nodes.end(); it++)
-      {
-	    std::cout << *it << " " ;
-      }
-	} */
+ 	// if (m_systemId == 0) 
+	// {		
+  //     for (std::vector<uint32_t>::iterator it = nodes.begin(); it != nodes.end(); it++)
+  //     {
+	//     std::cout << *it << " " ;
+  //     }
+	// } 
 
   }
 
@@ -1132,8 +1132,8 @@ for(int i = 0; i < m_totalNoNodes; i++)
   {
     NodeContainer currentNode;
     currentNode.Create (1, i % m_noCpus);
-/* 	if (m_systemId == 0)
-      std::cout << "Creating a node with Id = " << i << " and systemId = " << i % m_noCpus << "\n"; */
+ 	// if (m_systemId == 0)
+  //     std::cout << "Creating a node with Id = " << i << " and systemId = " << i % m_noCpus << "\n"; 
     m_nodes.push_back (currentNode);
 		AssignRegion(i);
     AssignInternetSpeeds(i);

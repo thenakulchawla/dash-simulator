@@ -110,6 +110,13 @@ public:
    * set the type of block broadcast
    */
   void SetBlockBroadcastType (enum BlockBroadcastType blockBroadcastType);
+
+	/**
+	 *Add transactions to the block's thisBlockTransactions vector
+	 *\isFull whether the block will be filled completely or based on distribution
+	 *\nextBlockSize the block size
+	 */
+	 std::vector<Transaction> FillBlock(bool isFull,double nextBlockSize);
    
 protected:
   // inherited from Application base class.
@@ -144,6 +151,7 @@ protected:
   int               m_noMiners;                
   double          	m_fixedBlockSize;  
   double            m_fixedBlockTimeGeneration; 	//!< Fixed Block Time Generation
+	bool 						  m_fillBlock;
   EventId           m_nextMiningEvent; 				//!< Event to mine the next block
   std::default_random_engine m_generator;
 
@@ -160,29 +168,34 @@ protected:
   int               m_minerGeneratedBlocks;
   double            m_hashRate;
 
-  std::geometric_distribution<int> m_blockGenTimeDistribution ;
+  std::geometric_distribution<int> m_blockGenTimeDistribution;
   
   double                                            m_nextBlockSize;
   double                                            m_maxBlockSize;
   double                                         m_minerAverageBlockSize;
-  //std::piecewise_constant_distribution<double>   m_blockSizeDistribution, m_transactionCountDistribution, m_transactionSizeDistribution;
-  std::piecewise_constant_distribution<double>    m_transactionCountDistribution, m_transactionSizeDistribution;
+  std::piecewise_constant_distribution<double>   m_blockSizeDistribution, m_transactionCountDistribution;
+  // std::piecewise_constant_distribution<double>    m_transactionCountDistribution, m_transactionMissingCountDistribution;
   
-  const double  m_realAverageBlockGenIntervalSeconds;  //!< in seconds, 10 mins
+  const double  m_realAverageBlockGenIntervalSeconds;  //!< in seconds, 2.5 mins
   double        m_averageBlockGenIntervalSeconds;      //!< the new m_averageBlockGenInterval we set
   
   enum BlockBroadcastType   m_blockBroadcastType;      //!< the type of broadcast
 
-	std::vector<double> iCount,wCount,iSize,wSize;			//interval and weight for piecewise distribution for transaction count and size
+	// std::vector<double> iCount,wCount; //interval and weight for piecewise distribution for transaction size
 
 	int transactionCount;
-	double transactionsPerSec;
-	double transactionSize;
-	double blockSize;
-	double averageTransactionSize;
-	int transactionHeight;
-  int shortTransactionSizeInBytes=6;
-	Transaction transaction;
+  // int mempoolTransactionCount;
+	// int missingTransactionCount;
+  // double bloomFilterSizeBits; //use number of hashes and size of bloom filter based on mempool later
+  // std::string transactionHash;
+	// double transactionsPerSec;
+	// double transactionSize;
+	// double missingTransactionSize;
+	// double blockSize;
+	double averageTransactionSize = 100; //remove the default value later after mempool
+	// int transactionsInCurrentBlock;
+  // int shortTransactionSizeInBytes=6;
+	// Transaction transaction;
 	std::vector<Transaction> thisBlockTransactions;
 
   //debug

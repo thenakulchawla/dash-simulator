@@ -21,25 +21,27 @@ namespace ns3 {
  */
 
 Block::Block(int blockHeight, int minerId, int parentBlockMinerId, int blockSizeBytes, 
-             double timeCreated, double timeReceived, int transactionCount, std::vector<Transaction> blockTransactions, Ipv4Address receivedFromIpv4)
-{  
-  m_blockHeight = blockHeight;
-  m_minerId = minerId;
-  m_parentBlockMinerId = parentBlockMinerId;
-  m_blockSizeBytes = blockSizeBytes;
-  m_timeCreated = timeCreated;
-  m_timeReceived = timeReceived;
-	m_transactionCount= transactionCount;
-	m_blockTransactions = blockTransactions;
-  m_receivedFromIpv4 = receivedFromIpv4;
+             double timeCreated, double timeReceived, int transactionCount, std::vector<Transaction> blockTransactions, Ipv4Address receivedFromIpv4) : m_blockHeight(blockHeight), m_minerId(minerId),
+	m_parentBlockMinerId(parentBlockMinerId), m_blockSizeBytes(blockSizeBytes), m_timeCreated(timeCreated), m_timeReceived(timeReceived), m_transactionCount(transactionCount), m_blockTransactions(blockTransactions),
+	m_receivedFromIpv4(receivedFromIpv4) {}
+// {  
+//   m_blockHeight = blockHeight;
+//   m_minerId = minerId;
+//   m_parentBlockMinerId = parentBlockMinerId;
+//   m_blockSizeBytes = blockSizeBytes;
+//   m_timeCreated = timeCreated;
+//   m_timeReceived = timeReceived;
+// 	m_transactionCount= transactionCount;
+// 	m_blockTransactions = blockTransactions;
+//   m_receivedFromIpv4 = receivedFromIpv4;
+//
+// }
 
-}
-
-Block::Block()
-{  
-  Block(0, 0, 0, 0, 0, 0, 0, {{Transaction(0,0)}}, Ipv4Address("0.0.0.0"));
-
-}
+Block::Block() = default;
+// {  
+//   Block(0, 0, 0, 0, 0, 0, 0, {{Transaction(0,0)}}, Ipv4Address("0.0.0.0"));
+//
+// }
 
 Block::Block (const Block &blockSource)
 {  
@@ -198,10 +200,10 @@ DashChunk::DashChunk(int blockHeight, int minerId, int chunkId, int parentBlockM
   m_chunkId = chunkId;
 }
 
-DashChunk::DashChunk()
-{  
-  DashChunk(0, 0, 0, 0, 0, 0, 0, 0,{ {Transaction(0,0)} }, Ipv4Address("0.0.0.0"));
-}
+DashChunk::DashChunk() = default;
+// {  
+//   DashChunk(0, 0, 0, 0, 0, 0, 0, 0,{ {Transaction(0,0)} }, Ipv4Address("0.0.0.0"));
+// }
 
 DashChunk::DashChunk (const DashChunk &chunkSource)
 {  
@@ -262,7 +264,7 @@ Blockchain::Blockchain(void)
 {
   m_noStaleBlocks = 0;
   m_totalBlocks = 0;
-  Block genesisBlock(0, -1, -2, 0, 0, 0, 0, {{Transaction(0,0)}},Ipv4Address("0.0.0.0"));
+  Block genesisBlock(0, -1, -2, 0, 0, 0, 0, {{Transaction(0,"defaultHash","shortHash")}},Ipv4Address("0.0.0.0"));
   AddBlock(genesisBlock); 
 }
 
@@ -366,7 +368,7 @@ Blockchain::ReturnBlock(int height, int minerId)
       return *block_it;
   }
   
-  return Block(-1, -1, -1, -1, -1, -1, -1,{ {Transaction(0,0)} } ,Ipv4Address("0.0.0.0"));
+  return Block(-1, -1, -1, -1, -1, -1, -1,{ {Transaction(0,"defaultHash","shortHash")} } ,Ipv4Address("0.0.0.0"));
 }
 
 
@@ -750,8 +752,11 @@ const char* getMessageName(enum Messages m)
     case EXT_GET_BLOCKS: return "EXT_GET_BLOCKS";
     case CHUNK: return "CHUNK";
     case EXT_GET_DATA: return "EXT_GET_DATA";
+    case TXN: return "TXN";
     case COMPACT_BLOCK: return "COMPACT_BLOCK";
     case GET_BLOCK_TXNS: return "GET_BLOCK_TXNS";
+    case BLOCK_TXNS: return "BLOCK_TXNS";
+    // case BLOOM_FILTER: return "BLOOM_FILTER";
   }
 }
 
@@ -774,6 +779,8 @@ const char* getBlockBroadcastType(enum BlockBroadcastType m)
     case UNSOLICITED: return "UNSOLICITED";
     case RELAY_NETWORK: return "RELAY_NETWORK";
     case UNSOLICITED_RELAY_NETWORK: return "UNSOLICITED_RELAY_NETWORK";
+		case COMPACT: return "COMPACT";
+    // case XTHIN: return "XTHIN";
   }
 }
 
@@ -783,7 +790,8 @@ const char* getProtocolType(enum ProtocolType m)
   {
     case STANDARD_PROTOCOL: return "STANDARD_PROTOCOL";
     case SENDHEADERS: return "SENDHEADERS";
-    case COMPACT: return "COMPACT";
+    case COMPACT_PROTOCOL: return "COMPACT_PROTOCOL";
+    // case XTHIN: return "XTHIN";
   }
 }
 
@@ -810,7 +818,6 @@ const char* getDashRegion(enum DashRegion m)
     case OTHER: return "OTHER";
   }
 }
-
 
 enum DashRegion getDashEnum(uint32_t n)
 {

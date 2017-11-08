@@ -17,6 +17,7 @@
 #include "../../rapidjson/writer.h"
 #include "../../rapidjson/stringbuffer.h"
 
+
 namespace ns3 {
 
 class Address;
@@ -99,6 +100,25 @@ public:
    * \param socket the incoming connection socket
    * \param from the address the connection is from
    */
+
+  void GenerateTransactions (void);
+  /**
+   *
+   * \Generate transactions for the current node 
+   * \Use CreateTransaction to generate.
+   *
+   * */
+
+  void CreateTransaction (void);
+  /**
+   * \Create wallet transactions
+   * \if fillBlock=True, generate tranaction with no sleep
+   * \else generate transactions using piecewise_constant_distribution
+   * \add transactions to current node mempool
+   * \ Send Transaction
+   *
+   * */
+
   void HandleAccept (Ptr<Socket> socket, const Address& from);
   
   /**
@@ -147,6 +167,13 @@ public:
   void SendBlock(std::string packetInfo, Address &from);
 
   /**
+   * \brief Sends a BLOCK message as a response to a GET_DATA message
+   * \param packetInfo the info of the BLOCK message
+   * \param from the address the GET_DATA was received from
+   */
+  void SendBlockTransactions(std::string packetInfo, Address &from);
+
+  /**
    * \brief Sends a CHUNK message as a response to a EXT_GET_DATA/CHUNK message
    * \param packetInfo the info of the CHUNK message
    * \param from the address the EXT_GET_DATA/CHUNK was received from
@@ -182,6 +209,8 @@ public:
    * \param newBlock the new block
    */
   void AdvertiseNewBlock (const Block &newBlock);
+
+	void SendCompactBlock (const Block &newBlock);
   
   /**
    * \brief Advertises the newly validated block when blockTorrent is used
@@ -221,6 +250,9 @@ public:
    * \param outgoingAddress the Address of the peer
    */
   void SendMessage(enum Messages receivedMessage,  enum Messages responseMessage, std::string packet, Address &outgoingAddress);
+
+  void SendTransaction(rapidjson::Document &d, Ptr<Socket> outgoingSocket);
+  void SendTransaction(rapidjson::Document &d, Address &outgoingAddress);
 
   /**
    * \brief Print m_queueInv to stdout
@@ -327,6 +359,7 @@ public:
   double		  m_meanBlockPropagationTime;         //!< The mean time that the node has to wait in order to receive a newly mined block
   double		  m_meanBlockSize;                    //!< The mean block size
   Blockchain 	  m_blockchain;                       //!< The node's blockchain
+  Mempool       m_mempool;                            //!< The node's mempool
   Time            m_invTimeoutMinutes;                //!< The block timeout in minutes
   bool            m_isMiner;                          //!< True if the node is also a miner, False otherwise
   double          m_downloadSpeed;                    //!< The download speed of the node in Bytes/s
@@ -364,7 +397,19 @@ public:
   const int       m_getHeadersSizeBytes;       //!< The size of the GET_HEADERS message, 72 Bytes
   const int       m_headersSizeBytes;          //!< 81 Bytes
   const int       m_blockHeadersSizeBytes;     //!< 81 Bytes
-  
+  // int m_missingTransactionCount;
+  // double m_missingTransactionSize;
+	double m_fixedTransactionSize;
+	double m_fixedTransactionTimeGeneration;
+	double m_nextTransactionTime;
+	double m_nextTransactionSize;
+	double m_maxTransactionSize;
+	EventId m_nextTransactionGenerationEvent;
+  std::default_random_engine m_generator;
+	std::random_device rd;
+	std::vector<double> iSize,wSize;			//interval and weight for piecewise distribution for transaction size
+  std::piecewise_constant_distribution<double> m_transactionSizeDistribution;
+
   /// Traced Callback: received packets, source address.
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
   
