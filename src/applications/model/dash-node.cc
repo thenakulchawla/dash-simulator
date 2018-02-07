@@ -367,7 +367,7 @@ DashNode::StopApplication ()     // Called at time specified by Stop
 void 
 DashNode::HandleRead (Ptr<Socket> socket)
 {	
-	NS_LOG_FUNCTION(this);
+	// NS_LOG_FUNCTION(this);
   Ptr<Packet> packet;
   Address from;
   double newBlockReceiveTime = Simulator::Now ().GetSeconds();
@@ -417,7 +417,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
           if(!d.IsObject())
           {
-            NS_LOG_WARN("The parsed packet is corrupted");
+            // NS_LOG_WARN("The parsed packet is corrupted");
             totalReceivedData.erase(0, pos + delimiter.length()); 
             continue;
           }			
@@ -1877,7 +1877,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 								Transaction newTransaction(transactionSizeBytes, transactionHash, transactionShortHash);
 								m_mempool.AddTransaction(newTransaction);
 
-                NS_LOG_INFO("MEMPOOL TXN COUNT: " << (m_mempool.GetMempoolTransactions()).size() << std::endl);
+                // NS_LOG_INFO("MEMPOOL TXN COUNT: " << (m_mempool.GetMempoolTransactions()).size() << std::endl);
 
                 m_nodeStats-> transactionReceivedBytes = transactionSizeBytes;
                 SendTransaction( d, from);

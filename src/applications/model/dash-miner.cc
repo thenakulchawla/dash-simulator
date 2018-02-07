@@ -399,10 +399,12 @@ DashMiner::MineBlock (void)
 		m_nextBlockSize = m_fixedBlockSize;
 		if (m_fillBlock)
 		{
+        NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
 			thisBlockTransactions = FillBlock(true,m_nextBlockSize);
 		}
 		else
 		{
+        NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
 			thisBlockTransactions = FillBlock(false, m_nextBlockSize);
 		}
 
@@ -434,6 +436,11 @@ DashMiner::MineBlock (void)
 
 	if (m_nextBlockSize < averageTransactionSize )
 		m_nextBlockSize = averageTransactionSize + m_headersSizeBytes;
+
+  std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
+  double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
+  std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
+  std::cout<<"Block size: " << m_nextBlockSize << "\n";
 
 	Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
 			currentTime, currentTime, transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
@@ -610,7 +617,6 @@ DashMiner::MineBlock (void)
 					// value = thisBlockTransactions[i].GetTransactionShortHash();
 					rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
-
 					value.SetString((thisBlockTransactions[i].GetTransactionShortHash()).c_str(), (thisBlockTransactions[i].GetTransactionShortHash()).length(), block.GetAllocator());
 					transactionInfo.AddMember("transactionShortHash", value, block.GetAllocator()); 
 
@@ -627,6 +633,13 @@ DashMiner::MineBlock (void)
 
 				break;
 			}
+    case XTHIN:
+      {
+          NS_LOG_INFO("XTHIN protocol");
+
+
+          break;
+      }
 		case RELAY_NETWORK:
 			{
 				rapidjson::Value value;

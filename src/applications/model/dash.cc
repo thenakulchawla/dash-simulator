@@ -756,7 +756,7 @@ const char* getMessageName(enum Messages m)
     case COMPACT_BLOCK: return "COMPACT_BLOCK";
     case GET_BLOCK_TXNS: return "GET_BLOCK_TXNS";
     case BLOCK_TXNS: return "BLOCK_TXNS";
-    // case BLOOM_FILTER: return "BLOOM_FILTER";
+    case BLOOM_FILTER: return "BLOOM_FILTER";
   }
 }
 
@@ -780,7 +780,7 @@ const char* getBlockBroadcastType(enum BlockBroadcastType m)
     case RELAY_NETWORK: return "RELAY_NETWORK";
     case UNSOLICITED_RELAY_NETWORK: return "UNSOLICITED_RELAY_NETWORK";
 		case COMPACT: return "COMPACT";
-    // case XTHIN: return "XTHIN";
+    case XTHIN: return "XTHIN";
   }
 }
 
@@ -791,7 +791,7 @@ const char* getProtocolType(enum ProtocolType m)
     case STANDARD_PROTOCOL: return "STANDARD_PROTOCOL";
     case SENDHEADERS: return "SENDHEADERS";
     case COMPACT_PROTOCOL: return "COMPACT_PROTOCOL";
-    // case XTHIN: return "XTHIN";
+    case XTHIN_PROTOCOL: return "XTHIN_PROTOCOL";
   }
 }
 
@@ -832,4 +832,5 @@ enum DashRegion getDashEnum(uint32_t n)
     case 6: return OTHER;
   }
 }
+
 } // Namespace ns3

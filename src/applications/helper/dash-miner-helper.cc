@@ -29,6 +29,7 @@ DashMinerHelper::DashMinerHelper (std::string protocol, Address address, std::ve
   m_factory.Set ("NumberOfMiners", UintegerValue(m_noMiners));
   m_factory.Set ("HashRate", DoubleValue(m_hashRate));
   m_factory.Set ("AverageBlockGenIntervalSeconds", DoubleValue(m_averageBlockGenIntervalSeconds));
+  // m_factory.Set ("fillBlock", BooleanValue(m_fillBlock));
 
 }
 
@@ -173,6 +174,7 @@ DashMinerHelper::SetFactoryAttributes (void)
   m_factory.Set ("NumberOfMiners", UintegerValue(m_noMiners));
   m_factory.Set ("HashRate", DoubleValue(m_hashRate));
   m_factory.Set ("AverageBlockGenIntervalSeconds", DoubleValue(m_averageBlockGenIntervalSeconds));
+  // m_factory.Set ("fillBlock", BooleanValue(m_fillBlock));
   
   if (m_blockGenBinSize > 0 && m_blockGenParameter)
   {
