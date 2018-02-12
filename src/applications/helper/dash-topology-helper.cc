@@ -713,13 +713,12 @@ std::array<double,100> masterNodesDownloadIntervals { 35,35.5,36,36.5,37,37.5,38
   std::array<double,6> nodesDistributionWeights {30, 60, 0, 8, 1, 1};
   m_nodesDistribution = std::piecewise_constant_distribution<double> (nodesDistributionIntervals.begin(), nodesDistributionIntervals.end(), nodesDistributionWeights.begin());
 
-  std::array<double,8> masterConnectionsDistributionIntervals {1, 5, 10, 15, 20, 25, 75, 125};
-  for (int i = 0; i < 8; i++)
-	masterConnectionsDistributionIntervals[i] -= i;
-	
-  std::array<double,7> masterConnectionsDistributionWeights {0, 0, 5, 5, 5, 30, 25};
+  std::array<double,6> masterConnectionsDistributionIntervals {1, 5, 10, 15, 20, 25};
+  for (int i = 0; i < 6; i++)
+    masterConnectionsDistributionIntervals[i] -= i;
+    
+  std::array<double,5> masterConnectionsDistributionWeights {0, 10, 25, 60, 5};
                                 
-
   std::array<double,7> connectionsDistributionIntervals {1, 5, 10, 15, 20 ,30, 125};
   for (int i = 0; i < 7; i++)
 	connectionsDistributionIntervals[i] -= i;

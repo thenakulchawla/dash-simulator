@@ -74,8 +74,8 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
-  int totalNoNodes = 48;
-  //int totalNoNodes = 11008;
+  // int totalNoNodes = 48;
+  int totalNoNodes = 11008;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
@@ -83,8 +83,8 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 16;
-	//int noMasterNodes = 4400;
-	int noMasterNodes = 16;
+	int noMasterNodes = 4400;
+	// int noMasterNodes = 16;
 
 #ifdef MPI_TEST
   
