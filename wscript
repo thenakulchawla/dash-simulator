@@ -715,11 +715,7 @@ def add_scratch_programs(bld):
                 obj.install_path = None
                 obj.uselib = 'CRYPTOPP'
                 obj.uselib = 'SPH'
-<<<<<<< HEAD
-                obj.uselib = 'OPENSSL'
-=======
                 obj.uselib = 'OPENSSl'
->>>>>>> b27592e6ae8335f2f7fa60b77b05f688f3a5dbb5
             elif filename.endswith(".cc"):
                 name = filename[:-len(".cc")]
                 obj = bld.create_ns3_program(name, all_modules)
