@@ -13,3 +13,4 @@ cp  src/internet/helper/* $NS3_FOLDER/src/internet/helper/
 cp  scratch/* $NS3_FOLDER/scratch/
 yes | cp -rf wscript ~NS3_FOLDER/
 yes | cp -rf src/applications/wscript ~NS3_FOLDER/src/applications/
+cp .gitignore $NS3_FOLDER/
