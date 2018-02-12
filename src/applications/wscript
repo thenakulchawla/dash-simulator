@@ -57,9 +57,18 @@ def build(bld):
 				'helper/dash-topology-helper.h',
 				'helper/dash-node-helper.h',
 				'helper/dash-miner-helper.h',
+<<<<<<< HEAD
 #				'model/dash-simple-attacker.h',
 #				'model/dash-selfish-miner.h',
 #				'model/dash-selfish-miner-trials.h',
+=======
+				'model/dash.h',
+				'model/dash-miner.h',
+				'model/dash-node.h',
+				'helper/dash-topology-helper.h',
+				'helper/dash-node-helper.h',
+				'helper/dash-miner-helper.h',
+>>>>>>> b27592e6ae8335f2f7fa60b77b05f688f3a5dbb5
         'model/bulk-send-application.h',
         'model/onoff-application.h',
         'model/packet-sink.h',

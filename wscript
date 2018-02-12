@@ -332,7 +332,7 @@ def configure(conf):
     
     conf.env['lssl'] = conf.check(mandatory=True, lib='ssl', uselib_store='OPENSSL')
     conf.env.append_value('CXXDEFINES', 'ENABLE_SSl')
-    conf.env.append_value('CCDEFINES', 'ENABLE_SSl')
+    conf.env.append_value('CCDEFINES', 'ENABLE_SSL')
 
     if Options.options.enable_gcov:
         env['GCOV_ENABLED'] = True
@@ -715,7 +715,11 @@ def add_scratch_programs(bld):
                 obj.install_path = None
                 obj.uselib = 'CRYPTOPP'
                 obj.uselib = 'SPH'
+<<<<<<< HEAD
                 obj.uselib = 'OPENSSL'
+=======
+                obj.uselib = 'OPENSSl'
+>>>>>>> b27592e6ae8335f2f7fa60b77b05f688f3a5dbb5
             elif filename.endswith(".cc"):
                 name = filename[:-len(".cc")]
                 obj = bld.create_ns3_program(name, all_modules)
