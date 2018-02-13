@@ -1090,7 +1090,7 @@ for(int i = 0; i < m_totalNoNodes; i++)
         stats[connectionsDistributionIntervals.size() - 1]++;
       }
     }
-		std::cout<<"Total master nodes :"<<averageNoConnectionsPerMasterNode<<"\n";
+		// std::cout<<"Total master nodes :"<<averageNoConnectionsPerMasterNode<<"\n";
 	
     std::cout << "Average Number of Connections Per Full Node = " << averageNoConnectionsPerNode / (m_totalNoNodes - m_noMiners -m_noMasterNodes) 
 	          << "\nAverage Number of Connections Per Miner = " << averageNoConnectionsPerMiner / (m_noMiners) << "\nAverage Number of Connections Per Master Node = "<< averageNoConnectionsPerMasterNode / (m_noMasterNodes) <<  "\nConnections distribution: \n";

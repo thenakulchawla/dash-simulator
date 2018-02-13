@@ -852,6 +852,7 @@ DashMiner::MineBlock (void)
 		+ (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
 	m_blockchain.AddBlock(newBlock);
+  m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;

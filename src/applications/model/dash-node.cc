@@ -2843,6 +2843,7 @@ DashNode::AfterBlockValidation(const Block &newBlock)
                   + (newBlock.GetBlockSizeBytes())/static_cast<double>(m_blockchain.GetTotalBlocks());
 				  
   m_blockchain.AddBlock(newBlock);
+  m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
 	if(m_protocolType == COMPACT_PROTOCOL)
 	{
@@ -3376,7 +3377,7 @@ DashNode::GenerateTransactions (void)
 {
 	// NS_LOG_FUNCTION(this);
 
-	m_fixedTransactionTimeGeneration = 1;
+	m_fixedTransactionTimeGeneration = 5;
   // NS_LOG_INFO("Generate Transactions after: " << m_fixedTransactionTimeGeneration);
 
 	if ( m_fixedTransactionTimeGeneration > 0 )
