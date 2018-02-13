@@ -406,7 +406,7 @@ public:
 	double m_maxTransactionSize;
 	EventId m_nextTransactionGenerationEvent;
   std::default_random_engine m_generator;
-	std::random_device rd;
+	// std::random_device rd;
 	std::vector<double> iSize,wSize;			//interval and weight for piecewise distribution for transaction size
   std::piecewise_constant_distribution<double> m_transactionSizeDistribution;
 

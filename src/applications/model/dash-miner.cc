@@ -129,8 +129,8 @@ m_timeStart (0), m_timeFinish (0), m_fistToMine (false)
 	m_previousBlockGenerationTime = 0;
 
 
-	std::random_device rd;
-	m_generator.seed(rd());
+	// std::random_device rd;
+	m_generator.seed(std::rand());
 
 	if (m_fixedBlockTimeGeneration > 0)
 		m_nextBlockTime = m_fixedBlockTimeGeneration;  

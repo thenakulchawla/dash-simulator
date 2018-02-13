@@ -20,6 +20,7 @@
 #include "ns3/double.h"
 #include "dash-node.h"
 #include <random>
+#include <cstdlib>
 #include <array>
 #include "cryptopp/cryptlib.h"
 #include "cryptopp/sha.h"
@@ -101,8 +102,8 @@ DashNode::DashNode (void) : m_dashPort (9999), m_secondsPerMin(60), m_isMiner (f
   m_numberOfPeers = m_peersAddresses.size();
 
 	//random seed to be generated once per instant
-	std::random_device rd;
-	m_generator.seed(rd());
+	// std::random_device rd;
+	m_generator.seed(std::rand());
 
 	if(m_fixedTransactionTimeGeneration > 0)
 		m_nextTransactionTime = m_fixedTransactionTimeGeneration;
@@ -171,6 +172,7 @@ DashNode::SetNodeInternetSpeeds (const nodeInternetSpeeds &internetSpeeds)
 		m_downloadSpeed = internetSpeeds.downloadSpeed * 1000000 / 8 ;
 		m_uploadSpeed = internetSpeeds.uploadSpeed * 1000000 / 8 ; 
 	}
+
 }
   
 void 
