@@ -633,13 +633,6 @@ DashMiner::MineBlock (void)
 
 				break;
 			}
-    case XTHIN:
-      {
-          NS_LOG_INFO("XTHIN protocol");
-
-
-          break;
-      }
 		case RELAY_NETWORK:
 			{
 				rapidjson::Value value;

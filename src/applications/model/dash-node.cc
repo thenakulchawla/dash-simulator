@@ -2845,7 +2845,9 @@ DashNode::AfterBlockValidation(const Block &newBlock)
                   + (newBlock.GetBlockSizeBytes())/static_cast<double>(m_blockchain.GetTotalBlocks());
 				  
   m_blockchain.AddBlock(newBlock);
+  std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<"\n";
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
+  std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << "after accepting block " <<m_mempool.GetMempoolSize()<<"\n";
 
 	if(m_protocolType == COMPACT_PROTOCOL)
 	{
