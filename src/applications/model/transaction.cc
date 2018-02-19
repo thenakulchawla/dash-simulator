@@ -120,7 +120,11 @@ Mempool::DeleteTransactionsFromBegin (int count)
 	NS_LOG_FUNCTION(this);
 	if(m_transactions.size() > 0)
 	{
-		m_transactions.erase(m_transactions.begin() + count);
+		std::cout<<"Number of transactions to be deleted: " << count << "\n";
+		std::cout<<"Number of transactions before deleting: "<< m_transactions.size()<< "\n";
+		// m_transactions(m_transactions.begin()+count, m_transactions.end(), );
+		std::vector<decltype(m_transactions)::value_type>(m_transactions.begin()+count, m_transactions.end()).swap(m_transactions);
+		std::cout<<"Number of transactions after deleting: "<< m_transactions.size()<< "\n";
 	}
 }
 
