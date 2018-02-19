@@ -845,10 +845,10 @@ DashMiner::MineBlock (void)
 		+ (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
 	m_blockchain.AddBlock(newBlock);
-  std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << " before mining block " <<m_mempool.GetMempoolSize()<<"\n";
-	std::cout<<"Transactions in this block: " << newBlock.GetTransactionCount() << "\n";
+  // std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << " before mining block " <<m_mempool.GetMempoolSize()<<"\n";
+	// std::cout<<"Transactions in this block: " << newBlock.GetTransactionCount() << "\n";
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
-  std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << " after mining block " <<m_mempool.GetMempoolSize()<<"\n";
+  // std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << " after mining block " <<m_mempool.GetMempoolSize()<<"\n";
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;
