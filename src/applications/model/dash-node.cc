@@ -323,6 +323,7 @@ DashNode::StopApplication ()     // Called at time specified by Stop
 {
   // NS_LOG_FUNCTION (this);
 
+    Simulator::Cancel (m_nextTransactionGenerationEvent);
   for (std::vector<Ipv4Address>::iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i) //close the outgoing sockets
   {
     m_peersSockets[*i]->Close ();
