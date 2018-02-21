@@ -80,7 +80,7 @@ DashMiner::GetTypeId (void)
 				MakeUintegerChecker<uint32_t> ())				   
 		.AddAttribute ("FixedBlockIntervalGeneration", 
 				"The fixed time to wait between two consecutive block generations",
-				DoubleValue (2.5),
+				DoubleValue (150),
 				MakeDoubleAccessor (&DashMiner::m_fixedBlockTimeGeneration),
 				MakeDoubleChecker<double> ())
 		.AddAttribute ("InvTimeoutMinutes", 
@@ -873,8 +873,8 @@ DashMiner::MineBlock (void)
 
 	int count = 0;
 
-	NS_LOG_INFO("invInfo is :" <<invInfo.GetString());
-	NS_LOG_INFO("blockInfo is :" <<blockInfo.GetString());
+	// NS_LOG_INFO("invInfo is :" <<invInfo.GetString());
+	// NS_LOG_INFO("blockInfo is :" <<blockInfo.GetString());
 
 
 	for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i, ++count)
@@ -926,48 +926,31 @@ DashMiner::MineBlock (void)
 					}
 					else if (m_protocolType == COMPACT)
 					{
-						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(blockInfo.GetString()), blockInfo.GetSize(), 0);
-						m_peersSockets[*i]->Send (delimiter, 1, 0);
-						// NS_LOG_INFO("Sending Compact block");
-						NS_LOG_INFO("send compact blockInfo is :" <<blockInfo.GetString());
+
+						double blockSize = m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;
+						m_nodeStats->blockSentBytes += blockSize;
+
+						double sendTime = blockSize / m_uploadSpeed;
+						double eventTime;    
 
 
-						m_nodeStats->blockSentBytes += m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;  //250 is coinbase transaction
+						if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
+						{
+							eventTime = 0; 
+						}
+						else
+						{
+							eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+						}
+						m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
 
-						// NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-						// 		<< "s dash miner " << GetNode ()->GetId () 
-						// 		<< " sent a packet to " << *i);
+						// std::cout << sendTime << " " << eventTime << " " << m_sendBlockTimes.size() << std::endl;
+
+						std::string packet = blockInfo.GetString();
+						NS_LOG_INFO("Packet to be sent is compact : ");
+						Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
+						Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
 					}
-
-						// m_nodeStats->blockSentBytes +=m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250; 
-            //
-						// double sendTime =(m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250)  / m_uploadSpeed;
-						// double eventTime;    
-            //
-            //
-						// if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
-						// {
-						// 	eventTime = 0; 
-						// }
-						// else
-						// {
-						// 	eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
-						// }
-						// m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
-            //
-						// // std::cout << sendTime << " " << eventTime << " " << m_sendBlockTimes.size() << std::endl;
-            //
-						// std::string packet = blockInfo.GetString();
-						// //NS_LOG_INFO("Packet to be sent is : " <<packet<<std::endl);
-						// Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
-						// Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
-					// }
-          //
-          //
-					// NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-					// 		<< "s dash miner " << GetNode ()->GetId () 
-					// 		<< " sent a packet " << invInfo.GetString() 
-					// 		<< " to " << *i);
 
 					break;
 				}

@@ -397,7 +397,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 		
         packet->CopyData (reinterpret_cast<uint8_t*>(packetInfo), packet->GetSize ());
         packetInfo[packet->GetSize ()] = '\0'; // ensure that it is null terminated to avoid bugs
-				NS_LOG_INFO("packet as original : " << packetInfo << std::endl);
+				// NS_LOG_INFO("packet as original : " << packetInfo << std::endl);
 				
 		  
         /**
@@ -430,7 +430,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
           d.Accept(writer);
 
 					// NS_LOG_INFO("buffer is :" << buffer.GetString() << "\n");
-          NS_LOG_INFO("message :" << d["message"].GetInt());
+          // NS_LOG_INFO("message :" << d["message"].GetInt());
 		  
           // NS_LOG_INFO ("At time "  << Simulator::Now ().GetSeconds ()
           //               << "s dash node " << GetNode ()->GetId () << " received "
@@ -1912,7 +1912,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
                 std::string help = blockInfo.GetString();
 
-            		NS_LOG_INFO ("help is : " << help << std::endl);
+            		// NS_LOG_INFO ("help is : " << help << std::endl);
 
                 if (m_receiveBlockTimes.size() == 0 || Simulator::Now().GetSeconds () > m_receiveBlockTimes.back())
                 {
@@ -2791,6 +2791,9 @@ DashNode::AfterBlockValidation(const Block &newBlock)
                   + (newBlock.GetBlockSizeBytes())/static_cast<double>(m_blockchain.GetTotalBlocks());
 				  
   m_blockchain.AddBlock(newBlock);
+	std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " << m_mempool.GetMempoolSize()<<std::endl;
+	std::cout<<"Blockchain size for node: " << GetNode()->GetId() << "is: " <<m_blockchain.GetTotalBlocks() << std::endl;
+
   NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
   NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "after accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
@@ -3327,7 +3330,7 @@ DashNode::GenerateTransactions (void)
 {
 	// NS_LOG_FUNCTION(this);
 
-	m_fixedTransactionTimeGeneration = 1;
+	m_fixedTransactionTimeGeneration = 30;
   // NS_LOG_INFO("Generate Transactions after: " << m_fixedTransactionTimeGeneration);
 
 	if ( m_fixedTransactionTimeGeneration > 0 )
@@ -3471,10 +3474,10 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
 				
   d["message"].SetInt(responseMessage);
   d.Accept(writer);
-  NS_LOG_INFO ("Node " << GetNode ()->GetId () << " got a " 
-               << getMessageName(receivedMessage) << " message" 
-               << " and sent a " << getMessageName(responseMessage) 
-               << " message: " << buffer.GetString());
+  // NS_LOG_INFO ("Node " << GetNode ()->GetId () << " got a " 
+  //              << getMessageName(receivedMessage) << " message" 
+  //              << " and sent a " << getMessageName(responseMessage) 
+  //              << " message: " << buffer.GetString());
 
   outgoingSocket->Send (reinterpret_cast<const uint8_t*>(buffer.GetString()), buffer.GetSize(), 0);
   outgoingSocket->Send (delimiter, 1, 0);	

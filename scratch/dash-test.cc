@@ -185,8 +185,11 @@ main (int argc, char *argv[])
    }	
 
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
+	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
   stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+
+	std::cout<<"The simulator should stop at: " << stop << "seconds" << std::endl;
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -384,13 +387,14 @@ main (int argc, char *argv[])
   }
 
   dashNodes.Start (Seconds (start));
-  dashNodes.Stop (Minutes (stop));
-  // dashNodes.Stop (Seconds (stop));
+  // dashNodes.Stop (Minutes (stop));
+  dashNodes.Stop (Seconds (stop));
 
   dashMiners.Start (Seconds (start + 2));
-  dashMiners.Stop (Minutes (stop));
-  // dashMiners.Stop (Seconds (stop));
+  // dashMiners.Stop (Minutes (stop));
+  dashMiners.Stop (Seconds (stop));
 
+	std::cout<<"The application should stop after: " << Seconds(stop) << " in minutes: " << Minutes(stop) << std::endl;
 
   if (systemId == 0)
     std::cout << "The applications have been setup.\n";
