@@ -779,8 +779,8 @@ const char* getBlockBroadcastType(enum BlockBroadcastType m)
     case UNSOLICITED: return "UNSOLICITED";
     case RELAY_NETWORK: return "RELAY_NETWORK";
     case UNSOLICITED_RELAY_NETWORK: return "UNSOLICITED_RELAY_NETWORK";
-		case COMPACT: return "COMPACT";
-    case XTHIN: return "XTHIN";
+		// case COMPACT: return "COMPACT";
+    // case XTHIN: return "XTHIN";
   }
 }
 
@@ -790,8 +790,8 @@ const char* getProtocolType(enum ProtocolType m)
   {
     case STANDARD_PROTOCOL: return "STANDARD_PROTOCOL";
     case SENDHEADERS: return "SENDHEADERS";
-    case COMPACT_PROTOCOL: return "COMPACT_PROTOCOL";
-    case XTHIN_PROTOCOL: return "XTHIN_PROTOCOL";
+    case COMPACT: return "COMPACT";
+    // case XTHIN_PROTOCOL: return "XTHIN_PROTOCOL";
   }
 }
 

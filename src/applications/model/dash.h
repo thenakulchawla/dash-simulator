@@ -65,9 +65,9 @@ enum BlockBroadcastType
   STANDARD,                    //DEFAULT
   UNSOLICITED,
   RELAY_NETWORK,
-  UNSOLICITED_RELAY_NETWORK,
-  COMPACT, //Change from protocol to blockBroadcastType
-  XTHIN //Change from protocol to blockBroadcastType
+  UNSOLICITED_RELAY_NETWORK
+  // COMPACT, //Change from protocol to blockBroadcastType
+  // XTHIN //Change from protocol to blockBroadcastType
 };
 
 
@@ -79,8 +79,8 @@ enum ProtocolType
 {
   STANDARD_PROTOCOL,           //DEFAULT
   SENDHEADERS,
-  COMPACT_PROTOCOL,
-  XTHIN_PROTOCOL
+  COMPACT
+  // XTHIN_PROTOCOL
 };
 
 enum NodeType

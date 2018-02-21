@@ -321,9 +321,9 @@ DashNode::StartApplication ()    // Called at time specified by Start
 void 
 DashNode::StopApplication ()     // Called at time specified by Stop
 {
-  // NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);
 
-    Simulator::Cancel (m_nextTransactionGenerationEvent);
+  Simulator::Cancel (m_nextTransactionGenerationEvent);
   for (std::vector<Ipv4Address>::iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i) //close the outgoing sockets
   {
     m_peersSockets[*i]->Close ();
@@ -397,7 +397,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 		
         packet->CopyData (reinterpret_cast<uint8_t*>(packetInfo), packet->GetSize ());
         packetInfo[packet->GetSize ()] = '\0'; // ensure that it is null terminated to avoid bugs
-				// NS_LOG_INFO("packet as original : " << packetInfo << std::endl);
+				NS_LOG_INFO("packet as original : " << packetInfo << std::endl);
 				
 		  
         /**
@@ -430,7 +430,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
           d.Accept(writer);
 
 					// NS_LOG_INFO("buffer is :" << buffer.GetString() << "\n");
-          // NS_LOG_INFO("message :" << d["message"]);
+          NS_LOG_INFO("message :" << d["message"].GetInt());
 		  
           // NS_LOG_INFO ("At time "  << Simulator::Now ().GetSeconds ()
           //               << "s dash node " << GetNode ()->GetId () << " received "
@@ -1889,6 +1889,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
             }
             case COMPACT_BLOCK:
 						{
+							NS_LOG_FUNCTION(this);
 
                 NS_LOG_INFO ("COMPACT BLOCK");
                 double blockMessageSize = 0;
@@ -2070,62 +2071,6 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
 
             }
-            // case XTHIN_INV:
-            // {
-            //     NS_LOG_INFO("XTHIN_INV");
-            //
-            //     m_nodestats->invReceivedBytes += m_dashMessageHeader + m_countBytes + d["inv"].size()*m_inventorySizeBytes;
-            //     int j;
-            //     // std::vector<std::string> requestBlocks;
-            //     // std::vector<std::string> iterator block_it;
-            //
-            //     for(j=0;j<d["inv"].size();j++)
-            //     {
-            //         std::string invDelimiter = "/";
-            //         std::string parsedInv = d["inv"][j].GetString();
-            //         size_t invPos = parsedInv.find(invDelimiter);
-            //         EventId timeout;
-            //
-            //         int height = atoi(parsedInv.substr(0, invPos).c_str());
-            //         int minerId = atoi(parsedInv.substr(invPos+1,parsedInv.Size()).c_str());
-            //
-            //         if (m_blockchain.HasBlock(height,minerId) || m_blockchain.IsOrphan(height, minerId) || ReceivedButNotValidated(parsedInv))
-            //         {
-            //             NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId() << " has already received the block with height = " << height << "and minerId = " << minerId );
-            //
-            //         }
-            //         else
-            //         {
-            //
-            //             NS_LOG_INFO("XTHIN_INV: Dash Node " << GetNode()->GetId() << "does not have the block with height = " << height << "and minerId = " << minerId);
-            //
-            //
-            //         }
-            //
-            //         if (m_invTimeouts.find(parsedInv) == m_invTimeouts.end())
-            //         {
-            //
-            //
-            //
-            //         }
-            //         else
-            //         {
-            //             NS_LOG_INFO("XTHIN_INV : Dash Node " << GetNode()->GetId() << " already requested bloom filter sketch to recreate the block here ");
-            //
-            //         }
-            //
-            //
-            //     }
-            //
-            //     SendMessage (XTHIN_INV, BLOOM_FILTER, d, from);
-            //
-            //     break;
-            //
-            // }
-            // case BLOOM_FILTER:
-            // {
-            //
-            // }
             default:
               NS_LOG_INFO ("Default");
               break;
@@ -2846,11 +2791,11 @@ DashNode::AfterBlockValidation(const Block &newBlock)
                   + (newBlock.GetBlockSizeBytes())/static_cast<double>(m_blockchain.GetTotalBlocks());
 				  
   m_blockchain.AddBlock(newBlock);
-  std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<"\n";
+  NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
-  std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << "after accepting block " <<m_mempool.GetMempoolSize()<<"\n";
+  NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "after accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
 
-	if(m_protocolType == COMPACT_PROTOCOL)
+	if(m_protocolType == COMPACT)
 	{
 		SendCompactBlock(newBlock);
 	}
@@ -3382,7 +3327,7 @@ DashNode::GenerateTransactions (void)
 {
 	// NS_LOG_FUNCTION(this);
 
-	m_fixedTransactionTimeGeneration = 300;
+	m_fixedTransactionTimeGeneration = 1;
   // NS_LOG_INFO("Generate Transactions after: " << m_fixedTransactionTimeGeneration);
 
 	if ( m_fixedTransactionTimeGeneration > 0 )

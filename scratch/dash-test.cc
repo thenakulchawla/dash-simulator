@@ -186,7 +186,7 @@ main (int argc, char *argv[])
 
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
   //the simulator should run enough time to complete all blocks as expected
-  stop = 4 * targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -270,9 +270,9 @@ main (int argc, char *argv[])
       if (sendheaders)	  
         dashMinerHelper.SetProtocolType(SENDHEADERS);	  
       if (compact)
-        dashMinerHelper.SetProtocolType(COMPACT_PROTOCOL);
-      if (xthin)
-          dashMinerHelper.SetProtocolType(XTHIN_PROTOCOL);
+        dashMinerHelper.SetProtocolType(COMPACT);
+      // if (xthin)
+      //     dashMinerHelper.SetProtocolType(XTHIN_PROTOCOL);
       if (blockTorrent)	
       {		  
         dashMinerHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -299,10 +299,10 @@ main (int argc, char *argv[])
 	    dashMinerHelper.SetBlockBroadcastType (RELAY_NETWORK);
 	  if(unsolicitedRelayNetwork)
 	    dashMinerHelper.SetBlockBroadcastType (UNSOLICITED_RELAY_NETWORK);
-		if(compact)
-			dashMinerHelper.SetBlockBroadcastType (COMPACT);
-    if(xthin)
-      dashMinerHelper.SetBlockBroadcastType (XTHIN);
+		// if(compact)
+		// 	dashMinerHelper.SetBlockBroadcastType (COMPACT);
+    // if(xthin)
+    //   dashMinerHelper.SetBlockBroadcastType (XTHIN);
 	
 	  dashMiners.Add(dashMinerHelper.Install (targetNode));
     // std::cout << "SystemId " << systemId << ": Miner " << miner << " with hash power = " << minersHash[count] 
@@ -357,9 +357,9 @@ main (int argc, char *argv[])
         if (sendheaders)	  
           dashNodeHelper.SetProtocolType(SENDHEADERS);	
         if (compact)	  
-          dashNodeHelper.SetProtocolType(COMPACT_PROTOCOL);	
-        if (xthin)
-          dashNodeHelper.SetProtocolType(XTHIN_PROTOCOL);
+          dashNodeHelper.SetProtocolType(COMPACT);	
+        // if (xthin)
+        //   dashNodeHelper.SetProtocolType(XTHIN_PROTOCOL);
         if (blockTorrent)	  
         {
           dashNodeHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -384,12 +384,12 @@ main (int argc, char *argv[])
   }
 
   dashNodes.Start (Seconds (start));
-  // dashNodes.Stop (Minutes (stop));
-  dashNodes.Stop (Seconds (stop));
+  dashNodes.Stop (Minutes (stop));
+  // dashNodes.Stop (Seconds (stop));
 
   dashMiners.Start (Seconds (start + 2));
-  //dashMiners.Stop (Minutes (stop));
-  dashMiners.Stop (Seconds (stop));
+  dashMiners.Stop (Minutes (stop));
+  // dashMiners.Stop (Seconds (stop));
 
 
   if (systemId == 0)
@@ -547,15 +547,15 @@ main (int argc, char *argv[])
       std::cout << "The broadcast type was RELAY_NETWORK.\n";
     else if(unsolicitedRelayNetwork)
       std::cout << "The broadcast type was UNSOLICITED_RELAY_NETWORK.\n";
-		else if(compact)
-			std::cout << "The broadcast type was COMPACT.\n";
-    else if(xthin)
-        std::cout<< "The broadcast type was XTHIN. \n";
+		// else if(compact)
+		// 	std::cout << "The broadcast type was COMPACT.\n";
+    // else if(xthin)
+    //     std::cout<< "The broadcast type was XTHIN. \n";
     else
       std::cout << "The broadcast type was STANDARD.\n";
 
-    // if(compact)
-    //   std::cout << "The protocol type was COMPACT.\n";
+    if(compact)
+      std::cout << "The protocol type was COMPACT.\n";
     // if(xthin)
     //     std::cout << "The protocol type was EXTREME THIN BLOCKS. \n";
 
