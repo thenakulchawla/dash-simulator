@@ -154,6 +154,7 @@ protected:
 	bool 						  m_fillBlock;
   EventId           m_nextMiningEvent; 				//!< Event to mine the next block
   std::default_random_engine m_generator;
+	// std::random_device rd;
 
   /** 
    * The m_blockGenBinSize states binSize of the block generation time.

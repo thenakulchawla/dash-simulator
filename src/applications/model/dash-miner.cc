@@ -80,7 +80,7 @@ DashMiner::GetTypeId (void)
 				MakeUintegerChecker<uint32_t> ())				   
 		.AddAttribute ("FixedBlockIntervalGeneration", 
 				"The fixed time to wait between two consecutive block generations",
-				DoubleValue (150),
+				DoubleValue (0),
 				MakeDoubleAccessor (&DashMiner::m_fixedBlockTimeGeneration),
 				MakeDoubleChecker<double> ())
 		.AddAttribute ("InvTimeoutMinutes", 
@@ -129,8 +129,8 @@ m_timeStart (0), m_timeFinish (0), m_fistToMine (false)
 	m_previousBlockGenerationTime = 0;
 
 
-	// std::random_device rd;
-	m_generator.seed(std::rand());
+	std::random_device rd;
+	m_generator.seed(rd());
 
 	if (m_fixedBlockTimeGeneration > 0)
 		m_nextBlockTime = m_fixedBlockTimeGeneration;  
@@ -397,6 +397,7 @@ DashMiner::MineBlock (void)
 	if (m_fixedBlockSize > 0)
 	{
 		m_nextBlockSize = m_fixedBlockSize;
+		NS_LOG_INFO("Next block size: " << m_nextBlockSize << std::endl);
 		if (m_fillBlock)
 		{
         NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
@@ -947,7 +948,7 @@ DashMiner::MineBlock (void)
 						// std::cout << sendTime << " " << eventTime << " " << m_sendBlockTimes.size() << std::endl;
 
 						std::string packet = blockInfo.GetString();
-						NS_LOG_INFO("Packet to be sent is compact : ");
+						// NS_LOG_INFO("Packet to be sent is compact : ");
 						Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
 						Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
 					}
@@ -1240,7 +1241,7 @@ DashMiner::ReceivedHigherBlock(const Block &newBlock)
 void 
 DashMiner::SendBlock(std::string packetInfo, Ptr<Socket> to) 
 {
-	// NS_LOG_FUNCTION (this);
+	NS_LOG_FUNCTION (this);
 
 	// NS_LOG_INFO ("SendBlock: At time " << Simulator::Now ().GetSeconds ()
 	// 		<< "s dash miner " << GetNode ()->GetId () << " send " 
@@ -1254,10 +1255,20 @@ DashMiner::SendBlock(std::string packetInfo, Ptr<Socket> to)
 	d.Parse(packetInfo.c_str());  
 	d.Accept(writer);
 
+	int transactionCount = d["transactions"].Size();
+
 	/*   if (d["type"] != "compressed-block")
 			 m_sendBlockTimes.erase(m_sendBlockTimes.begin()); */				
-	SendMessage(NO_MESSAGE, BLOCK, d, to);
-	m_nodeStats->blockSentBytes -= m_dashMessageHeader + d["blocks"][0]["size"].GetInt();
+	if (m_protocolType == COMPACT)
+	{
+		SendMessage(NO_MESSAGE, COMPACT_BLOCK, d, to);
+		m_nodeStats->blockSentBytes -= m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;
+	}
+	else
+	{
+		SendMessage(NO_MESSAGE, BLOCK, d, to);
+		m_nodeStats->blockSentBytes -= m_dashMessageHeader + d["blocks"][0]["size"].GetInt();
+	}
 }
 
 } // Namespace ns3

@@ -82,17 +82,17 @@ main (int argc, char *argv[])
   int maxConnectionsPerMasterNode = -1;
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
-  int noMiners = 16;
+  int noMiners = 8;
 	int noMasterNodes = 4400;
 	// int noMasterNodes = 16;
 
 #ifdef MPI_TEST
   
-  //double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
-  //                              0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
-  //                             0.005, 0.005, 0.002, 0.002};
+  double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
+                               0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
+                              0.005, 0.005, 0.002, 0.002};
 	
-	double dashMinersHash[] = {.40,.34,.08,.07,.04,.012,.012,.012,.0001,.0001,.00001,.0001,.0001,.00001,.0001,.00001};	
+	// double dashMinersHash[] = {.40,.34,.08,.07,.04,.012,.012,.012,.001,.001,.001,.001,.001,.001,.001,.001};	
 
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
@@ -156,31 +156,31 @@ main (int argc, char *argv[])
 
   cmd.Parse(argc, argv);
  
-  if (noMiners % 16 != 0)
+  if (noMiners % 8 != 0)
   {
-    std::cout << "The number of miners must be multiple of 16" << std::endl;
+    std::cout << "The number of miners must be multiple of 8" << std::endl;
 	return 0;
   }
   
   minersHash = new double[noMiners];
 	minersRegions = new enum DashRegion[noMiners];
 	
-    for(int i = 0; i < noMiners/16; i++)
+    for(int i = 0; i < noMiners/8; i++)
     {
-      for (int j = 0; j < 16 ; j++)
+      for (int j = 0; j < 8 ; j++)
       {
-        minersHash[i*16 + j] = dashMinersHash[j]*16/noMiners;
-        minersRegions[i*16 + j] = dashMinersRegions[j];
+        minersHash[i*8 + j] = dashMinersHash[j]*16/noMiners;
+        minersRegions[i*8 + j] = dashMinersRegions[j];
       }
     }	
 
 	masterNodesRegions = new enum DashRegion[noMasterNodes];
 	
-   for(int i = 0; i < noMasterNodes/16; i++)
+   for(int i = 0; i < noMasterNodes/8; i++)
    {
-     for (int j = 0; j < 16 ; j++)
+     for (int j = 0; j < 8 ; j++)
      {
-       masterNodesRegions[i*16 + j] = dashMasterNodesRegions[j];
+       masterNodesRegions[i*8 + j] = dashMasterNodesRegions[j];
      }
    }	
 
@@ -387,12 +387,12 @@ main (int argc, char *argv[])
   }
 
   dashNodes.Start (Seconds (start));
-  // dashNodes.Stop (Minutes (stop));
-  dashNodes.Stop (Seconds (stop));
+  dashNodes.Stop (Minutes (stop));
+  // dashNodes.Stop (Seconds (stop));
 
   dashMiners.Start (Seconds (start + 2));
-  // dashMiners.Stop (Minutes (stop));
-  dashMiners.Stop (Seconds (stop));
+  dashMiners.Stop (Minutes (stop));
+  // dashMiners.Stop (Seconds (stop));
 
 	std::cout<<"The application should stop after: " << Seconds(stop) << " in minutes: " << Minutes(stop) << std::endl;
 
@@ -542,7 +542,7 @@ main (int argc, char *argv[])
   {
     tFinish=get_wall_time();
 	
-    //PrintStatsForEachNode(stats, totalNoNodes);
+    // PrintStatsForEachNode(stats, totalNoNodes);
     PrintTotalStats(stats, totalNoNodes, tStartSimulation, tFinish, averageBlockGenIntervalMinutes, relayNetwork);
 	
     if(unsolicited)
@@ -613,40 +613,42 @@ void PrintStatsForEachNode (nodeStatistics *stats, int totalNodes)
   
   for (int it = 0; it < totalNodes; it++ )
   {
-    std::cout << "\nNode " << stats[it].nodeId << " statistics:\n";
-    std::cout << "Connections = " << stats[it].connections << "\n";
-    std::cout << "Mean Block Receive Time = " << stats[it].meanBlockReceiveTime << " or " 
-              << static_cast<int>(stats[it].meanBlockReceiveTime) / secPerMin << "min and " 
-			  << stats[it].meanBlockReceiveTime - static_cast<int>(stats[it].meanBlockReceiveTime) / secPerMin * secPerMin << "s\n";
-    std::cout << "Mean Block Propagation Time = " << stats[it].meanBlockPropagationTime << "s\n";
-    std::cout << "Mean Block Size = " << stats[it].meanBlockSize << " Bytes\n";
     std::cout << "Total Blocks = " << stats[it].totalBlocks << "\n";
-    std::cout << "Stale Blocks = " << stats[it].staleBlocks << " (" 
-              << 100. * stats[it].staleBlocks / stats[it].totalBlocks << "%)\n";
-    std::cout << "The size of the longest fork was " << stats[it].longestFork << " blocks\n";
-    std::cout << "There were in total " << stats[it].blocksInForks << " blocks in forks\n";
-    std::cout << "The total received INV messages were " << stats[it].invReceivedBytes << " Bytes\n";
-    std::cout << "The total received GET_HEADERS messages were " << stats[it].getHeadersReceivedBytes << " Bytes\n";
-    std::cout << "The total received HEADERS messages were " << stats[it].headersReceivedBytes << " Bytes\n";
-    std::cout << "The total received GET_DATA messages were " << stats[it].getDataReceivedBytes << " Bytes\n";
-    std::cout << "The total received BLOCK messages were " << stats[it].blockReceivedBytes << " Bytes\n";
-    std::cout << "The total sent INV messages were " << stats[it].invSentBytes << " Bytes\n";
-    std::cout << "The total sent GET_HEADERS messages were " << stats[it].getHeadersSentBytes << " Bytes\n";
-    std::cout << "The total sent HEADERS messages were " << stats[it].headersSentBytes << " Bytes\n";
-    std::cout << "The total sent GET_DATA messages were " << stats[it].getDataSentBytes << " Bytes\n";
-    std::cout << "The total sent BLOCK messages were " << stats[it].blockSentBytes << " Bytes\n";
-    std::cout << "The total received EXT_INV messages were " << stats[it].extInvReceivedBytes << " Bytes\n";
-    std::cout << "The total received EXT_GET_HEADERS messages were " << stats[it].extGetHeadersReceivedBytes << " Bytes\n";
-    std::cout << "The total received EXT_HEADERS messages were " << stats[it].extHeadersReceivedBytes << " Bytes\n";
-    std::cout << "The total received EXT_GET_DATA messages were " << stats[it].extGetDataReceivedBytes << " Bytes\n";
-    std::cout << "The total received CHUNK messages were " << stats[it].chunkReceivedBytes << " Bytes\n";
-    std::cout << "The total sent EXT_INV messages were " << stats[it].extInvSentBytes << " Bytes\n";
-    std::cout << "The total sent EXT_GET_HEADERS messages were " << stats[it].extGetHeadersSentBytes << " Bytes\n";
-    std::cout << "The total sent EXT_HEADERS messages were " << stats[it].extHeadersSentBytes << " Bytes\n";
-    std::cout << "The total sent EXT_GET_DATA messages were " << stats[it].extGetDataSentBytes << " Bytes\n";
-    std::cout << "The total sent CHUNK messages were " << stats[it].chunkSentBytes << " Bytes\n";
-    std::cout << "The total sent TXN messages were " << stats[it].transactionSentBytes << " Bytes\n";
-    std::cout << "The total received TXN messages were " << stats[it].transactionReceivedBytes << " Bytes\n";
+    // std::cout << "The total received COMPACT messages were " << stats[it].invReceivedBytes << " Bytes\n";
+    // std::cout << "\nNode " << stats[it].nodeId << " statistics:\n";
+    // std::cout << "Connections = " << stats[it].connections << "\n";
+    // std::cout << "Mean Block Receive Time = " << stats[it].meanBlockReceiveTime << " or " 
+    //           << static_cast<int>(stats[it].meanBlockReceiveTime) / secPerMin << "min and " 
+		// 	  << stats[it].meanBlockReceiveTime - static_cast<int>(stats[it].meanBlockReceiveTime) / secPerMin * secPerMin << "s\n";
+    // std::cout << "Mean Block Propagation Time = " << stats[it].meanBlockPropagationTime << "s\n";
+    // std::cout << "Mean Block Size = " << stats[it].meanBlockSize << " Bytes\n";
+    // std::cout << "Stale Blocks = " << stats[it].staleBlocks << " (" 
+    //           << 100. * stats[it].staleBlocks / stats[it].totalBlocks << "%)\n";
+    // std::cout << "The size of the longest fork was " << stats[it].longestFork << " blocks\n";
+    // std::cout << "There were in total " << stats[it].blocksInForks << " blocks in forks\n";
+    // std::cout << "The total received INV messages were " << stats[it].invReceivedBytes << " Bytes\n";
+    // std::cout << "The total received GET_HEADERS messages were " << stats[it].getHeadersReceivedBytes << " Bytes\n";
+    // std::cout << "The total received HEADERS messages were " << stats[it].headersReceivedBytes << " Bytes\n";
+    // std::cout << "The total received GET_DATA messages were " << stats[it].getDataReceivedBytes << " Bytes\n";
+    // std::cout << "The total received BLOCK messages were " << stats[it].blockReceivedBytes << " Bytes\n";
+    // std::cout << "The total sent INV messages were " << stats[it].invSentBytes << " Bytes\n";
+    // std::cout << "The total sent GET_HEADERS messages were " << stats[it].getHeadersSentBytes << " Bytes\n";
+    // std::cout << "The total sent HEADERS messages were " << stats[it].headersSentBytes << " Bytes\n";
+    // std::cout << "The total sent GET_DATA messages were " << stats[it].getDataSentBytes << " Bytes\n";
+    // std::cout << "The total sent BLOCK messages were " << stats[it].blockSentBytes << " Bytes\n";
+    // std::cout << "The total received EXT_INV messages were " << stats[it].extInvReceivedBytes << " Bytes\n";
+    // std::cout << "The total received EXT_GET_HEADERS messages were " << stats[it].extGetHeadersReceivedBytes << " Bytes\n";
+    // std::cout << "The total received EXT_HEADERS messages were " << stats[it].extHeadersReceivedBytes << " Bytes\n";
+    // std::cout << "The total received EXT_GET_DATA messages were " << stats[it].extGetDataReceivedBytes << " Bytes\n";
+    // std::cout << "The total received CHUNK messages were " << stats[it].chunkReceivedBytes << " Bytes\n";
+    // std::cout << "The total sent EXT_INV messages were " << stats[it].extInvSentBytes << " Bytes\n";
+    // std::cout << "The total sent EXT_GET_HEADERS messages were " << stats[it].extGetHeadersSentBytes << " Bytes\n";
+    // std::cout << "The total sent EXT_HEADERS messages were " << stats[it].extHeadersSentBytes << " Bytes\n";
+    // std::cout << "The total sent EXT_GET_DATA messages were " << stats[it].extGetDataSentBytes << " Bytes\n";
+    // std::cout << "The total sent CHUNK messages were " << stats[it].chunkSentBytes << " Bytes\n";
+    // std::cout << "The total sent TXN messages were " << stats[it].transactionSentBytes << " Bytes\n";
+    // std::cout << "The total received TXN messages were " << stats[it].transactionReceivedBytes << " Bytes\n";
+    //
 
     if ( stats[it].miner == 1)
     {

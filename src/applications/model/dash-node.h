@@ -210,7 +210,7 @@ public:
    */
   void AdvertiseNewBlock (const Block &newBlock);
 
-	void SendCompactBlock (const Block &newBlock);
+	// void SendCompactBlock (const Block &newBlock);
   
   /**
    * \brief Advertises the newly validated block when blockTorrent is used
