@@ -3352,7 +3352,7 @@ DashNode::GenerateTransactions (void)
 {
 	// NS_LOG_FUNCTION(this);
 
-	m_fixedTransactionTimeGeneration = 30;
+	m_fixedTransactionTimeGeneration = 150;
   // NS_LOG_INFO("Generate Transactions after: " << m_fixedTransactionTimeGeneration);
 
 	if ( m_fixedTransactionTimeGeneration > 0 )
