@@ -2061,7 +2061,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
                 std::string help = blockInfo.GetString();
 
-                // NS_LOG_INFO("Final block string : " << help << std::endl);
+                NS_LOG_INFO("Final block string : " << help << std::endl);
 
                 Simulator::Schedule (Seconds(eventTime), &DashNode::ReceivedBlockMessage, this, help, from);
                 Simulator::Schedule (Seconds(receiveTime), &DashNode::RemoveReceiveTime, this);
@@ -2111,7 +2111,7 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
   //             << " Node " << GetNode()->GetId() << " received a block message " << blockInfo);
 
   NS_LOG_INFO("ReceivedBlockMessage: At time " << Simulator::Now ().GetSeconds () 
-              << " Node " << GetNode()->GetId() << " received a block message " );
+              << " Node " << GetNode()->GetId() << " received a block message with" );
 	
   //m_receiveBlockTimes.erase(m_receiveBlockTimes.begin());	
   
@@ -2121,6 +2121,8 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
     int parentMinerId = d["blocks"][j]["parentBlockMinerId"].GetInt();
     int height = d["blocks"][j]["height"].GetInt();
     int minerId = d["blocks"][j]["minerId"].GetInt();
+
+		NS_LOG_INFO("ReceivedBlockMessage height is: " << height << " miner is: " << minerId <<std::endl);
 		// NS_LOG_INFO("DEBUG here Nakul: ");
 		// NS_LOG_INFO("packet to debug is here: " << blockInfo);
 		int transactionCount = d["transactions"].Size(); 
@@ -2138,7 +2140,7 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
 			blockTransactions.push_back(newTransaction);
 
 		}
-			// NS_LOG_INFO("transactions added");
+		NS_LOG_INFO("Received Block Transactions\n");
 
     EventId              timeout;
     std::ostringstream   stringStream;  
@@ -2602,7 +2604,7 @@ DashNode::ReceiveBlock(const Block &newBlock)
   //               << "s dash node " << GetNode ()->GetId () << " received " << newBlock);
 
   NS_LOG_INFO ("ReceiveBlock: At time " << Simulator::Now ().GetSeconds ()
-                << "s dash node " << GetNode ()->GetId () << " received " );
+                << "s dash node " << GetNode ()->GetId () << " received " << newBlock );
 
   std::ostringstream   stringStream;  
   std::string          blockHash = stringStream.str();
@@ -2610,9 +2612,12 @@ DashNode::ReceiveBlock(const Block &newBlock)
   stringStream << newBlock.GetBlockHeight() << "/" << newBlock.GetMinerId();
   blockHash = stringStream.str();
   
+	NS_LOG_INFO("ReceiveBlock has block: " << m_blockchain.HasBlock(newBlock) << " isOrphan is: " <<  m_blockchain.IsOrphan(newBlock) <<" ReceivedButNotValidated is: "<< ReceivedButNotValidated(blockHash) <<std::endl);
+
+
   if (m_blockchain.HasBlock(newBlock) || m_blockchain.IsOrphan(newBlock) || ReceivedButNotValidated(blockHash))
   {
-    NS_LOG_INFO ("ReceiveBlock: Dash node " << GetNode ()->GetId () << " has already added this block in the m_blockchain: " );
+    NS_LOG_INFO ("ReceiveBlock: Dash node " << GetNode ()->GetId () << " has already added this block in the m_blockchain: " << newBlock << std::endl );
     
     if (m_invTimeouts.find(blockHash) != m_invTimeouts.end())
     {
@@ -2624,7 +2629,7 @@ DashNode::ReceiveBlock(const Block &newBlock)
   }
   else
   {
-    NS_LOG_INFO ("ReceiveBlock: Dash node " << GetNode ()->GetId () << " has NOT added this block in the m_blockchain: " );
+    NS_LOG_INFO ("ReceiveBlock: Dash node " << GetNode ()->GetId () << " has NOT added this block in the m_blockchain: " << newBlock );
 
     m_receivedNotValidated[blockHash] = newBlock;
 	//PrintQueueInv();
@@ -2692,6 +2697,7 @@ DashNode::SendBlock(std::string packetInfo, Address& from)
 void 
 DashNode::SendBlockTransactions(std::string packetInfo, Address& from) 
 {
+	NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("SendBlockTransactions: At time " << Simulator::Now ().GetSeconds ()
                 << "s dash node " << GetNode ()->GetId () << " sent " 
                  << " to " << InetSocketAddress::ConvertFrom(from).GetIpv4 ());
@@ -2797,17 +2803,18 @@ DashNode::AfterBlockValidation(const Block &newBlock)
                   + (newBlock.GetBlockSizeBytes())/static_cast<double>(m_blockchain.GetTotalBlocks());
 				  
   m_blockchain.AddBlock(newBlock);
+
 	if(m_blockchain.GetTotalBlocks() > 1)
-		std::cout<<"New block added to the node\n";
+		NS_LOG_INFO("Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl);
 
 	// std::cout<<"Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " << m_mempool.GetMempoolSize()<<std::endl;
 	// std::cout<<"Blockchain size for node: " << GetNode()->GetId() << "is: " <<m_blockchain.GetTotalBlocks() << std::endl;
 
-  NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
+  // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
 
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
-  NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "after accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
+  // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "after accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
 
 	if (!m_blockTorrent)
 		AdvertiseNewBlock(newBlock); 
@@ -2983,98 +2990,6 @@ DashNode::AdvertiseNewBlock (const Block &newBlock)
     }
   }
 }
-
-// void
-// DashNode::SendCompactBlock (const Block &newBlock)
-// {
-// 	NS_LOG_FUNCTION(this);
-//   rapidjson::Document d;
-//   rapidjson::Value value;
-//   rapidjson::Value array(rapidjson::kArrayType);  
-//   std::ostringstream stringStream;  
-//   std::string blockHash = stringStream.str();
-//   d.SetObject();
-//   
-//   value.SetString("block");
-//   d.AddMember("type", value, d.GetAllocator());
-//
-// 	rapidjson::Value blockInfo(rapidjson::kObjectType);
-//
-// 	value=COMPACT_BLOCK;
-// 	d.AddMember("message", value, d.GetAllocator());
-//
-// 	value = newBlock.GetBlockHeight ();
-// 	blockInfo.AddMember("height", value, d.GetAllocator ());
-//
-// 	value = newBlock.GetMinerId ();
-// 	blockInfo.AddMember("minerId", value, d.GetAllocator ());
-//
-// 	value = newBlock.GetParentBlockMinerId ();
-// 	blockInfo.AddMember("parentBlockMinerId", value, d.GetAllocator ());
-//
-// 	value = newBlock.GetBlockSizeBytes ();
-// 	blockInfo.AddMember("size", value, d.GetAllocator ());
-//
-// 	value = newBlock.GetTransactionCount();
-// 	blockInfo.AddMember("transactionCount", value, d.GetAllocator());
-//
-// 	value = newBlock.GetTimeCreated ();
-// 	blockInfo.AddMember("timeCreated", value, d.GetAllocator ());
-//
-// 	value = newBlock.GetTimeReceived ();							
-// 	blockInfo.AddMember("timeReceived", value, d.GetAllocator ());
-//
-// 	array.PushBack(blockInfo, d.GetAllocator());
-// 	d.AddMember("blocks", array, d.GetAllocator());  
-//
-// 	rapidjson::Value transactionArray(rapidjson::kArrayType);
-//
-// 	int transactionCount = newBlock.GetTransactionCount();
-// 	std::vector<Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
-//
-// 	for(int i =0; i < transactionCount; i++)
-// 	{
-// 		rapidjson::Value transactionInfo(rapidjson::kObjectType);
-//
-// 		value.SetString((thisBlockTransactions[i].GetTransactionShortHash()).c_str(), (thisBlockTransactions[i].GetTransactionShortHash()).length(), d.GetAllocator());
-// 		transactionInfo.AddMember("transactionShortHash", value, d.GetAllocator()); 
-//
-// 		value.SetString((thisBlockTransactions[i].GetTransactionHash()).c_str(), (thisBlockTransactions[i].GetTransactionHash()).length(), d.GetAllocator());
-// 		transactionInfo.AddMember("transactionHash", value, d.GetAllocator()); 
-//
-// 		value = thisBlockTransactions[i].GetTransactionSizeBytes();
-// 		transactionInfo.AddMember("transactionSizeBytes", value, d.GetAllocator());
-//
-// 		transactionArray.PushBack(transactionInfo, d.GetAllocator());
-// 	}
-//
-// 	d.AddMember("transactions", transactionArray, d.GetAllocator());
-//
-//   // Stringify the DOM
-//   rapidjson::StringBuffer packetInfo;
-//   rapidjson::Writer<rapidjson::StringBuffer> writer(packetInfo);
-//   d.Accept(writer);
-//
-//   for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
-//   {
-//     if ( *i != newBlock.GetReceivedFromIpv4 () )
-//     {
-//       const uint8_t delimiter[] = "#";
-//
-//       m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(packetInfo.GetString()), packetInfo.GetSize(), 0);
-// 	  	m_peersSockets[*i]->Send (delimiter, 1, 0);
-// 	  
-// 			m_nodeStats->blockSentBytes += m_dashMessageHeader + (transactionCount * 6) + 8 + 1; 
-// 	
-//       NS_LOG_INFO ("Send Compact Block : At time " << Simulator::Now ().GetSeconds ()
-//                    << "s dash node " << GetNode ()->GetId () << " advertised a new compact Block: " 
-//                    << newBlock << " to " << *i);
-// 			
-//     }
-//   }
-//
-//
-// }
 
 void 
 DashNode::AdvertiseFullBlock (const Block &newBlock) 
@@ -3559,13 +3474,6 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
       m_nodeStats->blockSentBytes += m_dashMessageHeader;
       break;
     }
-    // case COMPACT_BLOCK:
-    // {
-	  // for(int k = 0; k < d["blocks"].Size(); k++)
-    //     m_nodeStats->blockSentBytes += d["blocks"][k]["size"].GetInt();
-    //   m_nodeStats->blockSentBytes += m_dashMessageHeader;
-    //   break;
-    // }
     case CHUNK:
     {
       for(int k = 0; k < d["chunks"].Size(); k++)
@@ -3590,16 +3498,36 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
       m_nodeStats->getDataSentBytes += m_dashMessageHeader + m_countBytes + d["blocks"].Size()*m_inventorySizeBytes;
       break;
     }
-    // case GET_BLOCK_TXNS:
-    // {
-    //   m_nodeStats->getDataSentBytes += m_dashMessageHeader + m_countBytes + d["blocks"].Size()*m_inventorySizeBytes;
-    //   break;
-    // }
-    // case BLOCK_TXNS:
-    // {
-    //     m_nodeStats->blockSentBytes +=  m_missingTransactionSize + 35;
-    //     break;
-    // }
+    case COMPACT_BLOCK:
+    {
+	  for(int k = 0; k < d["blocks"].Size(); k++)
+        m_nodeStats->blockSentBytes += d["blocks"][k]["size"].GetInt();
+      m_nodeStats->blockSentBytes += m_dashMessageHeader;
+      break;
+    }
+    case GET_BLOCK_TXNS:
+    {
+
+			int missingTransactionCount = d["missingTransactions"].Size();
+
+			double blockTransactionsMissingRequest = 32 + 3 + ( missingTransactionCount * 3 ) ; //blockHash + index_length
+
+      m_nodeStats->getDataSentBytes += blockTransactionsMissingRequest;
+      break;
+    }
+    case BLOCK_TXNS:
+    {
+			double missingTransactionSize = 0;
+
+			for (int i =0; i< d["missingTransactions"].Size(); i++)
+			{
+				double missingTxSize = d["missingTransactions"][i]["transactionSizeBytes"].GetDouble();
+				missingTransactionSize += missingTxSize;
+
+			}
+        m_nodeStats->blockSentBytes +=  missingTransactionSize + 35;
+        break;
+    }
     case EXT_GET_DATA:
     {
       m_nodeStats->extGetDataSentBytes += m_dashMessageHeader + m_countBytes + d["chunks"].Size()*m_inventorySizeBytes;
@@ -3723,6 +3651,36 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
       m_nodeStats->getDataSentBytes += m_dashMessageHeader + m_countBytes + d["blocks"].Size()*m_inventorySizeBytes;
       break;
     }
+    case COMPACT_BLOCK:
+    {
+	  for(int k = 0; k < d["blocks"].Size(); k++)
+        m_nodeStats->blockSentBytes += d["blocks"][k]["size"].GetInt();
+      m_nodeStats->blockSentBytes += m_dashMessageHeader;
+      break;
+    }
+    case GET_BLOCK_TXNS:
+    {
+
+			int missingTransactionCount = d["missingTransactions"].Size();
+
+			double blockTransactionsMissingRequest = 32 + 3 + ( missingTransactionCount * 3 ) ; //blockHash + index_length
+
+      m_nodeStats->getDataSentBytes += blockTransactionsMissingRequest;
+      break;
+    }
+    case BLOCK_TXNS:
+    {
+			double missingTransactionSize = 0;
+
+			for (int i =0; i< d["missingTransactions"].Size(); i++)
+			{
+				double missingTxSize = d["missingTransactions"][i]["transactionSizeBytes"].GetDouble();
+				missingTransactionSize += missingTxSize;
+
+			}
+        m_nodeStats->blockSentBytes +=  missingTransactionSize + 35;
+        break;
+    }
     case EXT_GET_DATA:
     {
       m_nodeStats->extGetDataSentBytes += m_dashMessageHeader + m_countBytes + d["chunks"].Size()*m_inventorySizeBytes;
@@ -3843,6 +3801,36 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
     {
       m_nodeStats->getDataSentBytes += m_dashMessageHeader + m_countBytes + d["blocks"].Size()*m_inventorySizeBytes;
       break;
+    }
+    case COMPACT_BLOCK:
+    {
+	  for(int k = 0; k < d["blocks"].Size(); k++)
+        m_nodeStats->blockSentBytes += d["blocks"][k]["size"].GetInt();
+      m_nodeStats->blockSentBytes += m_dashMessageHeader;
+      break;
+    }
+    case GET_BLOCK_TXNS:
+    {
+
+			int missingTransactionCount = d["missingTransactions"].Size();
+
+			double blockTransactionsMissingRequest = 32 + 3 + ( missingTransactionCount * 3 ) ; //blockHash + index_length
+
+      m_nodeStats->getDataSentBytes += blockTransactionsMissingRequest;
+      break;
+    }
+    case BLOCK_TXNS:
+    {
+			double missingTransactionSize = 0;
+
+			for (int i =0; i< d["missingTransactions"].Size(); i++)
+			{
+				double missingTxSize = d["missingTransactions"][i]["transactionSizeBytes"].GetDouble();
+				missingTransactionSize += missingTxSize;
+
+			}
+        m_nodeStats->blockSentBytes +=  missingTransactionSize + 35;
+        break;
     }
     case EXT_GET_DATA:
     {

@@ -486,7 +486,7 @@ Blockchain::AddBlock (const Block& newBlock)
   if (m_blocks.size() == 0)
   {
     std::vector<Block> newHeight(1, newBlock);
-	m_blocks.push_back(newHeight);
+		m_blocks.push_back(newHeight);
   }	
   else if (newBlock.GetBlockHeight() > GetCurrentTopBlock()->GetBlockHeight())   		
   {

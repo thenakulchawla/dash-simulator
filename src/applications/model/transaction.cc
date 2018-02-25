@@ -155,12 +155,11 @@ Mempool::HasShortTransaction (std::string shortHash)
 	std::vector<Transaction>::const_iterator it;
 	for(it = m_transactions.begin(); it != m_transactions.end(); it++)
 	{
-		if(it->GetTransactionShortHash() == shortHash)
+		if((it->GetTransactionShortHash().compare(shortHash)) == 0)
 		{
 			return true;
 		}
 		 
-
 	}
 	return false;
 

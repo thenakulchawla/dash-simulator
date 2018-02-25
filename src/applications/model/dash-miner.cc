@@ -362,6 +362,7 @@ DashMiner::MineBlock (void)
 	rapidjson::Document block; 
 
 	int height =  m_blockchain.GetCurrentTopBlock()->GetBlockHeight() + 1;
+	NS_LOG_INFO("Height at which the block was added for miner " << GetNode()->GetId()<< " is: " << height << std::endl);
 	int minerId = GetNode ()->GetId ();
 	int parentBlockMinerId = m_blockchain.GetCurrentTopBlock()->GetMinerId();
 	double currentTime = Simulator::Now ().GetSeconds ();
@@ -438,13 +439,14 @@ DashMiner::MineBlock (void)
 	if (m_nextBlockSize < averageTransactionSize )
 		m_nextBlockSize = averageTransactionSize + m_headersSizeBytes;
 
+
+	Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
+			currentTime, currentTime, transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
+
   std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
   double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
   std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
   std::cout<<"Block size: " << m_nextBlockSize << "\n";
-
-	Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
-			currentTime, currentTime, transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
 
 	switch(m_blockBroadcastType)				  
 	{
@@ -508,6 +510,7 @@ DashMiner::MineBlock (void)
 					value = newBlock.GetBlockHeight ();
 					blockInfo.AddMember("height", value, inv.GetAllocator ());
 
+					NS_LOG_INFO("Height at which the block was added for miner " << GetNode()->GetId()<< " is: " << newBlock.GetBlockHeight() << std::endl);
 					value = newBlock.GetMinerId ();
 					blockInfo.AddMember("minerId", value, inv.GetAllocator ());
 
@@ -853,9 +856,11 @@ DashMiner::MineBlock (void)
 		+ (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
 	m_blockchain.AddBlock(newBlock);
-  NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << " before mining block " <<m_mempool.GetMempoolSize()<<std::endl);
+  // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << " before mining block " <<m_mempool.GetMempoolSize()<<std::endl);
+	
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
-  NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << " after mining block " <<m_mempool.GetMempoolSize()<<std::endl);
+
+  // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << " after mining block " <<m_mempool.GetMempoolSize()<<std::endl);
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;
@@ -930,27 +935,29 @@ DashMiner::MineBlock (void)
 
 						double blockSize = m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;
 						m_nodeStats->blockSentBytes += blockSize;
+						std::string packet = blockInfo.GetString();
+						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(blockInfo.GetString()), blockInfo.GetSize(), 0);
+						m_peersSockets[*i]->Send (delimiter, 1, 0);
 
-						double sendTime = blockSize / m_uploadSpeed;
-						double eventTime;    
-
-
-						if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
-						{
-							eventTime = 0; 
-						}
-						else
-						{
-							eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
-						}
-						m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
-
+						// double sendTime = blockSize / m_uploadSpeed;
+						// double eventTime;    
+            //
+            //
+						// if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
+						// {
+						// 	eventTime = 0; 
+						// }
+						// else
+						// {
+						// 	eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+						// }
+						// m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
+            //
 						// std::cout << sendTime << " " << eventTime << " " << m_sendBlockTimes.size() << std::endl;
 
-						std::string packet = blockInfo.GetString();
 						// NS_LOG_INFO("Packet to be sent is compact : ");
-						Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
-						Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
+						// Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
+						// Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
 					}
 
 					break;
@@ -988,22 +995,6 @@ DashMiner::MineBlock (void)
 
 					break;
 				}
-			// case COMPACT:
-			// 	{
-			// 		m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(blockInfo.GetString()), blockInfo.GetSize(), 0);
-			// 		m_peersSockets[*i]->Send (delimiter, 1, 0);
-			// 		// NS_LOG_INFO("Sending Compact block");
-      //
-			// 		m_nodeStats->blockSentBytes += m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;  //250 is coinbase transaction
-      //
-      //
-			// 		NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-			// 					<< "s dash miner " << GetNode ()->GetId () 
-			// 					<< " sent a packet " << blockInfo.GetString() 
-			// 					<< " to " << *i);
-			// 		break;
-			// 		
-			// 	}
 			case RELAY_NETWORK:
 				{
 					if(count < m_noMiners - 1)
