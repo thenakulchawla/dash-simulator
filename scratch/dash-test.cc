@@ -83,16 +83,16 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
-	int noMasterNodes = 3000;
+	int noMasterNodes = 300;
 	// int noMasterNodes = 16;
 
 #ifdef MPI_TEST
   
-  double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
-                               0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
-                              0.005, 0.005, 0.002, 0.002};
+  // double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
+  //                              0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
+  //                             0.005, 0.005, 0.002, 0.002};
 	
-	// double dashMinersHash[] = {.40,.34,.08,.07,.04,.012,.012,.012,.001,.001,.001,.001,.001,.001,.001,.001};	
+	double dashMinersHash[] = {.33,.23,.12,.09,.08,.06,.05,.04};	
 
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
@@ -187,9 +187,7 @@ main (int argc, char *argv[])
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
-
-	std::cout<<"The simulator should stop at: " << stop << "seconds" << std::endl;
+  stop =4* targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -254,6 +252,10 @@ main (int argc, char *argv[])
     dashMinerHelper.SetAttribute("FixedBlockIntervalGeneration", DoubleValue(averageBlockGenIntervalSeconds));
   }
   
+  dashMiners.Start (Seconds (start + 2));
+  dashMiners.Stop (Minutes (stop));
+  // dashMiners.Stop (Seconds (stop));
+
   for(auto &miner : miners)
   {
 	Ptr<Node> targetNode = dashTopologyHelper.GetNode (miner);
@@ -386,15 +388,11 @@ main (int argc, char *argv[])
   }	  
   }
 
+
   dashNodes.Start (Seconds (start));
   dashNodes.Stop (Minutes (stop));
   // dashNodes.Stop (Seconds (stop));
 
-  dashMiners.Start (Seconds (start + 2));
-  dashMiners.Stop (Minutes (stop));
-  // dashMiners.Stop (Seconds (stop));
-
-	std::cout<<"The application should stop after: " << Seconds(stop) << " in minutes: " << Minutes(stop) << std::endl;
 
   if (systemId == 0)
     std::cout << "The applications have been setup.\n";

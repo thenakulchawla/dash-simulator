@@ -226,7 +226,7 @@ DashMiner::StartApplication ()    // Called at time specified by Start
 void 
 DashMiner::StopApplication ()
 {
-	// NS_LOG_FUNCTION (this);
+	NS_LOG_FUNCTION (this);
 	DashNode::StopApplication ();  
 	Simulator::Cancel (m_nextMiningEvent);
 
@@ -350,6 +350,11 @@ DashMiner::ScheduleNextMiningEvent (void)
 					<< m_nextBlockTime << "s or " << static_cast<int>(m_nextBlockTime) / m_secondsPerMin 
 					<< "  min and  " << static_cast<int>(m_nextBlockTime) % m_secondsPerMin 
 					<< "s using Geometric Block Time Generation with parameter = "<< m_blockGenParameter);
+
+			std::cout<< "Time " << Simulator::Now ().GetSeconds () << ": Miner " << GetNode ()->GetId () << " will generate a block in " 
+					<< m_nextBlockTime << "s or " << static_cast<int>(m_nextBlockTime) / m_secondsPerMin 
+					<< "  min and  " << static_cast<int>(m_nextBlockTime) % m_secondsPerMin 
+					<< "s using Geometric Block Time Generation with parameter = "<< m_blockGenParameter;
 		}
 }
 
@@ -362,12 +367,13 @@ DashMiner::MineBlock (void)
 	rapidjson::Document block; 
 
 	int height =  m_blockchain.GetCurrentTopBlock()->GetBlockHeight() + 1;
-	NS_LOG_INFO("Height at which the block was added for miner " << GetNode()->GetId()<< " is: " << height << std::endl);
 	int minerId = GetNode ()->GetId ();
 	int parentBlockMinerId = m_blockchain.GetCurrentTopBlock()->GetMinerId();
 	double currentTime = Simulator::Now ().GetSeconds ();
 	std::ostringstream stringStream;  
 	std::string blockHash;
+
+	NS_LOG_INFO("MineBlock: height begin function for miner " << minerId << " is: " << height);
 
 	stringStream << height << "/" << minerId;
 	blockHash = stringStream.str();
@@ -398,15 +404,12 @@ DashMiner::MineBlock (void)
 	if (m_fixedBlockSize > 0)
 	{
 		m_nextBlockSize = m_fixedBlockSize;
-		NS_LOG_INFO("Next block size: " << m_nextBlockSize << std::endl);
 		if (m_fillBlock)
 		{
-        NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
 			thisBlockTransactions = FillBlock(true,m_nextBlockSize);
 		}
 		else
 		{
-        NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
 			thisBlockTransactions = FillBlock(false, m_nextBlockSize);
 		}
 
@@ -510,7 +513,6 @@ DashMiner::MineBlock (void)
 					value = newBlock.GetBlockHeight ();
 					blockInfo.AddMember("height", value, inv.GetAllocator ());
 
-					NS_LOG_INFO("Height at which the block was added for miner " << GetNode()->GetId()<< " is: " << newBlock.GetBlockHeight() << std::endl);
 					value = newBlock.GetMinerId ();
 					blockInfo.AddMember("minerId", value, inv.GetAllocator ());
 
@@ -856,11 +858,8 @@ DashMiner::MineBlock (void)
 		+ (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
 	m_blockchain.AddBlock(newBlock);
-  // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << " before mining block " <<m_mempool.GetMempoolSize()<<std::endl);
 	
   m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
-
-  // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << " after mining block " <<m_mempool.GetMempoolSize()<<std::endl);
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;
@@ -939,6 +938,18 @@ DashMiner::MineBlock (void)
 						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(blockInfo.GetString()), blockInfo.GetSize(), 0);
 						m_peersSockets[*i]->Send (delimiter, 1, 0);
 
+						rapidjson::Document d;
+						d.Parse(packet.c_str());
+
+						rapidjson::StringBuffer buffer;
+						rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+						d.Accept(writer);
+
+						for(int i =0; i<d["blocks"].Size();i++)
+						{
+							NS_LOG_INFO("MineBlock Sending Block with height: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt());
+						}
+
 						// double sendTime = blockSize / m_uploadSpeed;
 						// double eventTime;    
             //
@@ -955,7 +966,6 @@ DashMiner::MineBlock (void)
             //
 						// std::cout << sendTime << " " << eventTime << " " << m_sendBlockTimes.size() << std::endl;
 
-						// NS_LOG_INFO("Packet to be sent is compact : ");
 						// Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
 						// Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
 					}
@@ -1173,7 +1183,7 @@ DashMiner::MineBlock (void)
 std::vector<Transaction>
 DashMiner::FillBlock(bool isFull, double nextBlockSize)
 {
-	NS_LOG_FUNCTION(this);
+	// NS_LOG_FUNCTION(this);
 	double tempBlockSize = 0;
 	std::vector<Transaction> blockTransactions;
 	std::vector<Transaction>::const_iterator it;
@@ -1196,7 +1206,7 @@ DashMiner::FillBlock(bool isFull, double nextBlockSize)
 			tempBlockSize += it->GetTransactionSizeBytes();
 
 		}
-		NS_LOG_INFO("Number of transactions added: " << countTransactionsAdded << std::endl);
+		// NS_LOG_INFO("Number of transactions added: " << countTransactionsAdded << std::endl);
 
 	}
 	else
@@ -1224,7 +1234,7 @@ void
 DashMiner::ReceivedHigherBlock(const Block &newBlock)
 {
 	// NS_LOG_FUNCTION(this);
-	NS_LOG_WARN("Dash miner " << GetNode ()->GetId () << " added a new block in the m_blockchain with higher height: " << newBlock);
+	// NS_LOG_WARN("Dash miner " << GetNode ()->GetId () << " added a new block in the m_blockchain with higher height: " << newBlock);
 	Simulator::Cancel (m_nextMiningEvent);
 	ScheduleNextMiningEvent ();
 }
