@@ -180,7 +180,7 @@ Block::operator= (const Block &blockSource)
   m_timeCreated = blockSource.m_timeCreated;
   m_timeReceived = blockSource.m_timeReceived;
 	m_transactionCount= blockSource.m_transactionCount;
-	m_blockTransactions = blockSource.m_blockTransactions;
+	// m_blockTransactions = blockSource.m_blockTransactions;
   m_receivedFromIpv4 = blockSource.m_receivedFromIpv4;
 
   return *this;

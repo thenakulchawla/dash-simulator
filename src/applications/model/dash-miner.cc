@@ -7,7 +7,7 @@
 #include "ns3/socket.h"
 #include "ns3/udp-socket.h"
 #include "ns3/simulator.h"
-#include "ns3/socket-factory.h"
+	#include "ns3/socket-factory.h"
 #include "ns3/packet.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/udp-socket-factory.h"
@@ -351,10 +351,6 @@ DashMiner::ScheduleNextMiningEvent (void)
 					<< "  min and  " << static_cast<int>(m_nextBlockTime) % m_secondsPerMin 
 					<< "s using Geometric Block Time Generation with parameter = "<< m_blockGenParameter);
 
-			std::cout<< "Time " << Simulator::Now ().GetSeconds () << ": Miner " << GetNode ()->GetId () << " will generate a block in " 
-					<< m_nextBlockTime << "s or " << static_cast<int>(m_nextBlockTime) / m_secondsPerMin 
-					<< "  min and  " << static_cast<int>(m_nextBlockTime) % m_secondsPerMin 
-					<< "s using Geometric Block Time Generation with parameter = "<< m_blockGenParameter;
 		}
 }
 
@@ -446,10 +442,6 @@ DashMiner::MineBlock (void)
 	Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
 			currentTime, currentTime, transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
 
-  std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
-  double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
-  std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
-  std::cout<<"Block size: " << m_nextBlockSize << "\n";
 
 	switch(m_blockBroadcastType)				  
 	{
@@ -858,8 +850,15 @@ DashMiner::MineBlock (void)
 		+ (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
 	m_blockchain.AddBlock(newBlock);
+	if(!m_blockchain.HasBlock(newBlock))
+	{
+		std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
+		double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
+		std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
+		std::cout<<"Block size: " << m_nextBlockSize << "\n";
+	}
 	
-  m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
+  // m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;
@@ -935,8 +934,8 @@ DashMiner::MineBlock (void)
 						double blockSize = m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;
 						m_nodeStats->blockSentBytes += blockSize;
 						std::string packet = blockInfo.GetString();
-						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(blockInfo.GetString()), blockInfo.GetSize(), 0);
-						m_peersSockets[*i]->Send (delimiter, 1, 0);
+						// m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(blockInfo.GetString()), blockInfo.GetSize(), 0);
+						// m_peersSockets[*i]->Send (delimiter, 1, 0);
 
 						rapidjson::Document d;
 						d.Parse(packet.c_str());
@@ -945,29 +944,28 @@ DashMiner::MineBlock (void)
 						rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 						d.Accept(writer);
 
-						for(int i =0; i<d["blocks"].Size();i++)
+						// for(int i =0; i<d["blocks"].Size();i++)
+						// {
+						// 	NS_LOG_INFO("MineBlock Sending Block with height: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt());
+						// }
+
+						double sendTime = blockSize / m_uploadSpeed;
+						double eventTime;    
+
+
+						if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
 						{
-							NS_LOG_INFO("MineBlock Sending Block with height: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt());
+							eventTime = 0; 
 						}
+						else
+						{
+							eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+						}
+						m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
 
-						// double sendTime = blockSize / m_uploadSpeed;
-						// double eventTime;    
-            //
-            //
-						// if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
-						// {
-						// 	eventTime = 0; 
-						// }
-						// else
-						// {
-						// 	eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
-						// }
-						// m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
-            //
-						// std::cout << sendTime << " " << eventTime << " " << m_sendBlockTimes.size() << std::endl;
+						Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
+						Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
 
-						// Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
-						// Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
 					}
 
 					break;
@@ -1262,6 +1260,10 @@ DashMiner::SendBlock(std::string packetInfo, Ptr<Socket> to)
 			 m_sendBlockTimes.erase(m_sendBlockTimes.begin()); */				
 	if (m_protocolType == COMPACT)
 	{
+		for(int i =0; i<d["blocks"].Size();i++)
+		{
+			NS_LOG_INFO("MineBlock Sending Block with height: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt());
+		}
 		SendMessage(NO_MESSAGE, COMPACT_BLOCK, d, to);
 		m_nodeStats->blockSentBytes -= m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;
 	}
