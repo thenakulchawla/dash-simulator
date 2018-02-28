@@ -2916,7 +2916,7 @@ DashNode::AfterBlockValidation(const Block &newBlock)
 	if(m_blockchain.GetTotalBlocks() > 1)
 	{
 		NS_LOG_INFO("Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl);
-		std::cout<<"Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl;
+		// std::cout<<"Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl;
 	}
 
   // NS_LOG_INFO("Mempool transaction count for Node: "<< GetNode ()->GetId () << "before accepting block " <<m_mempool.GetMempoolSize()<<std::endl);
