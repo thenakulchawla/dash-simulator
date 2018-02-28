@@ -849,14 +849,16 @@ DashMiner::MineBlock (void)
 	m_meanBlockSize = (m_blockchain.GetTotalBlocks() - 1)/static_cast<double>(m_blockchain.GetTotalBlocks())*m_meanBlockSize  
 		+ (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
-	m_blockchain.AddBlock(newBlock);
 	if(!m_blockchain.HasBlock(newBlock))
 	{
-		std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
-		double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
-		std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
-		std::cout<<"Block size: " << m_nextBlockSize << "\n";
+		std::cout<< "New Block Added to Blockchain\n";
 	}
+	m_blockchain.AddBlock(newBlock);
+	std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
+	double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
+	std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
+	std::cout<<"Block size: " << m_nextBlockSize << "\n";
+
 	
   // m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
