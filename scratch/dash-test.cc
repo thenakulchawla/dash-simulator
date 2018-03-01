@@ -187,7 +187,7 @@ main (int argc, char *argv[])
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop =4* targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -253,8 +253,8 @@ main (int argc, char *argv[])
   }
   
   dashMiners.Start (Seconds (start + 2));
-  dashMiners.Stop (Minutes (stop));
-  // dashMiners.Stop (Seconds (stop));
+  // dashMiners.Stop (Minutes (stop));
+  dashMiners.Stop (Seconds (stop));
 
   for(auto &miner : miners)
   {
@@ -390,8 +390,8 @@ main (int argc, char *argv[])
 
 
   dashNodes.Start (Seconds (start));
-  dashNodes.Stop (Minutes (stop));
-  // dashNodes.Stop (Seconds (stop));
+  // dashNodes.Stop (Minutes (stop));
+  dashNodes.Stop (Seconds (stop));
 
 
   if (systemId == 0)
