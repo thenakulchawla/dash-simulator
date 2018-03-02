@@ -598,6 +598,60 @@ DashMiner::MineBlock (void)
 					block.AddMember("transactions", transactionArray, block.GetAllocator());
 
 				}
+				else if(m_protocolType == XTHIN)
+				{
+					rapidjson::Value value (XTHIN_INV);
+					rapidjson::Value blockInfo (rapidjson::kObjectType);
+					rapidjson::Value array (rapidjson::kArrayType);
+
+					value.SetString("xthin-block");
+					inv.AddMember("type", value, inv.GetAllocator());
+
+					value = newBlock.GetBlockHeight();
+					blockInfo.AddMember("height", value, inv.GetAllocator ());
+
+					value = newBlock.GetMinerId ();
+					blockInfo.AddMember("minerId", value, inv.GetAllocator ());
+
+					value = newBlock.GetParentBlockMinerId ();
+					blockInfo.AddMember("parentBlockMinerId", value, inv.GetAllocator ());
+
+					value = newBlock.GetBlockSizeBytes ();
+					blockInfo.AddMember("size", value, inv.GetAllocator ());
+
+					value = newBlock.GetTransactionCount();
+					blockInfo.AddMember("transactionCount", value, inv.GetAllocator());
+
+					value = newBlock.GetTimeCreated ();
+					blockInfo.AddMember("timeCreated", value, inv.GetAllocator ());
+
+					value = newBlock.GetTimeReceived ();							
+					blockInfo.AddMember("timeReceived", value, inv.GetAllocator ());
+
+					array.PushBack(blockInfo, inv.GetAllocator());
+					inv.AddMember("blocks", array, inv.GetAllocator());      
+
+					rapidjson::Value transactionArray(rapidjson::kArrayType);
+
+					for(int i =0; i < transactionCount; i++)
+					{
+						rapidjson::Value transactionInfo(rapidjson::kObjectType);
+
+						value.SetString((thisBlockTransactions[i].GetTransactionShortHash()).c_str(), (thisBlockTransactions[i].GetTransactionShortHash()).length(), inv.GetAllocator());
+						transactionInfo.AddMember("transactionShortHash", value, inv.GetAllocator());
+
+						value.SetString((thisBlockTransactions[i].GetTransactionHash()).c_str(), (thisBlockTransactions[i].GetTransactionHash()).length(), inv.GetAllocator());
+						transactionInfo.AddMember("transactionHash", value, inv.GetAllocator()); 
+
+						value = thisBlockTransactions[i].GetTransactionSizeBytes();
+						transactionInfo.AddMember("transactionSizeBytes", value, inv.GetAllocator());
+
+						transactionArray.PushBack(transactionInfo, inv.GetAllocator());
+					}
+
+					inv.AddMember("transactions", transactionArray, inv.GetAllocator());
+
+				}
 
 				break;
 			}
@@ -967,6 +1021,13 @@ DashMiner::MineBlock (void)
 
 						Simulator::Schedule (Seconds(eventTime), &DashMiner::SendBlock, this, packet, m_peersSockets[*i]);
 						Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
+
+					}
+					else if (m_protocolType == XTHIN)
+					{
+						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(invInfo.GetString()), invInfo.GetSize(), 0);
+						m_peersSockets[*i]->Send (delimiter, 1, 0);
+						m_nodeStats->invSentBytes += m_dashMessageHeader + m_countBytes + inv["inv"].Size()*m_inventorySizeBytes;
 
 					}
 

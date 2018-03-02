@@ -3,7 +3,6 @@
 def build(bld):
     module = bld.create_ns3_module('applications', ['internet', 'config-store','stats'])
     module.source = [
-        # 'model/bloom-filter.cc',
 				'model/transaction.cc',
 				'model/dash.cc',
 				'model/dash-node.cc',
@@ -40,8 +39,7 @@ def build(bld):
     headers = bld(features='ns3header')
     headers.module = 'applications'
     headers.source = [
-        # 'model/bloom-filter.h',
-        # 'model/MurmurHash3.h',
+				'model/bloom.h',
 				'model/transaction.h',
 				'model/uint256.h',
 				'model/prevector.h',

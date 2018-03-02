@@ -538,6 +538,40 @@ DashNode::HandleRead (Ptr<Socket> socket)
               }
               break;
             }
+						case XTHIN_INV:
+						{
+							NS_LOG_INFO("XTHIN_INV");
+							int j;
+							std::vector<std::string> requestBlocks;
+							std::vector<std::string>::iterator block_it;
+
+							m_nodeStats->invReceievedBytes += m_dashMessageHeader + m_countBytes + d["inv"].size() * m_inventorySizeBytes;
+
+							for (j=0;j<d["inv"].Size();j++)
+							{
+
+                std::string   invDelimiter = "/";
+                std::string   parsedInv = d["inv"][j].GetString();
+                size_t        invPos = parsedInv.find(invDelimiter);
+                EventId       timeout;
+
+                int height = atoi(parsedInv.substr(0, invPos).c_str());
+                int minerId = atoi(parsedInv.substr(invPos+1, parsedInv.size()).c_str());
+
+								if (m_blockchain.HasBlock(height, minerId) || m_blockchain.IsOrphan(height, minerId) || ReceivedButNotValidated(parsedInv))
+								{
+
+								
+								}
+								else
+								{
+								
+								}
+
+							}
+
+							break;
+						}
             case EXT_INV:
             {
               // NS_LOG_INFO ("EXT_INV");

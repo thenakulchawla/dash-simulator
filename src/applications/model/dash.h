@@ -37,7 +37,7 @@ enum Messages
   GET_BLOCK_TXNS,   //16
   BLOCK_TXNS,       //17
   BLOOM_FILTER,     //18
-  // XTHIN_INV,        //19
+  XTHIN_INV,        //19
 	TXN               //20
 
 
@@ -79,8 +79,8 @@ enum ProtocolType
 {
   STANDARD_PROTOCOL,           //DEFAULT
   SENDHEADERS,
-  COMPACT
-  // XTHIN_PROTOCOL
+  COMPACT,
+  XTHIN
 };
 
 enum NodeType
