@@ -548,12 +548,9 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
 							m_nodeStats->invReceivedBytes += m_dashMessageHeader + m_countBytes + d["inv"].Size() * m_inventorySizeBytes;
 
-							for (j=0;j<d["inv"].Size();j++)
+							for (j=0;j<d["blocks"].Size();j++)
 							{
 
-                std::string   invDelimiter = "/";
-                std::string   parsedInv = d["inv"][j].GetString();
-                size_t        invPos = parsedInv.find(invDelimiter);
                 EventId       timeout;
 
                 int height = atoi(parsedInv.substr(0, invPos).c_str());
@@ -3690,9 +3687,9 @@ DashNode::CreateTransaction (void)
 		transactionSizeBytes = m_transactionSizeDistribution(m_generator);
 
 		CryptoPP::SHA256 hash;
-    CryptoPP::byte digest[ CryptoPP::SHA256::DIGESTSIZE];
+    byte digest[ CryptoPP::SHA256::DIGESTSIZE];
 		std::string message = std::to_string(i);
-		hash.CalculateDigest ( digest, (CryptoPP::byte*) message.c_str(), message.length() );
+		hash.CalculateDigest ( digest, (byte*) message.c_str(), message.length() );
 
 		CryptoPP::HexEncoder encoder;
 		std::string transactionHash;

@@ -89,9 +89,9 @@ Transaction::SetTransactionShortHash (std::string transactionShortHash)
 std::string
 sha256(const std::string data)
 {
-    CryptoPP::byte const* pbData = (CryptoPP::byte*) data.data();
+    byte const* pbData = (byte*) data.data();
     unsigned int nDataLen = data.size();
-    CryptoPP::byte abDigest[CryptoPP::SHA256::DIGESTSIZE];
+    byte abDigest[CryptoPP::SHA256::DIGESTSIZE];
     CryptoPP::SHA256().CalculateDigest(abDigest, pbData, nDataLen);
 
     return std::string((char*)abDigest);

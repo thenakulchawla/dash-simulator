@@ -74,8 +74,8 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
-  // int totalNoNodes = 1536;
   int totalNoNodes = 7200;
+  // int totalNoNodes = 7200;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
@@ -84,7 +84,7 @@ main (int argc, char *argv[])
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
 	int noMasterNodes = 3000;
-	// int noMasterNodes = 512;
+	// int noMasterNodes = 3000;
 
 #ifdef MPI_TEST
   
@@ -276,8 +276,8 @@ main (int argc, char *argv[])
         dashMinerHelper.SetProtocolType(SENDHEADERS);	  
       if (compact)
         dashMinerHelper.SetProtocolType(COMPACT);
-      // if (xthin)
-      //     dashMinerHelper.SetProtocolType(XTHIN_PROTOCOL);
+      if (xthin)
+          dashMinerHelper.SetProtocolType(XTHIN);
       if (blockTorrent)	
       {		  
         dashMinerHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -304,10 +304,6 @@ main (int argc, char *argv[])
 	    dashMinerHelper.SetBlockBroadcastType (RELAY_NETWORK);
 	  if(unsolicitedRelayNetwork)
 	    dashMinerHelper.SetBlockBroadcastType (UNSOLICITED_RELAY_NETWORK);
-		// if(compact)
-		// 	dashMinerHelper.SetBlockBroadcastType (COMPACT);
-    // if(xthin)
-    //   dashMinerHelper.SetBlockBroadcastType (XTHIN);
 	
 	  dashMiners.Add(dashMinerHelper.Install (targetNode));
     // std::cout << "SystemId " << systemId << ": Miner " << miner << " with hash power = " << minersHash[count] 
@@ -363,8 +359,8 @@ main (int argc, char *argv[])
           dashNodeHelper.SetProtocolType(SENDHEADERS);	
         if (compact)	  
           dashNodeHelper.SetProtocolType(COMPACT);	
-        // if (xthin)
-        //   dashNodeHelper.SetProtocolType(XTHIN_PROTOCOL);
+        if (xthin)
+          dashNodeHelper.SetProtocolType(XTHIN);
         if (blockTorrent)	  
         {
           dashNodeHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -549,17 +545,13 @@ main (int argc, char *argv[])
       std::cout << "The broadcast type was RELAY_NETWORK.\n";
     else if(unsolicitedRelayNetwork)
       std::cout << "The broadcast type was UNSOLICITED_RELAY_NETWORK.\n";
-		// else if(compact)
-		// 	std::cout << "The broadcast type was COMPACT.\n";
-    // else if(xthin)
-    //     std::cout<< "The broadcast type was XTHIN. \n";
     else
       std::cout << "The broadcast type was STANDARD.\n";
 
     if(compact)
       std::cout << "The protocol type was COMPACT.\n";
-    // if(xthin)
-    //     std::cout << "The protocol type was EXTREME THIN BLOCKS. \n";
+    if(xthin)
+        std::cout << "The protocol type was EXTREME THIN BLOCKS. \n";
 
     std::cout << "\nThe simulation ran for " << tFinish - tStart << "s simulating "
               << stop << "mins. Performed " << stop * secsPerMin / (tFinish - tStart)

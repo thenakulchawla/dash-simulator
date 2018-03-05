@@ -402,10 +402,12 @@ DashMiner::MineBlock (void)
 		m_nextBlockSize = m_fixedBlockSize;
 		if (m_fillBlock)
 		{
+        // NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
 			thisBlockTransactions = FillBlock(true,m_nextBlockSize);
 		}
 		else
 		{
+        // NS_LOG_INFO("Value of m_fillBlock variable is: " << m_fillBlock);
 			thisBlockTransactions = FillBlock(false, m_nextBlockSize);
 		}
 
@@ -600,9 +602,12 @@ DashMiner::MineBlock (void)
 				}
 				else if(m_protocolType == XTHIN)
 				{
-					rapidjson::Value value (XTHIN_INV);
+					rapidjson::Value value;
 					rapidjson::Value blockInfo (rapidjson::kObjectType);
 					rapidjson::Value array (rapidjson::kArrayType);
+
+					value = XTHIN_INV;
+					inv.AddMember("message", value, inv.GetAllocator());
 
 					value.SetString("xthin-block");
 					inv.AddMember("type", value, inv.GetAllocator());
@@ -913,8 +918,7 @@ DashMiner::MineBlock (void)
 	std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
 	std::cout<<"Block size: " << m_nextBlockSize << "\n";
 
-	
-  // m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
+  m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;
@@ -933,7 +937,7 @@ DashMiner::MineBlock (void)
 
 	int count = 0;
 
-	// NS_LOG_INFO("invInfo is :" <<invInfo.GetString());
+	NS_LOG_INFO("invInfo is :" <<invInfo.GetString());
 	// NS_LOG_INFO("blockInfo is :" <<blockInfo.GetString());
 
 
@@ -1027,8 +1031,10 @@ DashMiner::MineBlock (void)
 					{
 						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(invInfo.GetString()), invInfo.GetSize(), 0);
 						m_peersSockets[*i]->Send (delimiter, 1, 0);
-						m_nodeStats->invSentBytes += m_dashMessageHeader + m_countBytes + inv["inv"].Size()*m_inventorySizeBytes;
 
+						m_nodeStats->invSentBytes += m_dashMessageHeader + m_countBytes + inv["blocks"].Size()*m_inventorySizeBytes;
+
+						// NS_LOG_INFO("invInfo is: " << invInfo.GetString());
 					}
 
 					break;
