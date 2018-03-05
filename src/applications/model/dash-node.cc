@@ -28,6 +28,7 @@
 #include "../../rapidjson/document.h"
 #include "../../rapidjson/writer.h"
 #include "../../rapidjson/stringbuffer.h"
+#include "bloom.h"
 
 
 namespace ns3 {
@@ -545,7 +546,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 							std::vector<std::string> requestBlocks;
 							std::vector<std::string>::iterator block_it;
 
-							m_nodeStats->invReceievedBytes += m_dashMessageHeader + m_countBytes + d["inv"].size() * m_inventorySizeBytes;
+							m_nodeStats->invReceivedBytes += m_dashMessageHeader + m_countBytes + d["inv"].Size() * m_inventorySizeBytes;
 
 							for (j=0;j<d["inv"].Size();j++)
 							{
@@ -560,15 +561,59 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
 								if (m_blockchain.HasBlock(height, minerId) || m_blockchain.IsOrphan(height, minerId) || ReceivedButNotValidated(parsedInv))
 								{
+                    NS_LOG_INFO("INV: Dash node " << GetNode ()->GetId () 
+                            << " has already received the block with height = " 
+                            << height << " and minerId = " << minerId);				  
 
 								
 								}
 								else
 								{
+                    NS_LOG_INFO("INV: Dash node " << GetNode ()->GetId () 
+                            << " does not have the block with height = " 
+                            << height << " and minerId = " << minerId);
 								
+                  /**
+                   * Check if we have already requested the block
+                   */
+				   
+                  if (m_invTimeouts.find(parsedInv) == m_invTimeouts.end())
+                  {
+                    NS_LOG_INFO("INV: Dash node " << GetNode ()->GetId ()
+                                 << " has not requested the block yet");
+                    requestBlocks.push_back(parsedInv);
+                    timeout = Simulator::Schedule (m_invTimeoutMinutes, &DashNode::InvTimeoutExpired, this, parsedInv);
+                    m_invTimeouts[parsedInv] = timeout;
+                  }
+                  else
+                  {
+                    NS_LOG_INFO("INV: Dash node " << GetNode ()->GetId ()
+                                 << " has already requested the block");
+                  }
+				  
+                  m_queueInv[parsedInv].push_back(from);
 								}
 
 							}
+
+              if (!requestBlocks.empty())
+              {
+                rapidjson::Value   value;
+                rapidjson::Value   array(rapidjson::kArrayType);
+                d.RemoveMember("inv");
+
+                for (block_it = requestBlocks.begin(); block_it < requestBlocks.end(); block_it++) 
+                {
+                  value.SetString(block_it->c_str(), block_it->size(), d.GetAllocator());
+                  array.PushBack(value, d.GetAllocator());
+                }		
+			  
+                d.AddMember("blocks", array, d.GetAllocator());
+					
+                // SendMessage(INV, GET_HEADERS, d, from);				
+                SendMessage(XTHIN_INV, XTHIN_GET_DATA, d, from);	
+				
+              }
 
 							break;
 						}
@@ -1084,6 +1129,131 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
               }
               break;
+            }
+            case XTHIN_GET_DATA:
+            {
+              NS_LOG_INFO ("XTHIN_GET_DATA");
+			  
+              int j;
+              int totalBlockMessageSize = 0;
+              std::vector<Block>              requestBlocks;
+              std::vector<Transaction>        mempoolTrans;
+              std::vector<Block>::iterator    block_it;
+              std::vector<Transaction>::iterator trans_it;
+
+              m_nodeStats->getDataReceivedBytes += m_dashMessageHeader + m_countBytes + d["blocks"].Size()*m_inventorySizeBytes;
+
+              for (j=0; j<d["blocks"].Size(); j++)
+              {  
+                std::string    invDelimiter = "/";
+                std::string    parsedInv = d["blocks"][j].GetString();
+                size_t         invPos = parsedInv.find(invDelimiter);
+				  
+                int height = atoi(parsedInv.substr(0, invPos).c_str());
+                int minerId = atoi(parsedInv.substr(invPos+1, parsedInv.size()).c_str());
+				
+                if (m_blockchain.HasBlock(height, minerId))
+                {
+                  NS_LOG_INFO("GET_DATA: Dash node " << GetNode ()->GetId () 
+                              << " has already received the block with height = " 
+                              << height << " and minerId = " << minerId);
+
+                  Block newBlock (m_blockchain.ReturnBlock (height, minerId));
+                  requestBlocks.push_back(newBlock);
+                }
+                else
+                {
+                  NS_LOG_INFO("GET_DATA: Dash node " << GetNode ()->GetId () 
+                  << " does not have the block with height = " 
+                  << height << " and minerId = " << minerId);                
+                }	
+              }
+
+              bloom_parameters parameters;
+
+              parameters.projected_element_count = m_mempool.GetMempoolSize();
+              parameters.false_positive_probability = 0.0001;
+              parameters.random_seed = 0xA5A5A5A5;
+              parameters.compute_optimal_parameters();
+              bloom_filter filter(parameters);
+              mempoolTrans = m_mempool.GetMempoolTransactions();
+
+              for (trans_it = mempoolTrans.begin(); trans_it < mempoolTrans.end(); trans_it++) 
+              {
+                  filter.insert(trans_it->GetTransactionHash());
+              }
+
+              NS_LOG_INFO("Bloom Filter is: " << &filter);
+
+              if (!requestBlocks.empty())
+              {
+                rapidjson::Value value;
+                rapidjson::Value array(rapidjson::kArrayType);
+
+                d.RemoveMember("blocks");
+				
+                for (block_it = requestBlocks.begin(); block_it < requestBlocks.end(); block_it++) 
+                {
+
+                  rapidjson::Value blockInfo(rapidjson::kObjectType);
+                  NS_LOG_INFO ("In requestBlocks " << *block_it);
+    
+                  value = block_it->GetBlockHeight ();
+                  blockInfo.AddMember("height", value, d.GetAllocator ());
+  
+                  value = block_it->GetMinerId ();
+                  blockInfo.AddMember("minerId", value, d.GetAllocator ());
+
+                  value = block_it->GetParentBlockMinerId ();
+                  blockInfo.AddMember("parentBlockMinerId", value, d.GetAllocator ());
+  
+                  value = block_it->GetBlockSizeBytes ();
+                  totalBlockMessageSize += value.GetInt();
+                  blockInfo.AddMember("size", value, d.GetAllocator ());
+  
+                  value = block_it->GetTimeCreated ();
+                  blockInfo.AddMember("timeCreated", value, d.GetAllocator ());
+  
+                  value = block_it->GetTimeReceived ();							
+                  blockInfo.AddMember("timeReceived", value, d.GetAllocator ());
+
+                  // value = &filter;
+                  // blockInfo.AddMember("bloom_filter", value, d.GetAllocator());
+				  
+                  array.PushBack(blockInfo, d.GetAllocator());
+                }	
+				
+                d.AddMember("blocks", array, d.GetAllocator());
+				
+                double sendTime = totalBlockMessageSize / m_uploadSpeed;
+	              double eventTime;	
+				
+                if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
+                {
+                  eventTime = 0; 
+                }
+                else
+                {
+                  eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+                }
+                m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
+ 
+                NS_LOG_INFO("Node " << GetNode()->GetId() << " will start sending the block to " << InetSocketAddress::ConvertFrom(from).GetIpv4 () 
+                            << " at " << Simulator::Now ().GetSeconds() + eventTime << "\n");
+							
+                // Stringify the DOM
+                rapidjson::StringBuffer packetInfo;
+                rapidjson::Writer<rapidjson::StringBuffer> writer(packetInfo);
+                d.Accept(writer);
+                std::string packet = packetInfo.GetString();
+				
+                Simulator::Schedule (Seconds(eventTime), &DashNode::SendXThinBlock, this, packet, from);
+                Simulator::Schedule (Seconds(eventTime + sendTime), &DashNode::RemoveSendTime, this);
+
+              }
+
+
+                break;
             }
             case EXT_GET_DATA:
             {
@@ -1785,6 +1955,13 @@ DashNode::HandleRead (Ptr<Socket> socket)
 	
               }
               break;
+            }
+            case XTHIN_BLOCK:
+            {
+                NS_LOG_INFO("XTHIN_BLOCK");
+
+                break;
+
             }
             case BLOCK:
             {
@@ -2849,6 +3026,18 @@ DashNode::SendBlockTransactions(std::string packetInfo, Address& from)
   SendMessage(GET_BLOCK_TXNS, BLOCK_TXNS, packetInfo, from);
 }
 
+
+void 
+DashNode::SendXThinBlock(std::string packetInfo, Address& from) 
+{
+  NS_LOG_INFO ("SendXThinBlock: At time " << Simulator::Now ().GetSeconds ()
+                << "s dash node " << GetNode ()->GetId () << " sent " 
+                 << " to " << InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+
+  //m_sendBlockTimes.erase(m_sendBlockTimes.begin());
+  SendMessage(XTHIN_GET_DATA, XTHIN_BLOCK, packetInfo, from);
+}
+
 void 
 DashNode::SendChunk(std::string packetInfo, Address& from) 
 {
@@ -3501,9 +3690,9 @@ DashNode::CreateTransaction (void)
 		transactionSizeBytes = m_transactionSizeDistribution(m_generator);
 
 		CryptoPP::SHA256 hash;
-		byte digest[ CryptoPP::SHA256::DIGESTSIZE];
+    CryptoPP::byte digest[ CryptoPP::SHA256::DIGESTSIZE];
 		std::string message = std::to_string(i);
-		hash.CalculateDigest ( digest, (byte*) message.c_str(), message.length() );
+		hash.CalculateDigest ( digest, (CryptoPP::byte*) message.c_str(), message.length() );
 
 		CryptoPP::HexEncoder encoder;
 		std::string transactionHash;

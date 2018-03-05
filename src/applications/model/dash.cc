@@ -756,7 +756,9 @@ const char* getMessageName(enum Messages m)
     case COMPACT_BLOCK: return "COMPACT_BLOCK";
     case GET_BLOCK_TXNS: return "GET_BLOCK_TXNS";
     case BLOCK_TXNS: return "BLOCK_TXNS";
-    case BLOOM_FILTER: return "BLOOM_FILTER";
+    case XTHIN_GET_DATA: return "XTHIN_GET_DATA";
+    case XTHIN_BLOCK: return "XTHIN_BLOCK";
+    case XTHIN_INV: return "XTHIN_INV";
   }
 }
 

@@ -178,6 +178,9 @@ public:
    * \param packetInfo the info of the CHUNK message
    * \param from the address the EXT_GET_DATA/CHUNK was received from
    */
+
+  void SendXThinBlock (std::string packetInfo, Address &from);
+
   void SendChunk(std::string packetInfo, Address &from);				   
 
   /**

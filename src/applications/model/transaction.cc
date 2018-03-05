@@ -13,6 +13,7 @@
 #include "cryptopp/cryptlib.h"
 #include "cryptopp/sha.h"
 #include "cryptopp/hex.h"
+// #include "cryptopp/byte"
 // for linux
 // #include "crypto++/cryptlib.h"
 // #include "crypto++/sha.h"
@@ -88,9 +89,9 @@ Transaction::SetTransactionShortHash (std::string transactionShortHash)
 std::string
 sha256(const std::string data)
 {
-    byte const* pbData = (byte*) data.data();
+    CryptoPP::byte const* pbData = (CryptoPP::byte*) data.data();
     unsigned int nDataLen = data.size();
-    byte abDigest[CryptoPP::SHA256::DIGESTSIZE];
+    CryptoPP::byte abDigest[CryptoPP::SHA256::DIGESTSIZE];
     CryptoPP::SHA256().CalculateDigest(abDigest, pbData, nDataLen);
 
     return std::string((char*)abDigest);
@@ -121,11 +122,7 @@ Mempool::DeleteTransactionsFromBegin (int count)
 	if(m_transactions.size() > 0)
 	{
 		if (count > m_transactions.size()) count = m_transactions.size();
-		// std::cout<<"Number of transactions to be deleted: " << count << "\n";
-		// std::cout<<"Number of transactions before deleting: "<< m_transactions.size()<< "\n";
-		// m_transactions(m_transactions.begin()+count, m_transactions.end(), );
 		std::vector<decltype(m_transactions)::value_type>(m_transactions.begin()+count, m_transactions.end()).swap(m_transactions);
-		// std::cout<<"Number of transactions after deleting: "<< m_transactions.size()<< "\n";
 	}
 }
 

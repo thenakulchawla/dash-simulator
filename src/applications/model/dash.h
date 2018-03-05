@@ -36,9 +36,10 @@ enum Messages
   COMPACT_BLOCK,    //13
   GET_BLOCK_TXNS,   //16
   BLOCK_TXNS,       //17
-  BLOOM_FILTER,     //18
-  XTHIN_INV,        //19
-	TXN               //20
+  XTHIN_INV,        //18
+	TXN,               //19
+  XTHIN_GET_DATA,    //20
+  XTHIN_BLOCK        //21 
 
 
 };
@@ -66,8 +67,6 @@ enum BlockBroadcastType
   UNSOLICITED,
   RELAY_NETWORK,
   UNSOLICITED_RELAY_NETWORK
-  // COMPACT, //Change from protocol to blockBroadcastType
-  // XTHIN //Change from protocol to blockBroadcastType
 };
 
 
