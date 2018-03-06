@@ -101,8 +101,8 @@ sha256(const std::string data)
 Mempool::Mempool(void)
 {
     m_totalTransactions = 0;
-    // Transaction randomTransaction(0,"defaultHash","shortHash");
-    // AddTransaction(randomTransaction);
+    Transaction randomTransaction(0,"defaultHash","shortHash");
+    AddTransaction(randomTransaction);
 }
 
 Mempool::~Mempool(void)

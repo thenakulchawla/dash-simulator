@@ -369,8 +369,6 @@ DashMiner::MineBlock (void)
 	std::ostringstream stringStream;  
 	std::string blockHash;
 
-	NS_LOG_INFO("MineBlock: height begin function for miner " << minerId << " is: " << height);
-
 	stringStream << height << "/" << minerId;
 	blockHash = stringStream.str();
 
@@ -603,7 +601,6 @@ DashMiner::MineBlock (void)
 				else if(m_protocolType == XTHIN)
 				{
 					rapidjson::Value value;
-					rapidjson::Value blockInfo (rapidjson::kObjectType);
 					rapidjson::Value array (rapidjson::kArrayType);
 
 					value = XTHIN_INV;
@@ -612,29 +609,10 @@ DashMiner::MineBlock (void)
 					value.SetString("xthin-block");
 					inv.AddMember("type", value, inv.GetAllocator());
 
-					value = newBlock.GetBlockHeight();
-					blockInfo.AddMember("height", value, inv.GetAllocator ());
+					value.SetString(blockHash.c_str(), blockHash.size(), inv.GetAllocator());
+					array.PushBack(value, inv.GetAllocator());
 
-					value = newBlock.GetMinerId ();
-					blockInfo.AddMember("minerId", value, inv.GetAllocator ());
-
-					value = newBlock.GetParentBlockMinerId ();
-					blockInfo.AddMember("parentBlockMinerId", value, inv.GetAllocator ());
-
-					value = newBlock.GetBlockSizeBytes ();
-					blockInfo.AddMember("size", value, inv.GetAllocator ());
-
-					value = newBlock.GetTransactionCount();
-					blockInfo.AddMember("transactionCount", value, inv.GetAllocator());
-
-					value = newBlock.GetTimeCreated ();
-					blockInfo.AddMember("timeCreated", value, inv.GetAllocator ());
-
-					value = newBlock.GetTimeReceived ();							
-					blockInfo.AddMember("timeReceived", value, inv.GetAllocator ());
-
-					array.PushBack(blockInfo, inv.GetAllocator());
-					inv.AddMember("blocks", array, inv.GetAllocator());      
+					inv.AddMember("inv", array, inv.GetAllocator()); 
 
 					rapidjson::Value transactionArray(rapidjson::kArrayType);
 
@@ -655,6 +633,7 @@ DashMiner::MineBlock (void)
 					}
 
 					inv.AddMember("transactions", transactionArray, inv.GetAllocator());
+
 
 				}
 
@@ -1032,7 +1011,7 @@ DashMiner::MineBlock (void)
 						m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(invInfo.GetString()), invInfo.GetSize(), 0);
 						m_peersSockets[*i]->Send (delimiter, 1, 0);
 
-						m_nodeStats->invSentBytes += m_dashMessageHeader + m_countBytes + inv["blocks"].Size()*m_inventorySizeBytes;
+						m_nodeStats->invSentBytes += m_dashMessageHeader + m_countBytes + inv["inv"].Size()*m_inventorySizeBytes;
 
 						// NS_LOG_INFO("invInfo is: " << invInfo.GetString());
 					}

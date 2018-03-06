@@ -74,8 +74,8 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
+  // int totalNoNodes = 48;
   int totalNoNodes = 7200;
-  // int totalNoNodes = 7200;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
@@ -83,8 +83,8 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
+	// int noMasterNodes = 16;
 	int noMasterNodes = 3000;
-	// int noMasterNodes = 3000;
 
 #ifdef MPI_TEST
   
@@ -252,7 +252,7 @@ main (int argc, char *argv[])
     dashMinerHelper.SetAttribute("FixedBlockIntervalGeneration", DoubleValue(averageBlockGenIntervalSeconds));
   }
   
-  dashMiners.Start (Seconds (start + 2));
+  dashMiners.Start (Seconds (start));
   // dashMiners.Stop (Minutes (stop));
   dashMiners.Stop (Seconds (stop));
 
