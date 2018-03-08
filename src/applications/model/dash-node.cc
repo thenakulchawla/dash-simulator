@@ -1184,8 +1184,6 @@ DashNode::HandleRead (Ptr<Socket> socket)
                   filter.insert(trans_it->GetTransactionHash());
               }
 
-							// unsigned long filterAddress = reinterpret_cast<unsigned long>(&filter);
-
               if (!requestBlocks.empty())
               {
                 rapidjson::Value value;
@@ -2044,6 +2042,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
               NS_LOG_INFO(m_downloadSpeed << " " << m_peersUploadSpeeds[InetSocketAddress::ConvertFrom(from).GetIpv4 ()] * 1000000 / 8 << " " << minSpeed);
 			  
               std::string help = blockInfo.GetString();
+							// NS_LOG_INFO("BLOCK: help is: "<<help);
 			  
               if (blockType == "block" || blockType == "xthin-block")
               {
@@ -2488,6 +2487,7 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
     int minerId = d["blocks"][j]["minerId"].GetInt();
 
 		NS_LOG_INFO("ReceivedBlockMessage height is: " << height << " miner is: " << minerId );
+		// NS_LOG_INFO("transactionCount: " << d["transactions"].Size());
 
 		int transactionCount = d["transactions"].Size(); 
 		std::vector<Transaction> blockTransactions; 
@@ -4460,6 +4460,9 @@ DashNode::InvTimeoutExpired(std::string blockHash)
   
   m_queueInv[blockHash].erase(m_queueInv[blockHash].begin());
   m_invTimeouts.erase(blockHash);
+
+	if(!m_blockchain.HasBlock(height, minerId))
+		NS_LOG_INFO("InvTimeout: the block isn't yet added to the blockchain");
   
   //PrintQueueInv();
   //PrintInvTimeouts();
@@ -4468,27 +4471,72 @@ DashNode::InvTimeoutExpired(std::string blockHash)
   {
     rapidjson::Document   d; 
     EventId               timeout;
-    rapidjson::Value      value(INV);
+    rapidjson::Value      value;
     rapidjson::Value      array(rapidjson::kArrayType);
 	
     d.SetObject();
 
-    d.AddMember("message", value, d.GetAllocator());
   
-    value.SetString("block");
-    d.AddMember("type", value, d.GetAllocator());
+		if(m_protocolType == XTHIN)
+		{
+			value = XTHIN_INV;
+    	d.AddMember("message", value, d.GetAllocator());
+
+			value.SetString("xthin-block");
+    	d.AddMember("type", value, d.GetAllocator());
+		}
+		else
+		{
+			value = INV;
+    	d.AddMember("message", value, d.GetAllocator());
+
+    	value.SetString("block");
+    	d.AddMember("type", value, d.GetAllocator());
+		}
 	
     value.SetString(blockHash.c_str(), blockHash.size(), d.GetAllocator());
     array.PushBack(value, d.GetAllocator());
     d.AddMember("blocks", array, d.GetAllocator());
+
+		rapidjson::Value transactionArray(rapidjson::kArrayType);
+
+    Block newBlock (m_blockchain.ReturnBlock (height, minerId));
+		int transactionCount = newBlock.GetTransactionCount();
+		std::vector<Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+
+		for(int i =0; i < transactionCount; i++)
+		{
+			rapidjson::Value transactionInfo(rapidjson::kObjectType);
+
+			value.SetString((thisBlockTransactions[i].GetTransactionShortHash()).c_str(), (thisBlockTransactions[i].GetTransactionShortHash()).length(), d.GetAllocator());
+			transactionInfo.AddMember("transactionShortHash", value, d.GetAllocator());
+
+			value.SetString((thisBlockTransactions[i].GetTransactionHash()).c_str(), (thisBlockTransactions[i].GetTransactionHash()).length(), d.GetAllocator());
+			transactionInfo.AddMember("transactionHash", value, d.GetAllocator()); 
+
+			value = thisBlockTransactions[i].GetTransactionSizeBytes();
+			transactionInfo.AddMember("transactionSizeBytes", value, d.GetAllocator());
+
+			transactionArray.PushBack(transactionInfo, d.GetAllocator());
+		}
+
+		d.AddMember("transactions", transactionArray, d.GetAllocator());
 
     int index = rand() % m_queueInv[blockHash].size();
     Address temp = m_queueInv[blockHash][0];
     m_queueInv[blockHash][0] = m_queueInv[blockHash][index];
     m_queueInv[blockHash][index] = temp;
     	
-    SendMessage(INV, GET_HEADERS, d, *(m_queueInv[blockHash].begin()));				
-    SendMessage(INV, GET_DATA, d, *(m_queueInv[blockHash].begin()));	
+		if (m_protocolType == XTHIN)
+		{
+			// SendMessage(INV, GET_HEADERS, d, *(m_queueInv[blockHash].begin()));				
+			SendMessage(XTHIN_INV, XTHIN_GET_DATA, d, *(m_queueInv[blockHash].begin()));	
+		}
+		else
+		{
+			SendMessage(INV, GET_HEADERS, d, *(m_queueInv[blockHash].begin()));				
+			SendMessage(INV, GET_DATA, d, *(m_queueInv[blockHash].begin()));	
+		}
 					
     timeout = Simulator::Schedule (m_invTimeoutMinutes, &DashNode::InvTimeoutExpired, this, blockHash);
     m_invTimeouts[blockHash] = timeout;

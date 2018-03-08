@@ -74,7 +74,7 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
-  // int totalNoNodes = 48;
+  // int totalNoNodes = 480;
   int totalNoNodes = 7200;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
@@ -83,7 +83,7 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
-	// int noMasterNodes = 16;
+	// int noMasterNodes = 160;
 	int noMasterNodes = 3000;
 
 #ifdef MPI_TEST
@@ -253,8 +253,8 @@ main (int argc, char *argv[])
   }
   
   dashMiners.Start (Seconds (start));
-  // dashMiners.Stop (Minutes (stop));
-  dashMiners.Stop (Seconds (stop));
+  dashMiners.Stop (Minutes (stop));
+  // dashMiners.Stop (Seconds (stop));
 
   for(auto &miner : miners)
   {
@@ -263,6 +263,7 @@ main (int argc, char *argv[])
 	if (systemId == targetNode->GetSystemId())
 	{
       dashMinerHelper.SetAttribute("HashRate", DoubleValue(minersHash[count]));
+			dashMinerHelper.SetAttribute("TargetNumberOfBlocks", UintegerValue(targetNumberOfBlocks));
 	  
       if (invTimeoutMins != -1)	 
         dashMinerHelper.SetAttribute("InvTimeoutMinutes", TimeValue (Minutes (invTimeoutMins)));
@@ -386,8 +387,8 @@ main (int argc, char *argv[])
 
 
   dashNodes.Start (Seconds (start));
-  // dashNodes.Stop (Minutes (stop));
-  dashNodes.Stop (Seconds (stop));
+  dashNodes.Stop (Minutes (stop));
+  // dashNodes.Stop (Seconds (stop));
 
 
   if (systemId == 0)

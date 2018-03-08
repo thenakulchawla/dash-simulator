@@ -152,6 +152,7 @@ protected:
   double          	m_fixedBlockSize;  
   double            m_fixedBlockTimeGeneration; 	//!< Fixed Block Time Generation
 	bool 						  m_fillBlock;
+	int               m_targetNumberOfBlocks;
   EventId           m_nextMiningEvent; 				//!< Event to mine the next block
   std::default_random_engine m_generator;
 	// std::random_device rd;

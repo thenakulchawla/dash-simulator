@@ -64,10 +64,15 @@ DashMiner::GetTypeId (void)
 				MakeBooleanAccessor (&DashMiner::m_spv),
 				MakeBooleanChecker ())
 		.AddAttribute ("fillBlock",
-				"Fill the block completely woth attributes",
+				"Fill the block completely with attributes",
 				BooleanValue (false),
 				MakeBooleanAccessor (&DashMiner::m_fillBlock),
 				MakeBooleanChecker ())
+		.AddAttribute ("TargetNumberOfBlocks",
+				"Stop mining blocks after blockchain size is equal to target number of blocks",
+				UintegerValue (500),
+				MakeUintegerAccessor (&DashMiner::m_targetNumberOfBlocks),
+				MakeUintegerChecker<uint32_t> ())
 		.AddAttribute ("NumberOfMiners", 
 				"The number of miners",
 				UintegerValue (16),
@@ -890,6 +895,7 @@ DashMiner::MineBlock (void)
 	if(!m_blockchain.HasBlock(newBlock))
 	{
 		std::cout<< "New Block Added to Blockchain\n";
+		std::cout<< "Block count for miner is: " << m_blockchain.GetTotalBlocks() << "\n";
 	}
 	m_blockchain.AddBlock(newBlock);
 	std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
@@ -916,7 +922,7 @@ DashMiner::MineBlock (void)
 
 	int count = 0;
 
-	NS_LOG_INFO("invInfo is :" <<invInfo.GetString());
+	// NS_LOG_INFO("invInfo is :" <<invInfo.GetString());
 	// NS_LOG_INFO("blockInfo is :" <<blockInfo.GetString());
 
 
@@ -1122,7 +1128,7 @@ DashMiner::MineBlock (void)
 
 						NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
 								<< "s dash miner " << GetNode ()->GetId () 
-								<< " sent a packet " << invInfo.GetString() 
+								<< " sent a packet invInfo " 
 								<< " to " << *i);
 					}
 					break;
@@ -1222,7 +1228,15 @@ DashMiner::MineBlock (void)
 
 	// m_mempool.DeleteTransactionsFromBegin(transactionCount);
 
-	ScheduleNextMiningEvent ();
+	if (m_targetNumberOfBlocks <= m_blockchain.GetTotalBlocks()) 
+	{
+		NS_LOG_INFO("Cancel next mining event");
+		Simulator::Cancel (m_nextMiningEvent);
+	}
+	else
+	{
+		ScheduleNextMiningEvent ();
+	}
 
 }
 
