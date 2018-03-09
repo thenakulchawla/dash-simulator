@@ -447,6 +447,8 @@ DashMiner::MineBlock (void)
 	Block newBlock (height, minerId, parentBlockMinerId, m_nextBlockSize,
 			currentTime, currentTime, transactionCount, thisBlockTransactions, Ipv4Address("127.0.0.1"));
 
+	NS_LOG_INFO("New block mined");
+
 
 	switch(m_blockBroadcastType)				  
 	{
@@ -583,21 +585,22 @@ DashMiner::MineBlock (void)
 
 					rapidjson::Value transactionArray(rapidjson::kArrayType);
 
-					for(int i =0; i < transactionCount; i++)
+					for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 					{
-						// value = thisBlockTransactions[i].GetTransactionShortHash();
 						rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
-						value.SetString((thisBlockTransactions[i].GetTransactionShortHash()).c_str(), (thisBlockTransactions[i].GetTransactionShortHash()).length(), block.GetAllocator());
+						NS_LOG_INFO("MineBlock: transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
+						value.SetString(((it->second).GetTransactionShortHash()).c_str(), ((it->second).GetTransactionShortHash()).length(), block.GetAllocator());
 						transactionInfo.AddMember("transactionShortHash", value, block.GetAllocator()); 
 
-						value.SetString((thisBlockTransactions[i].GetTransactionHash()).c_str(), (thisBlockTransactions[i].GetTransactionHash()).length(), block.GetAllocator());
+						value.SetString(((it->second).GetTransactionHash()).c_str(), ((it->second).GetTransactionHash()).length(), block.GetAllocator());
 						transactionInfo.AddMember("transactionHash", value, block.GetAllocator()); 
 
-						value = thisBlockTransactions[i].GetTransactionSizeBytes();
+						value = (it->second).GetTransactionSizeBytes();
 						transactionInfo.AddMember("transactionSizeBytes", value, block.GetAllocator());
 
 						transactionArray.PushBack(transactionInfo, block.GetAllocator());
+						// it++;
 					}
 
 					block.AddMember("transactions", transactionArray, block.GetAllocator());
@@ -621,17 +624,17 @@ DashMiner::MineBlock (void)
 
 					rapidjson::Value transactionArray(rapidjson::kArrayType);
 
-					for(int i =0; i < transactionCount; i++)
+					for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 					{
 						rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
-						value.SetString((thisBlockTransactions[i].GetTransactionShortHash()).c_str(), (thisBlockTransactions[i].GetTransactionShortHash()).length(), inv.GetAllocator());
+						value.SetString(((it->second).GetTransactionShortHash()).c_str(), ((it->second).GetTransactionShortHash()).length(), inv.GetAllocator());
 						transactionInfo.AddMember("transactionShortHash", value, inv.GetAllocator());
 
-						value.SetString((thisBlockTransactions[i].GetTransactionHash()).c_str(), (thisBlockTransactions[i].GetTransactionHash()).length(), inv.GetAllocator());
+						value.SetString(((it->second).GetTransactionHash()).c_str(), ((it->second).GetTransactionHash()).length(), inv.GetAllocator());
 						transactionInfo.AddMember("transactionHash", value, inv.GetAllocator()); 
 
-						value = thisBlockTransactions[i].GetTransactionSizeBytes();
+						value = (it->second).GetTransactionSizeBytes();
 						transactionInfo.AddMember("transactionSizeBytes", value, inv.GetAllocator());
 
 						transactionArray.PushBack(transactionInfo, inv.GetAllocator());
@@ -903,7 +906,7 @@ DashMiner::MineBlock (void)
 	std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
 	std::cout<<"Block size: " << m_nextBlockSize << "\n";
 
-  m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
+  // m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
 	// Stringify the DOM
 	rapidjson::StringBuffer invInfo;
@@ -1240,33 +1243,35 @@ DashMiner::MineBlock (void)
 
 }
 
-std::vector<Transaction>
+std::unordered_map<std::string,Transaction>
 DashMiner::FillBlock(bool isFull, double nextBlockSize)
 {
-	// NS_LOG_FUNCTION(this);
+	NS_LOG_FUNCTION(this);
 	double tempBlockSize = 0;
-	std::vector<Transaction> blockTransactions;
-	std::vector<Transaction>::const_iterator it;
+	std::unordered_map<std::string,Transaction> blockTransactions;
 
-	std::vector<Transaction> tempTransactions = m_mempool.GetMempoolTransactions();
-	// NS_LOG_INFO("Mempool size: " <<m_mempool.GetMempoolSize() << std::endl);
-	// NS_LOG_INFO("tempTransactionsSize: " << tempTransactions.size() << std::endl);
+	std::unordered_map<std::string,Transaction> tempTransactions = m_mempool.GetMempoolTransactions();
+	NS_LOG_INFO("Mempool size: " <<m_mempool.GetMempoolSize() << std::endl);
+	NS_LOG_INFO("tempTransactionsSize: " << tempTransactions.size() << std::endl);
 	int countTransactionsAdded = 0;
 
 	if(isFull)
 	{
+		std::unordered_map<std::string,Transaction>::const_iterator it;
 		for(it = tempTransactions.begin(); it != tempTransactions.end(); it++)
 		{
-			// NS_LOG_INFO("transaction short hash iterator is: " << it->GetTransactionShortHash());
+			NS_LOG_INFO("transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
+			// NS_LOG_INFO("transaction is: " << (*it).second);
 			if (tempBlockSize < nextBlockSize)
 			{
-				blockTransactions.push_back(*it);
+				std::pair<std::string,Transaction> transactionPair ((it->second).GetTransactionShortHash(),Transaction((it->second).GetTransactionSizeBytes(),(it->second).GetTransactionHash(), (it->second).GetTransactionShortHash() ));
+				blockTransactions.insert(transactionPair);
+
 				countTransactionsAdded++;
 			}
-			tempBlockSize += it->GetTransactionSizeBytes();
+			tempBlockSize += (it->second).GetTransactionSizeBytes();
 
 		}
-		// NS_LOG_INFO("Number of transactions added: " << countTransactionsAdded << std::endl);
 
 	}
 	else
@@ -1274,13 +1279,19 @@ DashMiner::FillBlock(bool isFull, double nextBlockSize)
 		std::array<double,12> iCount{0,10,20,30,40,50,60,70,80,90,100,110};
     std::array<double,11> wCount{25,35,20,10,1,1,1,1,1,1,1};
     m_transactionCountDistribution = std::piecewise_constant_distribution<double> (iCount.begin(),iCount.end(), wCount.begin());
+		std::unordered_map<std::string,Transaction>::const_iterator it;
 
 		int transactionCount = (int) m_transactionCountDistribution(m_generator);
 
 		for (int i=0;i< transactionCount; i++)
 		{
 			// NS_LOG_INFO("transaction short hash is: " << tempTransactions[i].GetTransactionShortHash());
-			blockTransactions.push_back(tempTransactions[i]);
+
+			// std::pair<std::string,Transaction> transactionPair ((it->second).GetTransactionShortHash(),it->second);
+			std::pair<std::string,Transaction> transactionPair ((it->second).GetTransactionShortHash(),Transaction((it->second).GetTransactionSizeBytes(),(it->second).GetTransactionHash(), (it->second).GetTransactionShortHash() ));
+			blockTransactions.insert(transactionPair);
+			// blockTransactions.insert({{it->first,it}});
+			it++;
 			countTransactionsAdded++;
 		}
 
@@ -1302,7 +1313,7 @@ DashMiner::ReceivedHigherBlock(const Block &newBlock)
 void 
 DashMiner::SendBlock(std::string packetInfo, Ptr<Socket> to) 
 {
-	NS_LOG_FUNCTION (this);
+	// NS_LOG_FUNCTION (this);
 
 	// NS_LOG_INFO ("SendBlock: At time " << Simulator::Now ().GetSeconds ()
 	// 		<< "s dash miner " << GetNode ()->GetId () << " send " 
@@ -1322,10 +1333,10 @@ DashMiner::SendBlock(std::string packetInfo, Ptr<Socket> to)
 			 m_sendBlockTimes.erase(m_sendBlockTimes.begin()); */				
 	if (m_protocolType == COMPACT)
 	{
-		for(int i =0; i<d["blocks"].Size();i++)
-		{
-			NS_LOG_INFO("MineBlock Sending Block with height: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt());
-		}
+		// for(int i =0; i<d["blocks"].Size();i++)
+		// {
+		// 	NS_LOG_INFO("MineBlock Sending Block with height: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt());
+		// }
 		SendMessage(NO_MESSAGE, COMPACT_BLOCK, d, to);
 		m_nodeStats->blockSentBytes -= m_dashMessageHeader + (transactionCount * 6) + 8 + 1 + 250;
 	}

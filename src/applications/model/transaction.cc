@@ -112,25 +112,22 @@ Mempool::~Mempool(void)
 void
 Mempool::AddTransaction(const Transaction& newTransaction)
 {
-		m_transactions.push_back(newTransaction);
-}
-
-void
-Mempool::DeleteTransactionsFromBegin (int count)
-{
-	NS_LOG_FUNCTION(this);
-	if(m_transactions.size() > 0)
+	std::pair<std::string,Transaction> transactionPair (newTransaction.GetTransactionShortHash(),newTransaction);
+	std::string shortHash = newTransaction.GetTransactionShortHash();
+	if (m_transactions.count(shortHash))
 	{
-		if (count > m_transactions.size()) count = m_transactions.size();
-		std::vector<decltype(m_transactions)::value_type>(m_transactions.begin()+count, m_transactions.end()).swap(m_transactions);
+		m_transactions[shortHash] = newTransaction;
 	}
-}
+	else
+	{
+		m_transactions.insert(transactionPair);
+	}
 
-
-const Transaction*
-Mempool::GetCurrentTopTransaction (void) const
-{
-    return &m_transactions[m_transactions.size() - 1];
+	// std::string key = newTransaction.GetTransactionShortHash();
+	// std::vector<Transaction> vecTrans;
+	// vecTrans.push_back(newTransaction);
+	// m_transactions[key] = vecTrans;
+		// m_transactions.push_back(newTransaction);
 }
 
 int
@@ -140,7 +137,7 @@ Mempool::GetMempoolSize(void) const
 	return m_transactions.size();
 }
 
-std::vector<Transaction>
+std::unordered_map<std::string,Transaction>
 Mempool::GetMempoolTransactions (void) const
 {
 	return m_transactions;
@@ -149,39 +146,24 @@ Mempool::GetMempoolTransactions (void) const
 bool
 Mempool::HasShortTransaction (std::string shortHash)
 {
-	std::vector<Transaction>::const_iterator it;
-	for(it = m_transactions.begin(); it != m_transactions.end(); it++)
-	{
-		if((it->GetTransactionShortHash().compare(shortHash)) == 0)
-		{
-			return true;
-		}
-		 
-	}
+	auto search = m_transactions.find (shortHash);
+	if (search != m_transactions.end())
+		return true;
 	return false;
-
 }
 
 Transaction
 Mempool::GetTransactionWithShortHash (std::string shortHash)
 {
+	 auto search = m_transactions.find (shortHash);
+	 if (search == m_transactions.end())
+	 {
+		 Transaction newTransaction (0,"defaultHash","shortHash");
+		 return newTransaction;
 
-	std::vector<Transaction>::const_iterator it;
-  for (it = m_transactions.begin(); it != m_transactions.end(); it++)
-  {
-		if(it->GetTransactionShortHash() == shortHash)
-		{
-			return *it;		
-    }
-    else
-    {
-        Transaction newTransaction (0,"defaultHash","shortHash");
-        return newTransaction;
+	 }
 
-    }
-
-  }
-  
+	 return search->second;
 }
 
 } //namespace ns3

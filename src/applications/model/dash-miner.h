@@ -112,11 +112,11 @@ public:
   void SetBlockBroadcastType (enum BlockBroadcastType blockBroadcastType);
 
 	/**
-	 *Add transactions to the block's thisBlockTransactions vector
+	 *Add transactions to the block's thisBlockTransactions map 
 	 *\isFull whether the block will be filled completely or based on distribution
 	 *\nextBlockSize the block size
 	 */
-	 std::vector<Transaction> FillBlock(bool isFull,double nextBlockSize);
+	 std::unordered_map<std::string,Transaction> FillBlock(bool isFull,double nextBlockSize);
    
 protected:
   // inherited from Application base class.
@@ -198,7 +198,7 @@ protected:
 	// int transactionsInCurrentBlock;
   // int shortTransactionSizeInBytes=6;
 	// Transaction transaction;
-	std::vector<Transaction> thisBlockTransactions;
+	std::unordered_map<std::string,Transaction> thisBlockTransactions;
 
   //debug
   double       m_timeStart;
