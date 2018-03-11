@@ -441,8 +441,8 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
 							if(m_blockchain.HasBlock(height,minerId))
 							{
-								NS_LOG_INFO("Height of the block that was just parsed: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt() << " at node: " << GetNode()->GetId()
-										<< " with blockchain height: " << m_blockchain.GetBlockchainHeight() << " HasBlock: " << m_blockchain.HasBlock(height,minerId) );
+								// NS_LOG_INFO("Height of the block that was just parsed: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt() << " at node: " << GetNode()->GetId()
+										// << " with blockchain height: " << m_blockchain.GetBlockchainHeight() << " HasBlock: " << m_blockchain.HasBlock(height,minerId) );
         				m_bufferedData[from] = totalReceivedData;
         				delete[] packetInfo;
 								return;
@@ -2203,13 +2203,23 @@ DashNode::HandleRead (Ptr<Socket> socket)
 								bool isMissingTransactions = false;
 								rapidjson::Value missingTransactionArray(rapidjson::kArrayType);
 
-								for(int i=0;i<d["transactions"].Size();i++)
+								std::unordered_map<std::string,Transaction> blockTransactions;
+								int transactionCount = d["transactions"].Size();
+
+								for(int i=0; i < transactionCount; i++)
 								{
-									if(!m_mempool.HasShortTransaction(d["transactions"][i]["transactionShortHash"].GetString()))
+									std::string transactionShortHash = d["transactions"][i]["transactionShortHash"].GetString();
+									std::string transactionHash = d["transactions"][i]["transactionHash"].GetString();
+									double transactionSizeBytes = d["transactions"][i]["transactionSizeBytes"].GetDouble();
+
+									Transaction newTransaction( transactionSizeBytes, transactionHash, transactionShortHash);
+									blockTransactions.insert({ transactionShortHash, newTransaction});
+
+									if(!m_mempool.HasShortTransaction(transactionShortHash))
 									{
-                    std::string transactionShortHash = d["transactions"][i]["transactionShortHash"].GetString();
-                    std::string transactionHash = d["transactions"][i]["transactionHash"].GetString();
-                    double transactionSizeBytes = d["transactions"][i]["transactionSizeBytes"].GetDouble();
+                    // std::string transactionShortHash = d["transactions"][i]["transactionShortHash"].GetString();
+                    // std::string transactionHash = d["transactions"][i]["transactionHash"].GetString();
+                    // double transactionSizeBytes = d["transactions"][i]["transactionSizeBytes"].GetDouble();
                     int transactionShortHashSize = transactionShortHash.size();
                     int transactionHashSize = transactionHash.size();
 
@@ -2234,6 +2244,16 @@ DashNode::HandleRead (Ptr<Socket> socket)
 								d.AddMember("missingTransactions", missingTransactionArray, d.GetAllocator());
 
 								// NS_LOG_INFO("Missing transactions added or not: " << isMissingTransactions);
+
+								for (int j =0; j<d["blocks"].Size(); j++)
+								{
+									Block newBlock (d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
+											d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
+											Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+
+									ValidateBlock (newBlock);
+
+								}
 
 								if(isMissingTransactions)
 								{
@@ -3177,9 +3197,10 @@ DashNode::AfterBlockValidation(const Block &newBlock)
 				  
   m_blockchain.AddBlock(newBlock);
 
-	if(m_blockchain.GetTotalBlocks() > 1)
+	if(m_blockchain.HasBlock(newBlock) > 1)
 	{
 		NS_LOG_INFO("Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl);
+		std::cout<<"Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl;
 	}
 
 

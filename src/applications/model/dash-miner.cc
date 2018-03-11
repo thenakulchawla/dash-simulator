@@ -589,7 +589,7 @@ DashMiner::MineBlock (void)
 					{
 						rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
-						NS_LOG_INFO("MineBlock: transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
+						// NS_LOG_INFO("MineBlock: transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
 						value.SetString(((it->second).GetTransactionShortHash()).c_str(), ((it->second).GetTransactionShortHash()).length(), block.GetAllocator());
 						transactionInfo.AddMember("transactionShortHash", value, block.GetAllocator()); 
 
@@ -898,13 +898,13 @@ DashMiner::MineBlock (void)
 	if(!m_blockchain.HasBlock(newBlock))
 	{
 		std::cout<< "New Block Added to Blockchain\n";
-		std::cout<< "Block count for miner is: " << m_blockchain.GetTotalBlocks() << "\n";
+		std::cout<< "Block count for miner : "<<GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << "\n";
+		std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
+		double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
+		std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
+		std::cout<<"Block size: " << m_nextBlockSize << "\n";
 	}
 	m_blockchain.AddBlock(newBlock);
-	std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
-	double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
-	std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
-	std::cout<<"Block size: " << m_nextBlockSize << "\n";
 
   // m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
 
@@ -1260,7 +1260,7 @@ DashMiner::FillBlock(bool isFull, double nextBlockSize)
 		std::unordered_map<std::string,Transaction>::const_iterator it;
 		for(it = tempTransactions.begin(); it != tempTransactions.end(); it++)
 		{
-			NS_LOG_INFO("transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
+			// NS_LOG_INFO("transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
 			// NS_LOG_INFO("transaction is: " << (*it).second);
 			if (tempBlockSize < nextBlockSize)
 			{
