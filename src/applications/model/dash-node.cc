@@ -3413,6 +3413,9 @@ DashNode::AdvertiseNewBlock (const Block &newBlock)
 
     }
   }
+
+	Simulator::Schedule (Seconds(100.00), &DashNode::DeleteBlockTransactionsFromMempool, this, newBlock);
+
 }
 
 void 
@@ -3836,6 +3839,18 @@ DashNode::CreateTransaction (void)
 		}
 
 		GenerateTransactions();
+}
+
+void
+DashNode::DeleteBlockTransactionsFromMempool(const Block &newBlock)
+{
+	std::unordered_map<std::string, Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+	for(std::unordered_map<std::string, Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+	{
+		std::string shortHash = (it->second).GetTransactionShortHash();
+		m_mempool.DeleteTransactionWithShortHash(shortHash);
+	}
+
 }
 
 void
