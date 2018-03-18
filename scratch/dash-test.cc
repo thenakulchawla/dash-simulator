@@ -75,7 +75,7 @@ main (int argc, char *argv[])
   int start = 0;
   
   // int totalNoNodes = 480;
-  int totalNoNodes = 7200;
+  int totalNoNodes = 6000;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
@@ -83,8 +83,8 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
-	// int noMasterNodes = 160;
-	int noMasterNodes = 3000;
+  // int noMasterNodes = 160;
+  int noMasterNodes = 5000;
 
 #ifdef MPI_TEST
   
@@ -187,7 +187,7 @@ main (int argc, char *argv[])
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop =20 * targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -253,8 +253,8 @@ main (int argc, char *argv[])
   }
   
   dashMiners.Start (Seconds (start));
-  dashMiners.Stop (Minutes (stop));
-  // dashMiners.Stop (Seconds (stop));
+  // dashMiners.Stop (Minutes (stop));
+  dashMiners.Stop (Seconds (stop));
 
   for(auto &miner : miners)
   {
@@ -387,8 +387,8 @@ main (int argc, char *argv[])
 
 
   dashNodes.Start (Seconds (start));
-  dashNodes.Stop (Minutes (stop));
-  // dashNodes.Stop (Seconds (stop));
+  // dashNodes.Stop (Minutes (stop));
+  dashNodes.Stop (Seconds (stop));
 
 
   if (systemId == 0)
@@ -399,7 +399,8 @@ main (int argc, char *argv[])
   tStartSimulation = get_wall_time();
   if (systemId == 0)
     std::cout << "Setup time = " << tStartSimulation - tStart << "s\n";
-  Simulator::Stop (Minutes (stop + 0.1));
+  // Simulator::Stop (Minutes (stop + 0.1));
+  Simulator::Stop (Seconds (stop + 0.1));
   Simulator::Run ();
   Simulator::Destroy ();
 
