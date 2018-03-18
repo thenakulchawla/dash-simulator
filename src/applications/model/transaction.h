@@ -56,6 +56,7 @@ std::unordered_map<std::string,Transaction> GetMempoolTransactions (void) const;
 int GetMempoolSize (void) const;
 bool HasShortTransaction (std::string shortHash);
 Transaction GetTransactionWithShortHash (std::string shortHash);
+void DeleteTransactionWithShortHash(std::string shortHash);
 
 protected:
 // std::vector<Transaction> m_transactions; //vector that contains all the transactions of the mempool

@@ -119,6 +119,9 @@ public:
    *
    * */
 
+
+	void DeleteBlockTransactionsFromMempool (const Block &newBlock);
+
   void HandleAccept (Ptr<Socket> socket, const Address& from);
   
   /**

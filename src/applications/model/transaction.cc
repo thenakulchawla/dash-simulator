@@ -152,6 +152,14 @@ Mempool::HasShortTransaction (std::string shortHash)
 	return false;
 }
 
+void
+Mempool::DeleteTransactionWithShortHash(std::string shortHash)
+{
+	m_transactions.erase(shortHash);
+	m_totalTransactions--;
+
+}
+
 Transaction
 Mempool::GetTransactionWithShortHash (std::string shortHash)
 {
