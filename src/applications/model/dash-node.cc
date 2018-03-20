@@ -3200,7 +3200,7 @@ DashNode::AfterBlockValidation(const Block &newBlock)
 	if(m_blockchain.HasBlock(newBlock) )
 	{
 		NS_LOG_INFO("Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl);
-		std::cout<<"Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl;
+		// std::cout<<"Number of blocks in node: " << GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << std::endl;
 	}
 
 
