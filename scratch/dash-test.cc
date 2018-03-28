@@ -82,17 +82,19 @@ main (int argc, char *argv[])
   int maxConnectionsPerMasterNode = -1;
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
-  int noMiners = 8;
+  int noMiners = 4;
   // int noMasterNodes = 160;
   int noMasterNodes = 5000;
 
 #ifdef MPI_TEST
   
-  // double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
-  //                              0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
-  //                             0.005, 0.005, 0.002, 0.002};
+  double dashMinersHash[] = {0.289, 0.196, 0.159, 0.133, 0.066, 0.054,
+                               0.029, 0.016, 0.012, 0.012, 0.012, 0.009,
+                              0.005, 0.005, 0.002, 0.002};
 	
-	double dashMinersHash[] = {.33,.23,.12,.09,.08,.06,.05,.04};	
+	// double dashMinersHash[] = {.33,.23,.12,.09,.08,.06,.05,.04};	
+  // double dashMinersHash[] = {.289,.196,.156,.133,.066,.06,.05,.04};	
+
 
   enum DashRegion dashMinersRegions[] = {ASIA_PACIFIC, ASIA_PACIFIC, ASIA_PACIFIC, NORTH_AMERICA, ASIA_PACIFIC, NORTH_AMERICA,
                                                EUROPE, EUROPE, NORTH_AMERICA, NORTH_AMERICA, NORTH_AMERICA, EUROPE,
@@ -156,38 +158,38 @@ main (int argc, char *argv[])
 
   cmd.Parse(argc, argv);
  
-  if (noMiners % 8 != 0)
+  if (noMiners % 4 != 0)
   {
-    std::cout << "The number of miners must be multiple of 8" << std::endl;
+    std::cout << "The number of miners must be multiple of 4" << std::endl;
 	return 0;
   }
   
   minersHash = new double[noMiners];
-	minersRegions = new enum DashRegion[noMiners];
+  minersRegions = new enum DashRegion[noMiners];
+
+  for(int i = 0; i < noMiners/4; i++)
+  {
+      for (int j = 0; j < 4 ; j++)
+      {
+          minersHash[i*4 + j] = dashMinersHash[j]*4/noMiners;
+          minersRegions[i*4 + j] = dashMinersRegions[j];
+      }
+  }	
+
+  masterNodesRegions = new enum DashRegion[noMasterNodes];
 	
-    for(int i = 0; i < noMiners/8; i++)
-    {
+  for(int i = 0; i < noMasterNodes/8; i++)
+  {
       for (int j = 0; j < 8 ; j++)
       {
-        minersHash[i*8 + j] = dashMinersHash[j]*16/noMiners;
-        minersRegions[i*8 + j] = dashMinersRegions[j];
+          masterNodesRegions[i*8 + j] = dashMasterNodesRegions[j];
       }
-    }	
-
-	masterNodesRegions = new enum DashRegion[noMasterNodes];
-	
-   for(int i = 0; i < noMasterNodes/8; i++)
-   {
-     for (int j = 0; j < 8 ; j++)
-     {
-       masterNodesRegions[i*8 + j] = dashMasterNodesRegions[j];
-     }
-   }	
+  }	
 
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop = 20 * targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -253,8 +255,8 @@ main (int argc, char *argv[])
   }
   
   dashMiners.Start (Seconds (start));
-  // dashMiners.Stop (Minutes (stop));
-  dashMiners.Stop (Seconds (stop));
+  dashMiners.Stop (Minutes (stop));
+  // dashMiners.Stop (Seconds (stop));
 
   for(auto &miner : miners)
   {
@@ -387,8 +389,8 @@ main (int argc, char *argv[])
 
 
   dashNodes.Start (Seconds (start));
-  // dashNodes.Stop (Minutes (stop));
-  dashNodes.Stop (Seconds (stop));
+  dashNodes.Stop (Minutes (stop));
+  // dashNodes.Stop (Seconds (stop));
 
 
   if (systemId == 0)
@@ -399,8 +401,8 @@ main (int argc, char *argv[])
   tStartSimulation = get_wall_time();
   if (systemId == 0)
     std::cout << "Setup time = " << tStartSimulation - tStart << "s\n";
-  // Simulator::Stop (Minutes (stop + 0.1));
-  Simulator::Stop (Seconds (stop + 0.1));
+  Simulator::Stop (Minutes (stop + 0.1));
+  // Simulator::Stop (Seconds (stop + 0.1));
   Simulator::Run ();
   Simulator::Destroy ();
 

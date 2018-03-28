@@ -1234,10 +1234,12 @@ DashMiner::MineBlock (void)
 	if (m_targetNumberOfBlocks <= m_blockchain.GetTotalBlocks()) 
 	{
 		NS_LOG_INFO("Cancel next mining event");
+                // std::cout<<"target number of blocks: " << m_targetNumberOfBlocks << " totalBlockchainBlocks: " << m_blockchain.GetTotalBlocks() << "\n";
 		Simulator::Cancel (m_nextMiningEvent);
 	}
 	else
 	{
+                // std::cout<<"target number of blocks: " << m_targetNumberOfBlocks << " totalBlockchainBlocks: " << m_blockchain.GetTotalBlocks() << "\n";
 		ScheduleNextMiningEvent ();
 	}
 
