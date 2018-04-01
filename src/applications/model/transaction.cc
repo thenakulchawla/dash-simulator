@@ -137,7 +137,7 @@ Mempool::GetMempoolSize(void) const
 	return m_transactions.size();
 }
 
-std::unordered_map<std::string,Transaction>
+std::map<std::string,Transaction>
 Mempool::GetMempoolTransactions (void) const
 {
 	return m_transactions;

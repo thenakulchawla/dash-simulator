@@ -116,7 +116,7 @@ public:
 	 *\isFull whether the block will be filled completely or based on distribution
 	 *\nextBlockSize the block size
 	 */
-	 std::unordered_map<std::string,Transaction> FillBlock(bool isFull,double nextBlockSize);
+	 std::map<std::string,Transaction> FillBlock(bool isFull,double nextBlockSize);
    
 protected:
   // inherited from Application base class.
@@ -198,7 +198,7 @@ protected:
 	// int transactionsInCurrentBlock;
   // int shortTransactionSizeInBytes=6;
 	// Transaction transaction;
-	std::unordered_map<std::string,Transaction> thisBlockTransactions;
+	std::map<std::string,Transaction> thisBlockTransactions;
 
   //debug
   double       m_timeStart;

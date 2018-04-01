@@ -585,7 +585,7 @@ DashMiner::MineBlock (void)
 
 					rapidjson::Value transactionArray(rapidjson::kArrayType);
 
-					for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+					for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 					{
 						rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
@@ -624,7 +624,7 @@ DashMiner::MineBlock (void)
 
 					rapidjson::Value transactionArray(rapidjson::kArrayType);
 
-					for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+					for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 					{
 						rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
@@ -1245,21 +1245,21 @@ DashMiner::MineBlock (void)
 
 }
 
-std::unordered_map<std::string,Transaction>
+std::map<std::string,Transaction>
 DashMiner::FillBlock(bool isFull, double nextBlockSize)
 {
 	NS_LOG_FUNCTION(this);
 	double tempBlockSize = 0;
-	std::unordered_map<std::string,Transaction> blockTransactions;
+	std::map<std::string,Transaction> blockTransactions;
 
-	std::unordered_map<std::string,Transaction> tempTransactions = m_mempool.GetMempoolTransactions();
+	std::map<std::string,Transaction> tempTransactions = m_mempool.GetMempoolTransactions();
 	NS_LOG_INFO("Mempool size: " <<m_mempool.GetMempoolSize() << std::endl);
 	NS_LOG_INFO("tempTransactionsSize: " << tempTransactions.size() << std::endl);
 	int countTransactionsAdded = 0;
 
 	if(isFull)
 	{
-		std::unordered_map<std::string,Transaction>::const_iterator it;
+		std::map<std::string,Transaction>::const_iterator it;
 		for(it = tempTransactions.begin(); it != tempTransactions.end(); it++)
 		{
 			// NS_LOG_INFO("transaction short hash iterator is: " << (it->second).GetTransactionShortHash());
@@ -1281,7 +1281,7 @@ DashMiner::FillBlock(bool isFull, double nextBlockSize)
 		std::array<double,12> iCount{0,10,20,30,40,50,60,70,80,90,100,110};
     std::array<double,11> wCount{25,35,20,10,1,1,1,1,1,1,1};
     m_transactionCountDistribution = std::piecewise_constant_distribution<double> (iCount.begin(),iCount.end(), wCount.begin());
-		std::unordered_map<std::string,Transaction>::const_iterator it;
+		std::map<std::string,Transaction>::const_iterator it;
 
 		int transactionCount = (int) m_transactionCountDistribution(m_generator);
 

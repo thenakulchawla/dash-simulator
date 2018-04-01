@@ -1136,9 +1136,9 @@ DashNode::HandleRead (Ptr<Socket> socket)
               int j;
               int totalBlockMessageSize = 0;
               std::vector<Block>              requestBlocks;
-              std::unordered_map<std::string,Transaction>        mempoolTrans;
+              std::map<std::string,Transaction>        mempoolTrans;
               std::vector<Block>::iterator    block_it;
-              std::unordered_map<std::string,Transaction>::const_iterator trans_it;
+              std::map<std::string,Transaction>::const_iterator trans_it;
 
               m_nodeStats->getDataReceivedBytes += m_dashMessageHeader + m_countBytes + d["blocks"].Size()*m_inventorySizeBytes;
 
@@ -1581,7 +1581,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 int height = d["blocks"][j]["height"].GetInt();
                 int minerId = d["blocks"][j]["minerId"].GetInt();
 								int transactionCount=0;
-								std::unordered_map<std::string,Transaction> blockTransactions = {{ "shortHash" , Transaction(0,"defaultHash","shortHash") }};
+								std::map<std::string,Transaction> blockTransactions = {{ "shortHash" , Transaction(0,"defaultHash","shortHash") }};
 				
 				
                 EventId              timeout;
@@ -1743,7 +1743,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 int minerId = d["blocks"][j]["minerId"].GetInt();
                 int blockSize = d["blocks"][j]["size"].GetInt();
 								int transactionCount=0;
-								std::unordered_map<std::string,Transaction> blockTransactions = { {"shortHash" , Transaction(0,"defaultHash","shortHash") }};
+								std::map<std::string,Transaction> blockTransactions = { {"shortHash" , Transaction(0,"defaultHash","shortHash") }};
 				
                 EventId              timeout;
                 std::ostringstream   stringStream;  
@@ -2203,7 +2203,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 bool isMissingTransactions = false;
                 rapidjson::Value missingTransactionArray(rapidjson::kArrayType);
 
-                std::unordered_map<std::string,Transaction> blockTransactions;
+                std::map<std::string,Transaction> blockTransactions;
                 int transactionCount = d["transactions"].Size();
 
                 for(int i=0; i < transactionCount; i++)
@@ -2349,10 +2349,10 @@ DashNode::HandleRead (Ptr<Socket> socket)
                         value = block_it->GetTimeReceived ();							
                         blockInfo.AddMember("timeReceived", value, d.GetAllocator ());
 
-                        std::unordered_map<std::string,Transaction> thisBlockTransactions = block_it->GetBlockTransactions();
+                        std::map<std::string,Transaction> thisBlockTransactions = block_it->GetBlockTransactions();
                         rapidjson::Value transactionArray(rapidjson::kArrayType);
 
-                        for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+                        for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
                         {
                             rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
@@ -2508,8 +2508,8 @@ DashNode::ReceivedBlockMessage(std::string &blockInfo, Address &from)
 		// NS_LOG_INFO("transactionCount: " << d["transactions"].Size());
 
 		int transactionCount = d["transactions"].Size(); 
-		std::unordered_map<std::string,Transaction> blockTransactions; 
-		// std::unordered_map<Transaction>::const_iterator it;
+		std::map<std::string,Transaction> blockTransactions; 
+		// std::map<Transaction>::const_iterator it;
 
 		for(int i=0;i<d["transactions"].Size();i++)
 		{
@@ -2598,7 +2598,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
     int chunkId = d["chunks"][j]["chunk"].GetInt();
 		int transactionCount= 0;
 		// std::vector<Transaction> blockTransactions = { {Transaction(0,0)}};
-		std::unordered_map<std::string,Transaction> blockTransactions = {{ "shortHash", Transaction(0,"defaultHash","shortHash")} };
+		std::map<std::string,Transaction> blockTransactions = {{ "shortHash", Transaction(0,"defaultHash","shortHash")} };
 
     EventId              timeout;
     std::ostringstream   stringStream;  
@@ -3278,9 +3278,9 @@ DashNode::AdvertiseNewBlock (const Block &newBlock)
       rapidjson::Value transactionArray(rapidjson::kArrayType);
 
       int transactionCount = newBlock.GetTransactionCount();
-      std::unordered_map<std::string,Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+      std::map<std::string,Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
 
-      for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+      for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
       {
           rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
@@ -3360,9 +3360,9 @@ DashNode::AdvertiseNewBlock (const Block &newBlock)
       rapidjson::Value transactionArray(rapidjson::kArrayType);
 
       int transactionCount = newBlock.GetTransactionCount();
-      std::unordered_map<std::string,Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+      std::map<std::string,Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
 
-      for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+      for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
       {
           rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
@@ -3525,9 +3525,9 @@ DashNode::AdvertiseFullBlock (const Block &newBlock)
 		rapidjson::Value transactionArray(rapidjson::kArrayType);
 
 		int transactionCount = newBlock.GetTransactionCount();
-		std::unordered_map<std::string,Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+		std::map<std::string,Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
 
-		for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+		for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 		{
 			rapidjson::Value transactionInfo(rapidjson::kObjectType);
 
@@ -3844,8 +3844,8 @@ DashNode::CreateTransaction (void)
 void
 DashNode::DeleteBlockTransactionsFromMempool(const Block &newBlock)
 {
-	std::unordered_map<std::string, Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
-	for(std::unordered_map<std::string, Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+	std::map<std::string, Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+	for(std::map<std::string, Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 	{
 		std::string shortHash = (it->second).GetTransactionShortHash();
 		m_mempool.DeleteTransactionWithShortHash(shortHash);
@@ -4544,9 +4544,9 @@ DashNode::InvTimeoutExpired(std::string blockHash)
 
     Block newBlock (m_blockchain.ReturnBlock (height, minerId));
 		int transactionCount = newBlock.GetTransactionCount();
-		std::unordered_map<std::string, Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
+		std::map<std::string, Transaction> thisBlockTransactions = newBlock.GetBlockTransactions();
 
-		for(std::unordered_map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
+		for(std::map<std::string,Transaction>::const_iterator it = thisBlockTransactions.begin(); it != thisBlockTransactions.end(); it++)
 		{
 			rapidjson::Value transactionInfo(rapidjson::kObjectType);
 

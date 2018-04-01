@@ -177,7 +177,7 @@ class Block
 {
 public:
   Block (int blockHeight, int minerId, int parentBlockMinerId, int blockSizeBytes, 
-         double timeCreated , double timeReceived, int transactionCount, std::unordered_map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4 );
+         double timeCreated , double timeReceived, int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4 );
   Block ();
   Block (const Block &blockSource);  // Copy constructor
   virtual ~Block (void);
@@ -200,7 +200,7 @@ public:
 	int GetTransactionCount (void) const;
 	void SetTransactionCount (int transactionCount);
 
-	std::unordered_map<std::string,Transaction> GetBlockTransactions (void) const;
+	std::map<std::string,Transaction> GetBlockTransactions (void) const;
 
   Ipv4Address GetReceivedFromIpv4 (void) const;
   void SetReceivedFromIpv4 (Ipv4Address receivedFromIpv4);
@@ -228,7 +228,7 @@ protected:
   double        m_timeCreated;                // The time the block was created
   double        m_timeReceived;               // The time the block was received from the node
 	int 					m_transactionCount;           //number of transactions in the current block
-	std::unordered_map<std::string,Transaction> m_blockTransactions;  //all transactions in the current block
+	std::map<std::string,Transaction> m_blockTransactions;  //all transactions in the current block
   Ipv4Address   m_receivedFromIpv4;           // The Ipv4 of the node which sent the block to the receiving node
 };
 
@@ -236,7 +236,7 @@ class DashChunk : public Block
 {
 public:
   DashChunk (int blockHeight, int minerId, int chunkId, int parentBlockMinerId, int blockSizeBytes, 
-                double timeCreated, double timeReceived,int transactionCount, std::unordered_map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4);
+                double timeCreated, double timeReceived,int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4);
   DashChunk ();
   DashChunk (const DashChunk &chunkSource);  // Copy constructor
   virtual ~DashChunk (void);

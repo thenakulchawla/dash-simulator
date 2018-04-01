@@ -21,7 +21,7 @@ namespace ns3 {
  */
 
 Block::Block(int blockHeight, int minerId, int parentBlockMinerId, int blockSizeBytes, 
-             double timeCreated, double timeReceived, int transactionCount, std::unordered_map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4) : m_blockHeight(blockHeight), m_minerId(minerId),
+             double timeCreated, double timeReceived, int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4) : m_blockHeight(blockHeight), m_minerId(minerId),
 	m_parentBlockMinerId(parentBlockMinerId), m_blockSizeBytes(blockSizeBytes), m_timeCreated(timeCreated), m_timeReceived(timeReceived), m_transactionCount(transactionCount), m_blockTransactions(blockTransactions),
 	m_receivedFromIpv4(receivedFromIpv4) {}
 // {  
@@ -133,7 +133,7 @@ Block::SetTransactionCount (int transactionCount)
 	m_transactionCount = transactionCount;
 }
 
-std::unordered_map<std::string,Transaction>
+std::map<std::string,Transaction>
 Block::GetBlockTransactions (void) const
 {
 	return m_blockTransactions;
@@ -193,7 +193,7 @@ Block::operator= (const Block &blockSource)
  */
  
 DashChunk::DashChunk(int blockHeight, int minerId, int chunkId, int parentBlockMinerId, int blockSizeBytes, 
-             double timeCreated, double timeReceived, int transactionCount, std::unordered_map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4) :  
+             double timeCreated, double timeReceived, int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4) :  
              Block (blockHeight, minerId, parentBlockMinerId, blockSizeBytes, 
                     timeCreated, timeReceived, transactionCount, blockTransactions, receivedFromIpv4)
 {  

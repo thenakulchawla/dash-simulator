@@ -7,7 +7,7 @@
 #include <string>
 #include <sstream>
 #include <random>
-#include <unordered_map>
+#include <map>
 #include "ns3/address.h"
 #include "ns3/address-utils.h"
 
@@ -52,7 +52,7 @@ Mempool(void);
 virtual ~Mempool (void);
 
 void AddTransaction(const Transaction& newTransaction);
-std::unordered_map<std::string,Transaction> GetMempoolTransactions (void) const;
+std::map<std::string,Transaction> GetMempoolTransactions (void) const;
 int GetMempoolSize (void) const;
 bool HasShortTransaction (std::string shortHash);
 Transaction GetTransactionWithShortHash (std::string shortHash);
@@ -60,7 +60,7 @@ void DeleteTransactionWithShortHash(std::string shortHash);
 
 protected:
 // std::vector<Transaction> m_transactions; //vector that contains all the transactions of the mempool
-std::unordered_map<std::string, Transaction> m_transactions; // replacing vector with map 
+std::map<std::string, Transaction> m_transactions; // replacing vector with map 
 int m_totalTransactions;
 
 };
