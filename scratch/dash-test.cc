@@ -74,7 +74,7 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
-  // int totalNoNodes = 480;
+  // int totalNoNodes = 320;
   int totalNoNodes = 6000;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
@@ -83,7 +83,7 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 4;
-  // int noMasterNodes = 160;
+  // int noMasterNodes = 300;
   int noMasterNodes = 5000;
 
 #ifdef MPI_TEST
@@ -189,7 +189,7 @@ main (int argc, char *argv[])
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop =targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -254,9 +254,6 @@ main (int argc, char *argv[])
     dashMinerHelper.SetAttribute("FixedBlockIntervalGeneration", DoubleValue(averageBlockGenIntervalSeconds));
   }
   
-  dashMiners.Start (Seconds (start));
-  dashMiners.Stop (Minutes (stop));
-  // dashMiners.Stop (Seconds (stop));
 
   for(auto &miner : miners)
   {
@@ -323,6 +320,9 @@ main (int argc, char *argv[])
 	}
   }
 
+  // dashMiners.Start (Seconds (start));
+  // dashMiners.Stop (Minutes (stop));
+  // // dashMiners.Stop (Seconds (stop));
 
 	int noMasterNodesTempCount = noMasterNodes; 
 
@@ -387,6 +387,9 @@ main (int argc, char *argv[])
   }	  
   }
 
+  dashMiners.Start (Seconds (start));
+  dashMiners.Stop (Minutes (stop));
+  // dashMiners.Stop (Seconds (stop));
 
   dashNodes.Start (Seconds (start));
   dashNodes.Stop (Minutes (stop));
@@ -463,76 +466,76 @@ main (int argc, char *argv[])
 
   if (systemId != 0 && systemCount > 1)
   {
-    /**
-     * Sent all the systemId stats to systemId == 0
-	 */
-	/* std::cout << "SystemId = " << systemId << "\n"; */
+      /**
+       * Sent all the systemId stats to systemId == 0
+       */
+      /* std::cout << "SystemId = " << systemId << "\n"; */
 
-    for(int i = 0; i < totalNoNodes; i++)
-    {
-      Ptr<Node> targetNode = dashTopologyHelper.GetNode (i);
-	
-	  if (systemId == targetNode->GetSystemId())
-	  {
-        MPI_Send(&stats[i], 1, mpi_nodeStatisticsType, 0, 8888, MPI_COMM_WORLD);
-	  }
-    }
+      for(int i = 0; i < totalNoNodes; i++)
+      {
+          Ptr<Node> targetNode = dashTopologyHelper.GetNode (i);
+
+          if (systemId == targetNode->GetSystemId())
+          {
+              MPI_Send(&stats[i], 1, mpi_nodeStatisticsType, 0, 8888, MPI_COMM_WORLD);
+          }
+      }
   }
   else if (systemId == 0 && systemCount > 1)
   {
-    int count = nodesInSystemId0;
-	
-	while (count < totalNoNodes)
-	{
-	  MPI_Status status;
-      nodeStatistics recv;
-	  
-	  /* std::cout << "SystemId = " << systemId << "\n"; */
-	  MPI_Recv(&recv, 1, mpi_nodeStatisticsType, MPI_ANY_SOURCE, 8888, MPI_COMM_WORLD, &status);
-    
-/* 	  std::cout << "SystemId 0 received: statistics for node " << recv.nodeId 
-                <<  " from systemId = " << status.MPI_SOURCE << "\n"; */
-      stats[recv.nodeId].nodeId = recv.nodeId;
-      stats[recv.nodeId].meanBlockReceiveTime = recv.meanBlockReceiveTime;
-      stats[recv.nodeId].meanBlockPropagationTime = recv.meanBlockPropagationTime;
-      stats[recv.nodeId].meanBlockSize = recv.meanBlockSize;
-      stats[recv.nodeId].totalBlocks = recv.totalBlocks;
-      stats[recv.nodeId].staleBlocks = recv.staleBlocks;
-      stats[recv.nodeId].miner = recv.miner;
-      stats[recv.nodeId].minerGeneratedBlocks = recv.minerGeneratedBlocks;
-      stats[recv.nodeId].minerAverageBlockGenInterval = recv.minerAverageBlockGenInterval;
-      stats[recv.nodeId].minerAverageBlockSize = recv.minerAverageBlockSize;
-      stats[recv.nodeId].hashRate = recv.hashRate;
-      stats[recv.nodeId].invReceivedBytes = recv.invReceivedBytes;
-      stats[recv.nodeId].invSentBytes = recv.invSentBytes;
-      stats[recv.nodeId].getHeadersReceivedBytes = recv.getHeadersReceivedBytes;
-      stats[recv.nodeId].getHeadersSentBytes = recv.getHeadersSentBytes;
-      stats[recv.nodeId].headersReceivedBytes = recv.headersReceivedBytes;
-      stats[recv.nodeId].headersSentBytes = recv.headersSentBytes;
-      stats[recv.nodeId].getDataReceivedBytes = recv.getDataReceivedBytes;
-      stats[recv.nodeId].getDataSentBytes = recv.getDataSentBytes;
-      stats[recv.nodeId].blockReceivedBytes = recv.blockReceivedBytes;
-      stats[recv.nodeId].blockSentBytes = recv.blockSentBytes;
-      stats[recv.nodeId].extInvReceivedBytes = recv.extInvReceivedBytes;
-      stats[recv.nodeId].extInvSentBytes = recv.extInvSentBytes;
-      stats[recv.nodeId].extGetHeadersReceivedBytes = recv.extGetHeadersReceivedBytes;
-      stats[recv.nodeId].extGetHeadersSentBytes = recv.extGetHeadersSentBytes;
-      stats[recv.nodeId].extHeadersReceivedBytes = recv.extHeadersReceivedBytes;
-      stats[recv.nodeId].extHeadersSentBytes = recv.extHeadersSentBytes;
-      stats[recv.nodeId].extGetDataReceivedBytes = recv.extGetDataReceivedBytes;
-      stats[recv.nodeId].extGetDataSentBytes = recv.extGetDataSentBytes;
-      stats[recv.nodeId].chunkReceivedBytes = recv.chunkReceivedBytes;
-      stats[recv.nodeId].chunkSentBytes = recv.chunkSentBytes;
-      stats[recv.nodeId].longestFork = recv.longestFork;
-      stats[recv.nodeId].blocksInForks = recv.blocksInForks;
-      stats[recv.nodeId].connections = recv.connections;
-      stats[recv.nodeId].blockTimeouts = recv.blockTimeouts;
-      stats[recv.nodeId].chunkTimeouts = recv.chunkTimeouts;
-      stats[recv.nodeId].minedBlocksInMainChain = recv.minedBlocksInMainChain;
-			stats[recv.nodeId].transactionReceivedBytes = recv.transactionReceivedBytes;
-			stats[recv.nodeId].transactionSentBytes = recv.transactionSentBytes;
-	  count++;
-    }
+      int count = nodesInSystemId0;
+
+      while (count < totalNoNodes)
+      {
+          MPI_Status status;
+          nodeStatistics recv;
+
+          /* std::cout << "SystemId = " << systemId << "\n"; */
+          MPI_Recv(&recv, 1, mpi_nodeStatisticsType, MPI_ANY_SOURCE, 8888, MPI_COMM_WORLD, &status);
+
+          /* 	  std::cout << "SystemId 0 received: statistics for node " << recv.nodeId 
+                  <<  " from systemId = " << status.MPI_SOURCE << "\n"; */
+          stats[recv.nodeId].nodeId = recv.nodeId;
+          stats[recv.nodeId].meanBlockReceiveTime = recv.meanBlockReceiveTime;
+          stats[recv.nodeId].meanBlockPropagationTime = recv.meanBlockPropagationTime;
+          stats[recv.nodeId].meanBlockSize = recv.meanBlockSize;
+          stats[recv.nodeId].totalBlocks = recv.totalBlocks;
+          stats[recv.nodeId].staleBlocks = recv.staleBlocks;
+          stats[recv.nodeId].miner = recv.miner;
+          stats[recv.nodeId].minerGeneratedBlocks = recv.minerGeneratedBlocks;
+          stats[recv.nodeId].minerAverageBlockGenInterval = recv.minerAverageBlockGenInterval;
+          stats[recv.nodeId].minerAverageBlockSize = recv.minerAverageBlockSize;
+          stats[recv.nodeId].hashRate = recv.hashRate;
+          stats[recv.nodeId].invReceivedBytes = recv.invReceivedBytes;
+          stats[recv.nodeId].invSentBytes = recv.invSentBytes;
+          stats[recv.nodeId].getHeadersReceivedBytes = recv.getHeadersReceivedBytes;
+          stats[recv.nodeId].getHeadersSentBytes = recv.getHeadersSentBytes;
+          stats[recv.nodeId].headersReceivedBytes = recv.headersReceivedBytes;
+          stats[recv.nodeId].headersSentBytes = recv.headersSentBytes;
+          stats[recv.nodeId].getDataReceivedBytes = recv.getDataReceivedBytes;
+          stats[recv.nodeId].getDataSentBytes = recv.getDataSentBytes;
+          stats[recv.nodeId].blockReceivedBytes = recv.blockReceivedBytes;
+          stats[recv.nodeId].blockSentBytes = recv.blockSentBytes;
+          stats[recv.nodeId].extInvReceivedBytes = recv.extInvReceivedBytes;
+          stats[recv.nodeId].extInvSentBytes = recv.extInvSentBytes;
+          stats[recv.nodeId].extGetHeadersReceivedBytes = recv.extGetHeadersReceivedBytes;
+          stats[recv.nodeId].extGetHeadersSentBytes = recv.extGetHeadersSentBytes;
+          stats[recv.nodeId].extHeadersReceivedBytes = recv.extHeadersReceivedBytes;
+          stats[recv.nodeId].extHeadersSentBytes = recv.extHeadersSentBytes;
+          stats[recv.nodeId].extGetDataReceivedBytes = recv.extGetDataReceivedBytes;
+          stats[recv.nodeId].extGetDataSentBytes = recv.extGetDataSentBytes;
+          stats[recv.nodeId].chunkReceivedBytes = recv.chunkReceivedBytes;
+          stats[recv.nodeId].chunkSentBytes = recv.chunkSentBytes;
+          stats[recv.nodeId].longestFork = recv.longestFork;
+          stats[recv.nodeId].blocksInForks = recv.blocksInForks;
+          stats[recv.nodeId].connections = recv.connections;
+          stats[recv.nodeId].blockTimeouts = recv.blockTimeouts;
+          stats[recv.nodeId].chunkTimeouts = recv.chunkTimeouts;
+          stats[recv.nodeId].minedBlocksInMainChain = recv.minedBlocksInMainChain;
+          stats[recv.nodeId].transactionReceivedBytes = recv.transactionReceivedBytes;
+          stats[recv.nodeId].transactionSentBytes = recv.transactionSentBytes;
+          count++;
+      }
   }	  
 #endif
 

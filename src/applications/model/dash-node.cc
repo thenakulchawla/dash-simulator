@@ -430,27 +430,28 @@ DashNode::HandleRead (Ptr<Socket> socket)
           rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
           d.Accept(writer);
 
-					if(d["message"].GetInt() == COMPACT_BLOCK )
-					{
-						for(int i =0; i<d["blocks"].Size();i++)
-						{
-							int height = d["blocks"][i]["height"].GetInt();
-							int minerId = d["blocks"][i]["minerId"].GetInt();
-							// NS_LOG_INFO("Height of the block that was just parsed: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt() << " at node: " << GetNode()->GetId()
-							// 		<< " with blockchain height: " << m_blockchain.GetBlockchainHeight() << " HasBlock: " << m_blockchain.HasBlock(height,minerId) );
+          if(d["message"].GetInt() == COMPACT_BLOCK )
+          {
+              for(int i =0; i<d["blocks"].Size();i++)
+              {
+                  int height = d["blocks"][i]["height"].GetInt();
+                  int minerId = d["blocks"][i]["minerId"].GetInt();
+                  // NS_LOG_INFO("Height of the block that was just parsed: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt() << " at node: " << GetNode()->GetId()
+                  // 		<< " with blockchain height: " << m_blockchain.GetBlockchainHeight() << " HasBlock: " << m_blockchain.HasBlock(height,minerId) );
 
-							if(m_blockchain.HasBlock(height,minerId))
-							{
-								// NS_LOG_INFO("Height of the block that was just parsed: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt() << " at node: " << GetNode()->GetId()
-										// << " with blockchain height: " << m_blockchain.GetBlockchainHeight() << " HasBlock: " << m_blockchain.HasBlock(height,minerId) );
-        				m_bufferedData[from] = totalReceivedData;
-        				delete[] packetInfo;
-								return;
-							}
-						}
-					}
+                  if(m_blockchain.HasBlock(height,minerId))
+                  {
+                      // NS_LOG_INFO("Height of the block that was just parsed: " << d["blocks"][i]["height"].GetInt() << " from miner: " << d["blocks"][i]["minerId"].GetInt() << " at node: " << GetNode()->GetId()
+                      // << " with blockchain height: " << m_blockchain.GetBlockchainHeight() << " HasBlock: " << m_blockchain.HasBlock(height,minerId) );
+                      m_bufferedData[from] = totalReceivedData;
+                      delete[] packetInfo;
+                      return;
+                  }
+              }
+          }
 
-					// NS_LOG_INFO("buffer is :" << buffer.GetString() << "\n");
+
+          // NS_LOG_INFO("buffer is :" << buffer.GetString() << "\n");
           // NS_LOG_INFO("message :" << d["message"].GetInt());
 		  
           // NS_LOG_INFO ("At time "  << Simulator::Now ().GetSeconds ()
@@ -539,83 +540,83 @@ DashNode::HandleRead (Ptr<Socket> socket)
               }
               break;
             }
-						case XTHIN_INV:
-						{
-							NS_LOG_INFO("XTHIN_INV");
-							int j;
-							std::vector<std::string> requestBlocks;
-							std::vector<std::string>::iterator block_it;
+            case XTHIN_INV:
+            {
+                NS_LOG_INFO("XTHIN_INV");
+                int j;
+                std::vector<std::string> requestBlocks;
+                std::vector<std::string>::iterator block_it;
 
-							m_nodeStats->invReceivedBytes += m_dashMessageHeader + m_countBytes + d["inv"].Size() * m_inventorySizeBytes;
+                m_nodeStats->invReceivedBytes += m_dashMessageHeader + m_countBytes + d["inv"].Size() * m_inventorySizeBytes;
 
-							for (j=0;j<d["inv"].Size();j++)
-							{
-
-								std::string   invDelimiter = "/";
-                std::string   parsedInv = d["inv"][j].GetString();
-                size_t        invPos = parsedInv.find(invDelimiter);
-
-                EventId       timeout;
-								int height = atoi(parsedInv.substr(0, invPos).c_str());
-								int minerId = atoi(parsedInv.substr(invPos+1, parsedInv.size()).c_str()); 
-
- 
-								if (m_blockchain.HasBlock(height, minerId) || m_blockchain.IsOrphan(height, minerId) || ReceivedButNotValidated(parsedInv))
-								{
-                    NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId () 
-                            << " has already received the block with height = " 
-                            << height << " and minerId = " << minerId);				  
-								}
-								else
-								{
-                    NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId () 
-                            << " does not have the block with height = " 
-                            << height << " and minerId = " << minerId);
-								
-                  /**
-                   * Check if we have already requested the block
-                   */
-				   
-                  if (m_invTimeouts.find(parsedInv) == m_invTimeouts.end())
-                  {
-                    NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId ()
-                                 << " has not requested the block yet");
-                    requestBlocks.push_back(parsedInv);
-                    timeout = Simulator::Schedule (m_invTimeoutMinutes, &DashNode::InvTimeoutExpired, this, parsedInv);
-                    m_invTimeouts[parsedInv] = timeout;
-                  }
-                  else
-                  {
-                    NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId ()
-                                 << " has already requested the block");
-                  }
-				  
-                  m_queueInv[parsedInv].push_back(from);
-								}
-
-							}
-
-              if (!requestBlocks.empty())
-              {
-                rapidjson::Value   value;
-                rapidjson::Value   array(rapidjson::kArrayType);
-                d.RemoveMember("inv");
-
-                for (block_it = requestBlocks.begin(); block_it < requestBlocks.end(); block_it++) 
+                for (j=0;j<d["inv"].Size();j++)
                 {
-                  value.SetString(block_it->c_str(), block_it->size(), d.GetAllocator());
-                  array.PushBack(value, d.GetAllocator());
-                }		
-			  
-                d.AddMember("blocks", array, d.GetAllocator());
-					
-                // SendMessage(INV, GET_HEADERS, d, from);				
-                SendMessage(XTHIN_INV, XTHIN_GET_DATA, d, from);	
-				
-              }
 
-							break;
-						}
+                    std::string   invDelimiter = "/";
+                    std::string   parsedInv = d["inv"][j].GetString();
+                    size_t        invPos = parsedInv.find(invDelimiter);
+
+                    EventId       timeout;
+                    int height = atoi(parsedInv.substr(0, invPos).c_str());
+                    int minerId = atoi(parsedInv.substr(invPos+1, parsedInv.size()).c_str()); 
+
+
+                    if (m_blockchain.HasBlock(height, minerId) || m_blockchain.IsOrphan(height, minerId) || ReceivedButNotValidated(parsedInv))
+                    {
+                        NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId () 
+                                << " has already received the block with height = " 
+                                << height << " and minerId = " << minerId);				  
+                    }
+                    else
+                    {
+                        NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId () 
+                                << " does not have the block with height = " 
+                                << height << " and minerId = " << minerId);
+
+                        /**
+                         * Check if we have already requested the block
+                         */
+
+                        if (m_invTimeouts.find(parsedInv) == m_invTimeouts.end())
+                        {
+                            NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId ()
+                                    << " has not requested the block yet");
+                            requestBlocks.push_back(parsedInv);
+                            timeout = Simulator::Schedule (m_invTimeoutMinutes, &DashNode::InvTimeoutExpired, this, parsedInv);
+                            m_invTimeouts[parsedInv] = timeout;
+                        }
+                        else
+                        {
+                            NS_LOG_INFO("XTHIN_INV: Dash node " << GetNode ()->GetId ()
+                                    << " has already requested the block");
+                        }
+
+                        m_queueInv[parsedInv].push_back(from);
+                    }
+
+                }
+
+                if (!requestBlocks.empty())
+                {
+                    rapidjson::Value   value;
+                    rapidjson::Value   array(rapidjson::kArrayType);
+                    d.RemoveMember("inv");
+
+                    for (block_it = requestBlocks.begin(); block_it < requestBlocks.end(); block_it++) 
+                    {
+                        value.SetString(block_it->c_str(), block_it->size(), d.GetAllocator());
+                        array.PushBack(value, d.GetAllocator());
+                    }		
+
+                    d.AddMember("blocks", array, d.GetAllocator());
+
+                    // SendMessage(INV, GET_HEADERS, d, from);				
+                    SendMessage(XTHIN_INV, XTHIN_GET_DATA, d, from);	
+
+                }
+
+                break;
+            }
             case EXT_INV:
             {
               // NS_LOG_INFO ("EXT_INV");
@@ -2145,13 +2146,13 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 d.Accept(transactionWriter);
 
                 double transactionSizeBytes = d["size"].GetDouble();
-								std::string transactionHash = d["hash"].GetString();
-								std::string transactionShortHash = d["shortHash"].GetString();
+                std::string transactionHash = d["hash"].GetString();
+                std::string transactionShortHash = d["shortHash"].GetString();
 
-								// NS_LOG_INFO("size is: " << transactionSizeBytes << " and hash is: " << transactionHash);
+                // NS_LOG_INFO("size is: " << transactionSizeBytes << " and hash is: " << transactionHash);
 
-								Transaction newTransaction(transactionSizeBytes, transactionHash, transactionShortHash);
-								m_mempool.AddTransaction(newTransaction);
+                Transaction newTransaction(transactionSizeBytes, transactionHash, transactionShortHash);
+                m_mempool.AddTransaction(newTransaction);
 
                 // NS_LOG_INFO("MEMPOOL TXN COUNT: " << (m_mempool.GetMempoolTransactions()).size() << std::endl);
 
@@ -2185,7 +2186,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
                 std::string help = blockInfo.GetString();
 
-            		// NS_LOG_INFO ("help is : " << help << std::endl);
+                // NS_LOG_INFO ("help is : " << help << std::endl);
 
                 if (m_receiveBlockTimes.size() == 0 || Simulator::Now().GetSeconds () > m_receiveBlockTimes.back())
                 {
@@ -3763,7 +3764,7 @@ DashNode::GenerateTransactions (void)
 	}
 	else
 	{
-		std::normal_distribution<> d{500,250};
+		std::normal_distribution<> d{5500,3500};
 
 		m_nextTransactionTime = abs(std::round(d(m_generator)));
 
