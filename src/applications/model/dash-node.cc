@@ -2246,15 +2246,15 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
                 // NS_LOG_INFO("Missing transactions added or not: " << isMissingTransactions);
 
-                for (int j =0; j<d["blocks"].Size(); j++)
-                {
-                    Block newBlock (d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
-                            d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
-                            Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
-
-                    ValidateBlock (newBlock);
-
-                }
+                // for (int j =0; j<d["blocks"].Size(); j++)
+                // {
+                //     Block newBlock (d["blocks"][j]["height"].GetInt(), d["blocks"][j]["minerId"].GetInt(), d["blocks"][j]["parentBlockMinerId"].GetInt(), 
+                //             d["blocks"][j]["size"].GetInt(), d["blocks"][j]["timeCreated"].GetDouble(), 
+                //             Simulator::Now ().GetSeconds (), transactionCount, blockTransactions ,InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+                //
+                //     ValidateBlock (newBlock);
+                //
+                // }
 
                 if(isMissingTransactions)
                 {
@@ -3764,7 +3764,7 @@ DashNode::GenerateTransactions (void)
 	}
 	else
 	{
-		std::normal_distribution<> d{5500,3500};
+		std::normal_distribution<> d{9500,6500};
 
 		m_nextTransactionTime = abs(std::round(d(m_generator)));
 
