@@ -2183,14 +2183,14 @@ DashNode::HandleRead (Ptr<Socket> socket)
                     {
                         NS_LOG_INFO("COMPACT_BLOCK: Dash node " << GetNode ()->GetId() <<" has already received the block height = "
                                 << height << " and minerId = " << minerId);
-                        Block newBlock (m_blockchain.ReturnBlock (height, minerId));
-                        requestBlocks.push_back(newBlock);
 
                     }
                     else
                     {
                         NS_LOG_INFO("COMPACT_BLOCK: Dash node " << GetNode()->GetId() << " does not have the block with height = "
                                 << height << " and minerId = " << minerId);
+                        Block newBlock (m_blockchain.ReturnBlock (height, minerId));
+                        requestBlocks.push_back(newBlock);
 
                     }
                 }
@@ -2224,7 +2224,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
                 if (!requestBlocks.empty())
                 {
-                    d.RemoveMember("blocks");
+                    // d.RemoveMember("blocks");
 
                     bool isMissingTransactions = false;
                     rapidjson::Value missingTransactionArray(rapidjson::kArrayType);
@@ -2312,10 +2312,12 @@ DashNode::HandleRead (Ptr<Socket> socket)
                         }
 
                         m_receiveBlockTimes.push_back(Simulator::Now ().GetSeconds() + receiveTime);
+                        Simulator::Schedule (Seconds(eventTime + sendTime), &DashNode::RemoveSendTime, this);
 
 
                         Simulator::Schedule (Seconds(eventTime), &DashNode::ReceivedBlockMessage, this, help, from);
                         Simulator::Schedule (Seconds(receiveTime), &DashNode::RemoveReceiveTime, this);
+                        NS_LOG_INFO("COMPACT_BLOCK:  Node " << GetNode()->GetId() << " will receive the remaining transactions at " << Simulator::Now ().GetSeconds() + eventTime);
 
                     }
                     else
@@ -3823,7 +3825,7 @@ DashNode::GenerateTransactions (void)
 	}
 	else
 	{
-		std::normal_distribution<> d{12000,8000};
+		std::normal_distribution<> d{8500,5500};
 
 		m_nextTransactionTime = abs(std::round(d(m_generator)));
 

@@ -189,7 +189,7 @@ main (int argc, char *argv[])
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop =targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
@@ -543,7 +543,7 @@ main (int argc, char *argv[])
   {
     tFinish=get_wall_time();
 	
-    // PrintStatsForEachNode(stats, totalNoNodes);
+    PrintStatsForEachNode(stats, totalNoNodes);
     PrintTotalStats(stats, totalNoNodes, tStartSimulation, tFinish, averageBlockGenIntervalMinutes, relayNetwork);
 	
     if(unsolicited)
