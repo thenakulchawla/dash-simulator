@@ -3825,7 +3825,7 @@ DashNode::GenerateTransactions (void)
 	}
 	else
 	{
-		std::normal_distribution<> d{25500,5500};
+		std::normal_distribution<> d{20000,5500};
 
 		m_nextTransactionTime = abs(std::round(d(m_generator)));
 
