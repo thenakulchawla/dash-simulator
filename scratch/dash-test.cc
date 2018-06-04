@@ -543,7 +543,7 @@ main (int argc, char *argv[])
   {
     tFinish=get_wall_time();
 	
-    PrintStatsForEachNode(stats, totalNoNodes);
+    // PrintStatsForEachNode(stats, totalNoNodes);
     PrintTotalStats(stats, totalNoNodes, tStartSimulation, tFinish, averageBlockGenIntervalMinutes, relayNetwork);
 	
     if(unsolicited)
