@@ -74,17 +74,17 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
-  int totalNoNodes = 6000;
-  // int totalNoNodes = 16;
+  // int totalNoNodes = 6000;
+  int totalNoNodes = 24;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
   int maxConnectionsPerMasterNode = -1;
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
-  int noMiners = 8;
-  int noMasterNodes = 5000;
-  // int noMasterNodes = 8;
+  int noMiners = 16;
+  // int noMasterNodes = 5000;
+  int noMasterNodes = 8;
 
 #ifdef MPI_TEST
   
@@ -189,7 +189,7 @@ main (int argc, char *argv[])
   averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
 	// stop = 300;
   //the simulator should run enough time to complete all blocks as expected
-  stop =20 * targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+  stop =30 * targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
 
   nodeStatistics *stats = new nodeStatistics[totalNoNodes];
   averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;
