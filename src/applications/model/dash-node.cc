@@ -3814,7 +3814,7 @@ DashNode::GenerateTransactions (void)
 {
 	// NS_LOG_FUNCTION(this);
 
-	m_fixedTransactionTimeGeneration = 15000; 
+	m_fixedTransactionTimeGeneration = 300; 
 
 	if ( m_fixedTransactionTimeGeneration > 0 )
 	{
@@ -3825,7 +3825,7 @@ DashNode::GenerateTransactions (void)
 	}
 	else
 	{
-		std::normal_distribution<> d{2000,500};
+		std::normal_distribution<> d{1000,350};
 
 		m_nextTransactionTime = abs(std::round(d(m_generator)));
 
