@@ -112,7 +112,7 @@ public:
 
   void SetProtocolType (enum ProtocolType protocolType);
 
-	void SetNodeType (enum NodeType nodeType);
+  void SetNodeType (enum NodeType nodeType);
 
 protected:
   /**
@@ -134,7 +134,7 @@ protected:
   nodeInternetSpeeds                                  m_internetSpeeds;       //!< The internet speeds of the node
   nodeStatistics                                      *m_nodeStats;           //!< The struct holding the node statistics
   enum ProtocolType									  m_protocolType;         //!< The protocol that the nodes use to advertise new blocks (DEFAULT: STANDARD)
-	enum NodeType												m_nodeType;
+  enum NodeType												m_nodeType;
 
 };
 

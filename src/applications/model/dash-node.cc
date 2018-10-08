@@ -3193,7 +3193,7 @@ DashNode::ValidateBlock(const Block &newBlock)
   {
     NS_LOG_INFO("ValidateBlock: Block " << newBlock << " is an orphan\n"); 
 	 
-	 m_blockchain.AddOrphan(newBlock);
+    m_blockchain.AddOrphan(newBlock);
 	 //m_blockchain.PrintOrphans();
   }
   else 
@@ -3814,7 +3814,7 @@ DashNode::GenerateTransactions (void)
 {
 	// NS_LOG_FUNCTION(this);
 
-	m_fixedTransactionTimeGeneration = 0; 
+	m_fixedTransactionTimeGeneration = 300; 
 
 	if ( m_fixedTransactionTimeGeneration > 0 )
 	{

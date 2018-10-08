@@ -902,7 +902,7 @@ namespace ns3 {
                 std::cout<<"Number of transactions in this block: " << transactionCount << "\n";
                 double transactionsPerSec = ((double)(transactionCount / m_averageBlockGenIntervalSeconds));
                 std::cout<<"Transactions per second for this block: " << transactionsPerSec << "\n";
-                std::cout<<"Block size: " << m_nextBlockSize << "\n";
+                // std::cout<<"Block size: " << m_nextBlockSize << "\n";
                 NS_LOG_INFO("Block height: " << newBlock.GetBlockHeight() << " miner Id: " << newBlock.GetMinerId() );
             }
             m_blockchain.AddBlock(newBlock);
