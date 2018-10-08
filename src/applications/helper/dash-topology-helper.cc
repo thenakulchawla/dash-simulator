@@ -666,19 +666,19 @@ namespace ns3 {
         m_regionUploadSpeeds[JAPAN] = 6.7;
         m_regionUploadSpeeds[AUSTRALIA] = 11.1;
 
-        m_regionMasterDownloadSpeeds[NORTH_AMERICA] = 45.68;
-        m_regionMasterDownloadSpeeds[EUROPE] = 25.29;
-        m_regionMasterDownloadSpeeds[SOUTH_AMERICA] = 15.89;
-        m_regionMasterDownloadSpeeds[ASIA_PACIFIC] = 20.56;
-        m_regionMasterDownloadSpeeds[JAPAN] = 11.9;
-        m_regionMasterDownloadSpeeds[AUSTRALIA] = 21;
+        m_regionMasterDownloadSpeeds[NORTH_AMERICA] = 1000;
+        m_regionMasterDownloadSpeeds[EUROPE] = 1000; 
+        m_regionMasterDownloadSpeeds[SOUTH_AMERICA] = 1000;
+        m_regionMasterDownloadSpeeds[ASIA_PACIFIC] = 1000;
+        m_regionMasterDownloadSpeeds[JAPAN] = 1000;
+        m_regionMasterDownloadSpeeds[AUSTRALIA] = 1000;
 
-        m_regionMasterUploadSpeeds[NORTH_AMERICA] = 11.74;
-        m_regionMasterUploadSpeeds[EUROPE] = 11.72;
-        m_regionMasterUploadSpeeds[SOUTH_AMERICA] = 7.2;
-        m_regionMasterUploadSpeeds[ASIA_PACIFIC] = 11.53;
-        m_regionMasterUploadSpeeds[JAPAN] = 6.7;
-        m_regionMasterUploadSpeeds[AUSTRALIA] = 11.1;
+        m_regionMasterUploadSpeeds[NORTH_AMERICA] = 1000;
+        m_regionMasterUploadSpeeds[EUROPE] = 1000;
+        m_regionMasterUploadSpeeds[SOUTH_AMERICA] = 1000;
+        m_regionMasterUploadSpeeds[ASIA_PACIFIC] = 1000;
+        m_regionMasterUploadSpeeds[JAPAN] = 1000;
+        m_regionMasterUploadSpeeds[AUSTRALIA] = 1000;
 
         srand (1000);
 
