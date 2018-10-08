@@ -74,8 +74,8 @@ main (int argc, char *argv[])
   double fixedHashRate = 0.5;
   int start = 0;
   
-  int totalNoNodes = 6000;
-  // int totalNoNodes = 24;
+  // int totalNoNodes = 6000;
+  int totalNoNodes = 24;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
@@ -83,8 +83,8 @@ main (int argc, char *argv[])
   double *minersHash;
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
-  int noMasterNodes = 5000;
-  // int noMasterNodes = 8;
+  // int noMasterNodes = 5000;
+  int noMasterNodes = 16;
 
 #ifdef MPI_TEST
 
@@ -152,9 +152,6 @@ main (int argc, char *argv[])
     cmd.AddValue ("sendheaders", "Change the protocol to sendheaders", sendheaders);
     cmd.AddValue ("blockTorrent", "Enable the BlockTorrent protocol", blockTorrent);
     cmd.AddValue ("spv", "Enable the spv mechanism", spv);
-    cmd.AddValue ("compact", "Change the broadcast and protocol type to compact block relay", compact);
-    cmd.AddValue ("xthin", "Change the block boradcast and protocol to extreme thin blocks relay", xthin);
-    cmd.AddValue("fillBlock", "Fill blocks with transactions to check scalability or throughput", fillBlock);
 
     cmd.Parse(argc, argv);
 
@@ -274,10 +271,6 @@ main (int argc, char *argv[])
 
             if (sendheaders)	  
                 dashMinerHelper.SetProtocolType(SENDHEADERS);	  
-            if (compact)
-                dashMinerHelper.SetProtocolType(COMPACT);
-            if (xthin)
-                dashMinerHelper.SetProtocolType(XTHIN);
             if (blockTorrent)	
             {		  
                 dashMinerHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -360,10 +353,6 @@ main (int argc, char *argv[])
 
                 if (sendheaders)	  
                     dashNodeHelper.SetProtocolType(SENDHEADERS);	
-                if (compact)	  
-                    dashNodeHelper.SetProtocolType(COMPACT);	
-                if (xthin)
-                    dashNodeHelper.SetProtocolType(XTHIN);
                 if (blockTorrent)	  
                 {
                     dashNodeHelper.SetAttribute("BlockTorrent", BooleanValue(true));
@@ -458,8 +447,6 @@ main (int argc, char *argv[])
     disp[35] = offsetof(nodeStatistics, blockTimeouts);
     disp[36] = offsetof(nodeStatistics, chunkTimeouts);
     disp[37] = offsetof(nodeStatistics, minedBlocksInMainChain);
-    disp[38] = offsetof(nodeStatistics, transactionReceivedBytes);
-    disp[39] = offsetof(nodeStatistics, transactionSentBytes);
 
     MPI_Type_create_struct (40, blocklen, disp, dtypes, &mpi_nodeStatisticsType);
     MPI_Type_commit (&mpi_nodeStatisticsType);
@@ -532,8 +519,6 @@ main (int argc, char *argv[])
             stats[recv.nodeId].blockTimeouts = recv.blockTimeouts;
             stats[recv.nodeId].chunkTimeouts = recv.chunkTimeouts;
             stats[recv.nodeId].minedBlocksInMainChain = recv.minedBlocksInMainChain;
-            stats[recv.nodeId].transactionReceivedBytes = recv.transactionReceivedBytes;
-            stats[recv.nodeId].transactionSentBytes = recv.transactionSentBytes;
             count++;
         }
     }	  
@@ -554,11 +539,6 @@ main (int argc, char *argv[])
             std::cout << "The broadcast type was UNSOLICITED_RELAY_NETWORK.\n";
         else
             std::cout << "The broadcast type was STANDARD.\n";
-
-        if(compact)
-            std::cout << "The protocol type was COMPACT.\n";
-        if(xthin)
-            std::cout << "The protocol type was EXTREME THIN BLOCKS. \n";
 
         std::cout << "\nThe simulation ran for " << tFinish - tStart << "s simulating "
             << stop << "mins. Performed " << stop * secsPerMin / (tFinish - tStart)
@@ -645,9 +625,6 @@ void PrintStatsForEachNode (nodeStatistics *stats, int totalNodes)
         // std::cout << "The total sent EXT_HEADERS messages were " << stats[it].extHeadersSentBytes << " Bytes\n";
         // std::cout << "The total sent EXT_GET_DATA messages were " << stats[it].extGetDataSentBytes << " Bytes\n";
         // std::cout << "The total sent CHUNK messages were " << stats[it].chunkSentBytes << " Bytes\n";
-        // std::cout << "The total sent TXN messages were " << stats[it].transactionSentBytes << " Bytes\n";
-        // std::cout << "The total received TXN messages were " << stats[it].transactionReceivedBytes << " Bytes\n";
-        //
 
         if ( stats[it].miner == 1)
         {
@@ -702,8 +679,6 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     double     connectionsPerMiner = 0;
     double     download = 0;
     double     upload = 0;
-    double		 transactionReceivedBytes=0;    //transaction received bytes
-    double     transactionSentBytes=0;        //transaction sent bytes
 
     uint32_t   nodes = 0;
     uint32_t   miners = 0;
@@ -747,20 +722,18 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         chunkSentBytes = chunkSentBytes*it/static_cast<double>(it + 1) + stats[it].chunkSentBytes/static_cast<double>(it + 1);
         longestFork = longestFork*it/static_cast<double>(it + 1) + stats[it].longestFork/static_cast<double>(it + 1);
         blocksInForks = blocksInForks*it/static_cast<double>(it + 1) + stats[it].blocksInForks/static_cast<double>(it + 1);
-        transactionSentBytes = transactionSentBytes*it/static_cast<double>(it + 1) + stats[it].transactionSentBytes/static_cast<double>(it + 1);
-        transactionReceivedBytes = transactionReceivedBytes*it/static_cast<double>(it + 1) + stats[it].transactionReceivedBytes/static_cast<double>(it + 1);
 
         propagationTimes.push_back(stats[it].meanBlockPropagationTime);
 
         download = stats[it].invReceivedBytes + stats[it].getHeadersReceivedBytes + stats[it].headersReceivedBytes
             + stats[it].getDataReceivedBytes + stats[it].blockReceivedBytes
             + stats[it].extInvReceivedBytes + stats[it].extGetHeadersReceivedBytes + stats[it].extHeadersReceivedBytes
-            + stats[it].extGetDataReceivedBytes + stats[it].chunkReceivedBytes + stats[it].transactionReceivedBytes;
+            + stats[it].extGetDataReceivedBytes + stats[it].chunkReceivedBytes; 
 
         upload = stats[it].invSentBytes + stats[it].getHeadersSentBytes + stats[it].headersSentBytes
             + stats[it].getDataSentBytes + stats[it].blockSentBytes
             + stats[it].extInvSentBytes + stats[it].extGetHeadersSentBytes + stats[it].extHeadersSentBytes
-            + stats[it].extGetDataSentBytes + stats[it].chunkSentBytes + stats[it].transactionSentBytes;
+            + stats[it].extGetDataSentBytes + stats[it].chunkSentBytes;
         download = download / (1000 *(stats[it].totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8;
         upload = upload / (1000 *(stats[it].totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8;
         downloadBandwidths.push_back(download);  
@@ -786,7 +759,7 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     averageBandwidthPerNode = invReceivedBytes + invSentBytes + getHeadersReceivedBytes + getHeadersSentBytes + headersReceivedBytes
         + headersSentBytes + getDataReceivedBytes + getDataSentBytes + blockReceivedBytes + blockSentBytes 
         + extInvReceivedBytes + extInvSentBytes + extGetHeadersReceivedBytes + extGetHeadersSentBytes + extHeadersReceivedBytes
-        + extHeadersSentBytes + extGetDataReceivedBytes + extGetDataSentBytes + chunkReceivedBytes + chunkSentBytes + transactionReceivedBytes + transactionSentBytes ;
+        + extHeadersSentBytes + extGetDataReceivedBytes + extGetDataSentBytes + chunkReceivedBytes + chunkSentBytes ;
 
     totalBlocks /= totalNodes;
     staleBlocks /= totalNodes;
@@ -842,7 +815,6 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         << 100. * getDataSentBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average sent BLOCK messages were " << blockSentBytes << " Bytes (" 
         << 100. * blockSentBytes / averageBandwidthPerNode << "%)\n";
-    std::cout << "The average sent TXN messages were " << transactionSentBytes << " Bytes (" << 100. * transactionSentBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average received EXT_INV messages were " << extInvReceivedBytes << " Bytes (" 
         << 100. * extInvReceivedBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average received EXT_GET_HEADERS messages were " << extGetHeadersReceivedBytes << " Bytes (" 
@@ -873,8 +845,6 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         << 100. * (getDataReceivedBytes +  getDataSentBytes) / averageBandwidthPerNode << "%)\n";
     std::cout << "Total average traffic due to BLOCK messages = " << blockReceivedBytes +  blockSentBytes << " Bytes(" 
         << 100. * (blockReceivedBytes +  blockSentBytes) / averageBandwidthPerNode << "%)\n";
-    std::cout << "Total average traffic due to TXN messages = " << transactionReceivedBytes +  transactionSentBytes << " Bytes(" 
-        << 100. * (transactionReceivedBytes +  transactionSentBytes) / averageBandwidthPerNode << "%)\n";
     std::cout << "Total average traffic due to EXT_INV messages = " << extInvReceivedBytes +  extInvSentBytes << " Bytes(" 
         << 100. * (extInvReceivedBytes +  extInvSentBytes) / averageBandwidthPerNode << "%)\n";	
     std::cout << "Total average traffic due to EXT_GET_HEADERS messages = " << extGetHeadersReceivedBytes +  extGetHeadersSentBytes << " Bytes(" 

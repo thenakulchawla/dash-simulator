@@ -87,7 +87,7 @@ public:
    * \brief Set the node type(default: FULL_NODE)
    * \param nodeType the type of node 
    */
-	void SetNodeType (enum NodeType nodeType);
+  void SetNodeType (enum NodeType nodeType);
 
   /**
    * \brief Handle a packet received by the application
@@ -100,27 +100,6 @@ public:
    * \param socket the incoming connection socket
    * \param from the address the connection is from
    */
-
-  void GenerateTransactions (void);
-  /**
-   *
-   * \Generate transactions for the current node 
-   * \Use CreateTransaction to generate.
-   *
-   * */
-
-  void CreateTransaction (void);
-  /**
-   * \Create wallet transactions
-   * \if fillBlock=True, generate tranaction with no sleep
-   * \else generate transactions using piecewise_constant_distribution
-   * \add transactions to current node mempool
-   * \ Send Transaction
-   *
-   * */
-
-
-	void DeleteBlockTransactionsFromMempool (const Block &newBlock);
 
   void HandleAccept (Ptr<Socket> socket, const Address& from);
   
@@ -169,21 +148,12 @@ public:
    */
   void SendBlock(std::string packetInfo, Address &from);
 
-  /**
-   * \brief Sends a BLOCK message as a response to a GET_DATA message
-   * \param packetInfo the info of the BLOCK message
-   * \param from the address the GET_DATA was received from
-   */
-  void SendBlockTransactions(std::string packetInfo, Address &from);
 
   /**
    * \brief Sends a CHUNK message as a response to a EXT_GET_DATA/CHUNK message
    * \param packetInfo the info of the CHUNK message
    * \param from the address the EXT_GET_DATA/CHUNK was received from
    */
-
-  void SendXThinBlock (std::string packetInfo, Address &from);
-
   void SendChunk(std::string packetInfo, Address &from);				   
 
   /**
@@ -216,8 +186,6 @@ public:
    */
   void AdvertiseNewBlock (const Block &newBlock);
 
-	// void SendCompactBlock (const Block &newBlock);
-  
   /**
    * \brief Advertises the newly validated block when blockTorrent is used
    * \param newBlock the new block
@@ -256,9 +224,6 @@ public:
    * \param outgoingAddress the Address of the peer
    */
   void SendMessage(enum Messages receivedMessage,  enum Messages responseMessage, std::string packet, Address &outgoingAddress);
-
-  void SendTransaction(rapidjson::Document &d, Ptr<Socket> outgoingSocket);
-  void SendTransaction(rapidjson::Document &d, Address &outgoingAddress);
 
   /**
    * \brief Print m_queueInv to stdout
@@ -365,11 +330,12 @@ public:
   double		  m_meanBlockPropagationTime;         //!< The mean time that the node has to wait in order to receive a newly mined block
   double		  m_meanBlockSize;                    //!< The mean block size
   Blockchain 	  m_blockchain;                       //!< The node's blockchain
-  Mempool       m_mempool;                            //!< The node's mempool
   Time            m_invTimeoutMinutes;                //!< The block timeout in minutes
   bool            m_isMiner;                          //!< True if the node is also a miner, False otherwise
   double          m_downloadSpeed;                    //!< The download speed of the node in Bytes/s
   double          m_uploadSpeed;                      //!< The upload speed of the node in Bytes/s
+  double          m_averageTransactionSize;
+  int             m_transactionIndexSize;
   bool            m_blockTorrent;                     //!< True if the blockTorrent mechanism is used, False otherwise
   uint32_t        m_chunkSize;                        //!< The size of the chunk in Bytes, when blockTorrent is used
   bool            m_spv;                              //!< Simplified Payment Verification. Used only in conjuction with blockTorrent
@@ -393,7 +359,7 @@ public:
   std::vector<double>                                 m_receiveBlockTimes;              //!< contains the times of the next sendBlock events
   std::vector<double>                                 m_receiveCompressedBlockTimes;    //!< contains the times of the next sendBlock events
   enum ProtocolType                                   m_protocolType;                   //!< protocol type
-	enum NodeType																				m_nodeType;                       //!< normal or master node
+  enum NodeType				              m_nodeType;                       //!< normal or master node
 
   const int       m_dashPort;               //!< 8333
   const int       m_secondsPerMin;             //!< 60
@@ -403,18 +369,8 @@ public:
   const int       m_getHeadersSizeBytes;       //!< The size of the GET_HEADERS message, 72 Bytes
   const int       m_headersSizeBytes;          //!< 81 Bytes
   const int       m_blockHeadersSizeBytes;     //!< 81 Bytes
-  // int m_missingTransactionCount;
-  // double m_missingTransactionSize;
-	double m_fixedTransactionSize;
-	double m_fixedTransactionTimeGeneration;
-	double m_nextTransactionTime;
-	double m_nextTransactionSize;
-	double m_maxTransactionSize;
-	EventId m_nextTransactionGenerationEvent;
+  // const int       m_averageTransactionSizeBytes;  // 500
   std::default_random_engine m_generator;
-	// std::random_device rd;
-	std::vector<double> iSize,wSize;			//interval and weight for piecewise distribution for transaction size
-  std::piecewise_constant_distribution<double> m_transactionSizeDistribution;
 
   /// Traced Callback: received packets, source address.
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;

@@ -21,27 +21,11 @@ namespace ns3 {
  */
 
 Block::Block(int blockHeight, int minerId, int parentBlockMinerId, int blockSizeBytes, 
-             double timeCreated, double timeReceived, int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4) : m_blockHeight(blockHeight), m_minerId(minerId),
-	m_parentBlockMinerId(parentBlockMinerId), m_blockSizeBytes(blockSizeBytes), m_timeCreated(timeCreated), m_timeReceived(timeReceived), m_transactionCount(transactionCount), m_blockTransactions(blockTransactions),
+             double timeCreated, double timeReceived, Ipv4Address receivedFromIpv4) : m_blockHeight(blockHeight), m_minerId(minerId),
+	m_parentBlockMinerId(parentBlockMinerId), m_blockSizeBytes(blockSizeBytes), m_timeCreated(timeCreated), m_timeReceived(timeReceived), 
 	m_receivedFromIpv4(receivedFromIpv4) {}
-// {  
-//   m_blockHeight = blockHeight;
-//   m_minerId = minerId;
-//   m_parentBlockMinerId = parentBlockMinerId;
-//   m_blockSizeBytes = blockSizeBytes;
-//   m_timeCreated = timeCreated;
-//   m_timeReceived = timeReceived;
-// 	m_transactionCount= transactionCount;
-// 	m_blockTransactions = blockTransactions;
-//   m_receivedFromIpv4 = receivedFromIpv4;
-//
-// }
 
 Block::Block() = default;
-// {  
-//   Block(0, 0, 0, 0, 0, 0, 0, {{Transaction(0,0)}}, Ipv4Address("0.0.0.0"));
-//
-// }
 
 Block::Block (const Block &blockSource)
 {  
@@ -51,8 +35,6 @@ Block::Block (const Block &blockSource)
   m_blockSizeBytes = blockSource.m_blockSizeBytes;
   m_timeCreated = blockSource.m_timeCreated;
   m_timeReceived = blockSource.m_timeReceived;
-	m_transactionCount= blockSource.m_transactionCount;
-	m_blockTransactions = blockSource.m_blockTransactions;
   m_receivedFromIpv4 = blockSource.m_receivedFromIpv4;
 
 }
@@ -121,24 +103,6 @@ Block::GetTimeReceived (void) const
   return m_timeReceived;
 }
   
-int
-Block::GetTransactionCount (void) const
-{
-	return m_transactionCount;
-}
-
-void
-Block::SetTransactionCount (int transactionCount)
-{
-	m_transactionCount = transactionCount;
-}
-
-std::map<std::string,Transaction>
-Block::GetBlockTransactions (void) const
-{
-	return m_blockTransactions;
-}
-
 Ipv4Address 
 Block::GetReceivedFromIpv4 (void) const
 {
@@ -179,8 +143,6 @@ Block::operator= (const Block &blockSource)
   m_blockSizeBytes = blockSource.m_blockSizeBytes;
   m_timeCreated = blockSource.m_timeCreated;
   m_timeReceived = blockSource.m_timeReceived;
-	m_transactionCount= blockSource.m_transactionCount;
-	// m_blockTransactions = blockSource.m_blockTransactions;
   m_receivedFromIpv4 = blockSource.m_receivedFromIpv4;
 
   return *this;
@@ -193,17 +155,14 @@ Block::operator= (const Block &blockSource)
  */
  
 DashChunk::DashChunk(int blockHeight, int minerId, int chunkId, int parentBlockMinerId, int blockSizeBytes, 
-             double timeCreated, double timeReceived, int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4) :  
+             double timeCreated, double timeReceived, Ipv4Address receivedFromIpv4) :  
              Block (blockHeight, minerId, parentBlockMinerId, blockSizeBytes, 
-                    timeCreated, timeReceived, transactionCount, blockTransactions, receivedFromIpv4)
+                    timeCreated, timeReceived, receivedFromIpv4)
 {  
   m_chunkId = chunkId;
 }
 
 DashChunk::DashChunk() = default;
-// {  
-//   DashChunk(0, 0, 0, 0, 0, 0, 0, 0,{ {Transaction(0,0)} }, Ipv4Address("0.0.0.0"));
-// }
 
 DashChunk::DashChunk (const DashChunk &chunkSource)
 {  
@@ -214,8 +173,6 @@ DashChunk::DashChunk (const DashChunk &chunkSource)
   m_blockSizeBytes = chunkSource.m_blockSizeBytes;
   m_timeCreated = chunkSource.m_timeCreated;
   m_timeReceived = chunkSource.m_timeReceived;
-	m_transactionCount = chunkSource.m_transactionCount;
-	m_blockTransactions = chunkSource.m_blockTransactions;
   m_receivedFromIpv4 = chunkSource.m_receivedFromIpv4;
 
 }
@@ -246,8 +203,6 @@ DashChunk::operator= (const DashChunk &chunkSource)
   m_blockSizeBytes = chunkSource.m_blockSizeBytes;
   m_timeCreated = chunkSource.m_timeCreated;
   m_timeReceived = chunkSource.m_timeReceived;
-	m_transactionCount = chunkSource.m_transactionCount;
-	m_blockTransactions = chunkSource.m_blockTransactions;
   m_receivedFromIpv4 = chunkSource.m_receivedFromIpv4;
 
   return *this;
@@ -264,7 +219,7 @@ Blockchain::Blockchain(void)
 {
   m_noStaleBlocks = 0;
   m_totalBlocks = 0;
-  Block genesisBlock(0, -1, -2, 0, 0, 0, 0, {{"shortHash", Transaction(0,"defaultHash","shortHash")}},Ipv4Address("0.0.0.0"));
+  Block genesisBlock(0, -1, -2, 0, 0, 0, Ipv4Address("0.0.0.0"));
   AddBlock(genesisBlock); 
 }
 
@@ -368,7 +323,7 @@ Blockchain::ReturnBlock(int height, int minerId)
       return *block_it;
   }
   
-  return Block(-1, -1, -1, -1, -1, -1, -1,{{ "shortHash",Transaction(0,"defaultHash","shortHash") }},Ipv4Address("0.0.0.0"));
+  return Block(-1, -1, -1, -1, -1, -1, Ipv4Address("0.0.0.0"));
 }
 
 
@@ -752,13 +707,6 @@ const char* getMessageName(enum Messages m)
     case EXT_GET_BLOCKS: return "EXT_GET_BLOCKS";
     case CHUNK: return "CHUNK";
     case EXT_GET_DATA: return "EXT_GET_DATA";
-    case TXN: return "TXN";
-    case COMPACT_BLOCK: return "COMPACT_BLOCK";
-    case GET_BLOCK_TXNS: return "GET_BLOCK_TXNS";
-    case BLOCK_TXNS: return "BLOCK_TXNS";
-    case XTHIN_GET_DATA: return "XTHIN_GET_DATA";
-    case XTHIN_BLOCK: return "XTHIN_BLOCK";
-    case XTHIN_INV: return "XTHIN_INV";
   }
 }
 
@@ -790,8 +738,6 @@ const char* getProtocolType(enum ProtocolType m)
   {
     case STANDARD_PROTOCOL: return "STANDARD_PROTOCOL";
     case SENDHEADERS: return "SENDHEADERS";
-    case COMPACT: return "COMPACT";
-    case XTHIN: return "XTHIN";
   }
 }
 

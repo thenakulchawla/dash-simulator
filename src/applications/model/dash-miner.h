@@ -111,12 +111,6 @@ public:
    */
   void SetBlockBroadcastType (enum BlockBroadcastType blockBroadcastType);
 
-	/**
-	 *Add transactions to the block's thisBlockTransactions map 
-	 *\isFull whether the block will be filled completely or based on distribution
-	 *\nextBlockSize the block size
-	 */
-	 std::map<std::string,Transaction> FillBlock(bool isFull,double nextBlockSize);
    
 protected:
   // inherited from Application base class.
@@ -151,11 +145,11 @@ protected:
   int               m_noMiners;                
   double          	m_fixedBlockSize;  
   double            m_fixedBlockTimeGeneration; 	//!< Fixed Block Time Generation
-	bool 						  m_fillBlock;
-	int               m_targetNumberOfBlocks;
+  bool 						  m_fillBlock;
+  int               m_targetNumberOfBlocks;
   EventId           m_nextMiningEvent; 				//!< Event to mine the next block
   std::default_random_engine m_generator;
-	// std::random_device rd;
+  // std::random_device rd;
 
   /** 
    * The m_blockGenBinSize states binSize of the block generation time.
@@ -175,30 +169,14 @@ protected:
   double                                            m_nextBlockSize;
   double                                            m_maxBlockSize;
   double                                         m_minerAverageBlockSize;
-  std::piecewise_constant_distribution<double>   m_blockSizeDistribution, m_transactionCountDistribution;
-  // std::piecewise_constant_distribution<double>    m_transactionCountDistribution, m_transactionMissingCountDistribution;
+  std::piecewise_constant_distribution<double> m_blockSizeDistribution;
   
   const double  m_realAverageBlockGenIntervalSeconds;  //!< in seconds, 2.5 mins
   double        m_averageBlockGenIntervalSeconds;      //!< the new m_averageBlockGenInterval we set
   
   enum BlockBroadcastType   m_blockBroadcastType;      //!< the type of broadcast
 
-	// std::vector<double> iCount,wCount; //interval and weight for piecewise distribution for transaction size
-
-	int transactionCount;
-  // int mempoolTransactionCount;
-	// int missingTransactionCount;
-  // double bloomFilterSizeBits; //use number of hashes and size of bloom filter based on mempool later
-  // std::string transactionHash;
-	// double transactionsPerSec;
-	// double transactionSize;
-	// double missingTransactionSize;
-	// double blockSize;
-	double averageTransactionSize = 100; //remove the default value later after mempool
-	// int transactionsInCurrentBlock;
-  // int shortTransactionSizeInBytes=6;
-	// Transaction transaction;
-	std::map<std::string,Transaction> thisBlockTransactions;
+  double averageTransactionSize = 100; //remove the default value later after mempool
 
   //debug
   double       m_timeStart;

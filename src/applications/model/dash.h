@@ -11,7 +11,6 @@
 #include <map>
 #include "ns3/address.h"
 #include <algorithm>
-#include "transaction.h"
 
 namespace ns3 {
 	
@@ -32,14 +31,7 @@ enum Messages
   EXT_HEADERS,      //9
   EXT_GET_BLOCKS,   //10
   CHUNK,            //11
-  EXT_GET_DATA,      //12
-  COMPACT_BLOCK,    //13
-  GET_BLOCK_TXNS,   //16
-  BLOCK_TXNS,       //17
-  XTHIN_INV,        //18
-	TXN,               //19
-  XTHIN_GET_DATA,    //20
-  XTHIN_BLOCK        //21 
+  EXT_GET_DATA      //12
 
 
 };
@@ -77,9 +69,7 @@ enum BlockBroadcastType
 enum ProtocolType
 {
   STANDARD_PROTOCOL,           //DEFAULT
-  SENDHEADERS,
-  COMPACT,
-  XTHIN
+  SENDHEADERS
 };
 
 enum NodeType
@@ -131,7 +121,6 @@ typedef struct {
   long     headersReceivedBytes;
   long     headersSentBytes;
   long     getDataReceivedBytes;
-  // long     getBlockTransactionsBytes;       //compact blocks high bandwidth requests for missing transactions
   long     getDataSentBytes;
   long     blockReceivedBytes;
   long     blockSentBytes;
@@ -151,8 +140,6 @@ typedef struct {
   long     blockTimeouts;
   long     chunkTimeouts;
   int      minedBlocksInMainChain;
-	double		 transactionReceivedBytes;    //transaction received bytes
-	double     transactionSentBytes;        //transaction sent bytes
 
 } nodeStatistics;
 
@@ -177,7 +164,7 @@ class Block
 {
 public:
   Block (int blockHeight, int minerId, int parentBlockMinerId, int blockSizeBytes, 
-         double timeCreated , double timeReceived, int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4 );
+         double timeCreated , double timeReceived,  Ipv4Address receivedFromIpv4 );
   Block ();
   Block (const Block &blockSource);  // Copy constructor
   virtual ~Block (void);
@@ -196,11 +183,6 @@ public:
   
   double GetTimeCreated (void) const;
   double GetTimeReceived (void) const;
-
-	int GetTransactionCount (void) const;
-	void SetTransactionCount (int transactionCount);
-
-	std::map<std::string,Transaction> GetBlockTransactions (void) const;
 
   Ipv4Address GetReceivedFromIpv4 (void) const;
   void SetReceivedFromIpv4 (Ipv4Address receivedFromIpv4);
@@ -227,8 +209,6 @@ protected:
   int           m_blockSizeBytes;             // The size of the block in bytes
   double        m_timeCreated;                // The time the block was created
   double        m_timeReceived;               // The time the block was received from the node
-	int 					m_transactionCount;           //number of transactions in the current block
-	std::map<std::string,Transaction> m_blockTransactions;  //all transactions in the current block
   Ipv4Address   m_receivedFromIpv4;           // The Ipv4 of the node which sent the block to the receiving node
 };
 
@@ -236,7 +216,7 @@ class DashChunk : public Block
 {
 public:
   DashChunk (int blockHeight, int minerId, int chunkId, int parentBlockMinerId, int blockSizeBytes, 
-                double timeCreated, double timeReceived,int transactionCount, std::map<std::string,Transaction> blockTransactions, Ipv4Address receivedFromIpv4);
+                double timeCreated, double timeReceived, Ipv4Address receivedFromIpv4);
   DashChunk ();
   DashChunk (const DashChunk &chunkSource);  // Copy constructor
   virtual ~DashChunk (void);
