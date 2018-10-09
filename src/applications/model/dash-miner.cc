@@ -428,7 +428,7 @@ DashMiner::MineBlock (void)
                     rapidjson::Value value;
                     rapidjson::Value array(rapidjson::kArrayType);
                     rapidjson::Value blockInfo(rapidjson::kObjectType);
-                    rapidjson::Value raptor_array(rapidjson::kArrayType);
+                    rapidjson::Value raptorArray(rapidjson::kArrayType);
                     rapidjson::Value raptorInfo(rapidjson::kObjectType);
 
                     value.SetString("block"); //Remove
@@ -476,8 +476,26 @@ DashMiner::MineBlock (void)
                         value.SetString(blockHash.c_str(), blockHash.size(), inv.GetAllocator());
                         raptorInfo.AddMember("hash", value, inv.GetAllocator ());
 
-                        raptor_array.PushBack(raptorInfo, inv.GetAllocator());
-                        inv.AddMember("raptors", raptor_array, inv.GetAllocator()); 
+                        value = newBlock.GetBlockHeight ();
+                        raptorInfo.AddMember("height", value, inv.GetAllocator ());
+
+                        value = newBlock.GetMinerId ();
+                        raptorInfo.AddMember("minerId", value, inv.GetAllocator ());
+
+                        value = newBlock.GetParentBlockMinerId ();
+                        raptorInfo.AddMember("parentBlockMinerId", value, inv.GetAllocator ());
+
+                        value = newBlock.GetBlockSizeBytes ();
+                        raptorInfo.AddMember("size", value, inv.GetAllocator ());
+
+                        value = newBlock.GetTimeCreated ();
+                        raptorInfo.AddMember("timeCreated", value, inv.GetAllocator ());
+
+                        value = newBlock.GetTimeReceived();
+                        raptorInfo.AddMember("timeReceived", value, inv.GetAllocator ());
+
+                        raptorArray.PushBack(raptorInfo, inv.GetAllocator());
+                        inv.AddMember("raptors", raptorArray, inv.GetAllocator()); 
 
                         value = newBlock.GetBlockHeight ();
                         blockInfo.AddMember("height", value, inv.GetAllocator ());

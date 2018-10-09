@@ -123,6 +123,13 @@ public:
   void ReceivedBlockMessage(std::string &blockInfo, Address &from);	
 
   /**
+   * \brief Handle an incoming Raptor code.
+   * \param raptorInfo the raptor code info 
+   * \param from the address the connection is from
+   */
+  void ReceivedRaptorCode(std::string &raptorInfo, Address &from);		
+
+  /**
    * \brief Handle an incoming CHUNK Message.
    * \param chunkInfo the chunk message info 
    * \param from the address the connection is from
@@ -134,6 +141,12 @@ public:
    * \param newBlock the newly received block
    */
   virtual void ReceiveBlock(const Block &newBlock);				                   
+
+  /**
+   * \brief Called when the last raptor symbol of a block is received
+   * \param newBlock the newly received block
+   */
+  void ReceivedLastRaptorSymbol(const Block &newBlock);				           
   
   /**
    * \brief Called when the last chunk of a block is received
@@ -147,6 +160,7 @@ public:
    * \param from the address the GET_DATA was received from
    */
   void SendBlock(std::string packetInfo, Address &from);
+  void SendRaptorSymbol(std::string packetInfo, Ptr<Socket> to);
 
 
   /**
@@ -197,6 +211,13 @@ public:
    * \param newBlock the new block
    */
   void AdvertiseFirstChunk (const Block &newBlock);
+
+
+  /**
+   * \brief Advertises the newly validated block when m_raptor is used 
+   * \param newBlock the new block
+   */
+  void AdvertiseFirstRaptorSymbol (const Block &newBlock);
 
   /**
    * \brief Sends a message to a peer
