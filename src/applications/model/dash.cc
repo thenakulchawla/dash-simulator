@@ -707,6 +707,8 @@ const char* getMessageName(enum Messages m)
     case EXT_GET_BLOCKS: return "EXT_GET_BLOCKS";
     case CHUNK: return "CHUNK";
     case EXT_GET_DATA: return "EXT_GET_DATA";
+    case RAPTORCODE: return "RAPTORCODE";
+    case GETRAPTORCODE: return "GETRAPTORCODE";
   }
 }
 

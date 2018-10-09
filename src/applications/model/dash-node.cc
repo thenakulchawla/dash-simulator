@@ -78,6 +78,12 @@ DashNode::GetTypeId (void)
                   "A packet has been received",
                   MakeTraceSourceAccessor (&DashNode::m_rxTrace),
                   "ns3::Packet::AddressTracedCallback")
+    .AddAttribute("raptor",
+            "Raptor enabled",
+            BooleanValue(false),
+            MakeBooleanAccessor (&DashNode::m_raptor),
+            MakeBooleanChecker())
+
   ;
   return tid;
 }
@@ -194,7 +200,7 @@ void
 DashNode::StartApplication ()    // Called at time specified by Start
 {
   // Create the socket if not already
-	// NS_LOG_FUNCTION(this);
+    // NS_LOG_FUNCTION(this);
   
   srand(time(NULL) + GetNode()->GetId());
   // NS_LOG_INFO ("Node " << GetNode()->GetId() << ": download speed = " << m_downloadSpeed << " B/s");
@@ -252,7 +258,8 @@ DashNode::StartApplication ()    // Called at time specified by Start
   // NS_LOG_DEBUG ("Node " << GetNode()->GetId() << ": Before creating sockets");
   for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
   {
-    m_peersSockets[*i] = Socket::CreateSocket (GetNode (), UdpSocketFactory::GetTypeId ());
+    m_peersSockets[*i] = Socket::CreateSocket (GetNode (), TcpSocketFactory::GetTypeId ());
+    // m_peersSockets[*i] = Socket::CreateSocket (GetNode (), UdpSocketFactory::GetTypeId ());
     m_peersSockets[*i]->Connect (InetSocketAddress (*i, m_dashPort));
   }
   // NS_LOG_DEBUG ("Node " << GetNode()->GetId() << ": After creating sockets");
@@ -295,13 +302,15 @@ DashNode::StartApplication ()    // Called at time specified by Start
   m_nodeStats->blockTimeouts = 0;
   m_nodeStats->chunkTimeouts = 0;
   m_nodeStats->minedBlocksInMainChain = 0;
+  m_nodeStats->raptorSentBytes = 0;
+  m_nodeStats->raptorReceivedBytes = 0;
 
 }
 
 void 
 DashNode::StopApplication ()     // Called at time specified by Stop
 {
-  NS_LOG_FUNCTION (this);
+  // NS_LOG_FUNCTION (this);
 
   for (std::vector<Ipv4Address>::iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i) //close the outgoing sockets
   {
@@ -482,7 +491,14 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 d.AddMember("blocks", array, d.GetAllocator());
 					
                 SendMessage(INV, GET_HEADERS, d, from);				
-                SendMessage(INV, GET_DATA, d, from);	
+                if (m_raptor)
+                {
+                    SendMessage(INV, GETRAPTORCODE, d, from);	
+                }
+                else
+                {
+                    SendMessage(INV, GET_DATA, d, from);	
+                }
 				
               }
               break;
@@ -888,6 +904,12 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 SendMessage(EXT_GET_HEADERS, EXT_HEADERS, d, from); 
               }
               break;
+            }
+            case GETRAPTORCODE:
+            {
+                NS_LOG_INFO("GETRAPTORCODE at : " << GetNode()->GetId());
+
+                break;
             }
             case GET_DATA:
             {
@@ -1830,6 +1852,71 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
               break;
             }
+            case RAPTORCODE:
+            {
+                int j;
+                double receiveTime = 0;
+                double eventTime = 0;
+                double minSpeed = std::min(m_downloadSpeed, m_peersUploadSpeeds[InetSocketAddress::ConvertFrom(from).GetIpv4 ()] * 1000000 / 8);
+
+                for (j=0;j<d["raptors"].Size();++j)
+                {
+                    double symbolSize = d["raptors"][j]["symbolSize"].GetDouble();
+                    double receivedBytes = symbolSize;
+                    m_nodeStats->raptorReceivedBytes += receivedBytes; 
+
+                    int blockSize= d["raptors"][j]["blockSize"].GetInt();
+                    int totalRequired = d["raptors"][j]["symbolsRequired"].GetInt();
+
+                    std::string blockHash = d["raptors"][j]["hash"].GetString();
+
+                    if (m_symbolsReceived.find(blockHash) != m_symbolsReceived.end())
+                    {
+                        // NS_LOG_INFO("blockhash found");
+                        m_symbolsReceived[blockHash] += d["raptors"][j]["symbolCount"].GetInt();
+                    }
+                    else
+                    {
+                        // NS_LOG_INFO("blockhash not found");
+                        m_symbolsReceived.insert({blockHash, d["raptors"][j]["symbolCount"].GetInt()});
+                    }
+
+                    if (m_receiveBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_receiveBlockTimes.back())
+                    {
+                        receiveTime = symbolSize / m_downloadSpeed; 
+                        eventTime = symbolSize / minSpeed;
+                    }
+                    else
+                    {
+                        receiveTime = symbolSize / m_downloadSpeed + m_receiveBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+                        eventTime = symbolSize / minSpeed + m_receiveBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+                    }
+                    m_receiveBlockTimes.push_back(Simulator::Now ().GetSeconds() + receiveTime);
+
+                    if (m_symbolsReceived[blockHash] >= totalRequired)
+                    {
+                        NS_LOG_INFO("We can reconstruct now");
+
+                        // Stringify the DOM
+                        rapidjson::StringBuffer raptorInfo;
+                        rapidjson::Writer<rapidjson::StringBuffer> blockWriter(raptorInfo);
+                        d.Accept(blockWriter);
+
+                        std::string help = raptorInfo.GetString();
+
+                        Simulator::Schedule (Seconds(eventTime), &DashNode::ReceivedBlockMessage, this, help, from);
+                        Simulator::Schedule (Seconds(receiveTime), &DashNode::RemoveReceiveTime, this);
+
+                    }
+                    else
+                    {
+                        // NS_LOG_INFO("Wait for more symbols");
+                    }
+
+                }
+
+                break;
+            }
             default:
               NS_LOG_INFO ("Default");
               break;
@@ -2352,7 +2439,7 @@ DashNode::ReceiveBlock(const Block &newBlock)
   stringStream << newBlock.GetBlockHeight() << "/" << newBlock.GetMinerId();
   blockHash = stringStream.str();
   
-	NS_LOG_INFO("ReceiveBlock has block: " << m_blockchain.HasBlock(newBlock) << " isOrphan is: " <<  m_blockchain.IsOrphan(newBlock) <<" ReceivedButNotValidated is: "<< ReceivedButNotValidated(blockHash) );
+  NS_LOG_INFO("ReceiveBlock has block: " << m_blockchain.HasBlock(newBlock) << " isOrphan is: " <<  m_blockchain.IsOrphan(newBlock) <<" ReceivedButNotValidated is: "<< ReceivedButNotValidated(blockHash) );
 
 
   if (m_blockchain.HasBlock(newBlock) || m_blockchain.IsOrphan(newBlock) || ReceivedButNotValidated(blockHash))
@@ -2451,7 +2538,7 @@ DashNode::SendChunk(std::string packetInfo, Address& from)
 void 
 DashNode::ReceivedHigherBlock(const Block &newBlock) 
 {
-	NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this);
   NS_LOG_INFO("ReceivedHigherBlock: Dash node " << GetNode ()->GetId () << " added a new block in the m_blockchain with higher height: " << newBlock);
 }
 
@@ -2459,7 +2546,7 @@ DashNode::ReceivedHigherBlock(const Block &newBlock)
 void 
 DashNode::ValidateBlock(const Block &newBlock) 
 {
-	NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this);
   const Block *parent = m_blockchain.GetParent(newBlock);
   
   if (parent == nullptr)

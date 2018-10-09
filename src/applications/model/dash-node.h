@@ -337,6 +337,7 @@ public:
   double          m_averageTransactionSize;
   int             m_transactionIndexSize;
   bool            m_blockTorrent;                     //!< True if the blockTorrent mechanism is used, False otherwise
+  bool            m_raptor;
   uint32_t        m_chunkSize;                        //!< The size of the chunk in Bytes, when blockTorrent is used
   bool            m_spv;                              //!< Simplified Payment Verification. Used only in conjuction with blockTorrent
   
@@ -371,6 +372,7 @@ public:
   const int       m_blockHeadersSizeBytes;     //!< 81 Bytes
   // const int       m_averageTransactionSizeBytes;  // 500
   std::default_random_engine m_generator;
+  std::map<std::string, int> m_symbolsReceived;
 
   /// Traced Callback: received packets, source address.
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;

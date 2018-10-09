@@ -141,6 +141,7 @@ protected:
    * \param to the socket of the receiving peer
    */
   void SendBlock(std::string packetInfo, Ptr<Socket> to);				   
+  void SendRaptorSymbol(std::string packetInfo, Ptr<Socket> to);				   
 
   int               m_noMiners;                
   double          	m_fixedBlockSize;  

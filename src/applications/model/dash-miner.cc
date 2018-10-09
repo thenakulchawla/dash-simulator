@@ -63,10 +63,10 @@ TypeId
                     BooleanValue (false),
                     MakeBooleanAccessor (&DashMiner::m_spv),
                     MakeBooleanChecker ())
-            .AddAttribute ("fillBlock",
-                    "Fill the block completely with attributes",
+            .AddAttribute ("raptor",
+                    "Enable raptor Mechanism",
                     BooleanValue (false),
-                    MakeBooleanAccessor (&DashMiner::m_fillBlock),
+                    MakeBooleanAccessor (&DashMiner::m_raptor),
                     MakeBooleanChecker ())
             .AddAttribute ("TargetNumberOfBlocks",
                     "Stop mining blocks after blockchain size is equal to target number of blocks",
@@ -227,7 +227,7 @@ DashMiner::StartApplication ()    // Called at time specified by Start
 void 
 DashMiner::StopApplication ()
 {
-    NS_LOG_FUNCTION (this);
+    // NS_LOG_FUNCTION (this);
     DashNode::StopApplication ();  
     Simulator::Cancel (m_nextMiningEvent);
 
@@ -329,36 +329,26 @@ DashMiner::SetBlockBroadcastType (enum BlockBroadcastType blockBroadcastType)
 void
 DashMiner::ScheduleNextMiningEvent (void)
 {
-    NS_LOG_FUNCTION(this);
+    // NS_LOG_FUNCTION(this);
 
-    if(m_fixedBlockTimeGeneration > 0)
-    {
-        m_nextBlockTime = m_fixedBlockTimeGeneration;
+    m_nextBlockTime = m_blockGenTimeDistribution(m_generator)*m_blockGenBinSize*m_secondsPerMin
+        *( m_averageBlockGenIntervalSeconds/m_realAverageBlockGenIntervalSeconds )/m_hashRate;
 
-        NS_LOG_DEBUG ("Time " << Simulator::Now ().GetSeconds () << ": Miner " << GetNode ()->GetId ()
-                << " fixed Block Time Generation " << m_fixedBlockTimeGeneration << "s");
-        m_nextMiningEvent = Simulator::Schedule (Seconds(m_fixedBlockTimeGeneration), &DashMiner::MineBlock, this);
-    }
-    else
-    {
-        m_nextBlockTime = m_blockGenTimeDistribution(m_generator)*m_blockGenBinSize*m_secondsPerMin
-            *( m_averageBlockGenIntervalSeconds/m_realAverageBlockGenIntervalSeconds )/m_hashRate;
+    NS_LOG_DEBUG("m_nextBlockTime = " << m_nextBlockTime << ", binsize = " << m_blockGenBinSize << ", m_blockGenParameter = " << m_blockGenParameter << ", hashrate = " << m_hashRate);
 
-        NS_LOG_DEBUG("m_nextBlockTime = " << m_nextBlockTime << ", binsize = " << m_blockGenBinSize << ", m_blockGenParameter = " << m_blockGenParameter << ", hashrate = " << m_hashRate);
-        m_nextMiningEvent = Simulator::Schedule (Seconds(m_nextBlockTime), &DashMiner::MineBlock, this);
+    m_nextMiningEvent = Simulator::Schedule (Seconds(m_nextBlockTime), &DashMiner::MineBlock, this);
 
-        NS_LOG_WARN ("Time " << Simulator::Now ().GetSeconds () << ": Miner " << GetNode ()->GetId () << " will generate a block in " 
-                << m_nextBlockTime << "s or " << static_cast<int>(m_nextBlockTime) / m_secondsPerMin 
-                << "  min and  " << static_cast<int>(m_nextBlockTime) % m_secondsPerMin 
-                << "s using Geometric Block Time Generation with parameter = "<< m_blockGenParameter);
+    // NS_LOG_WARN ("Time " << Simulator::Now ().GetSeconds () << ": Miner " << GetNode ()->GetId () << " will generate a block in " 
+    //         << m_nextBlockTime << "s or " << static_cast<int>(m_nextBlockTime) / m_secondsPerMin 
+    //         << "  min and  " << static_cast<int>(m_nextBlockTime) % m_secondsPerMin 
+    //         << "s using Geometric Block Time Generation with parameter = "<< m_blockGenParameter);
 
-    }
 }
 
 void 
 DashMiner::MineBlock (void)
 {
-    NS_LOG_FUNCTION(this);
+    // NS_LOG_FUNCTION(this);
 
     rapidjson::Document inv; 
     rapidjson::Document block; 
@@ -426,11 +416,11 @@ DashMiner::MineBlock (void)
     // NS_LOG_INFO("New block mined");
 
 
+    // NS_LOG_INFO("m_raptor "<< m_raptor<<std::endl);
     switch(m_blockBroadcastType)				  
     {
         case STANDARD:
             {
-
 
                 if (m_protocolType == STANDARD_PROTOCOL)
                 {
@@ -438,11 +428,13 @@ DashMiner::MineBlock (void)
                     rapidjson::Value value;
                     rapidjson::Value array(rapidjson::kArrayType);
                     rapidjson::Value blockInfo(rapidjson::kObjectType);
+                    rapidjson::Value raptor_array(rapidjson::kArrayType);
+                    rapidjson::Value raptorInfo(rapidjson::kObjectType);
 
                     value.SetString("block"); //Remove
                     inv.AddMember("type", value, inv.GetAllocator());
 
-                    if (!m_blockTorrent)
+                    if (!m_blockTorrent && !m_raptor)
                     {
                         value = INV;
                         inv.AddMember("message", value, inv.GetAllocator());
@@ -451,6 +443,64 @@ DashMiner::MineBlock (void)
                         array.PushBack(value, inv.GetAllocator());
 
                         inv.AddMember("inv", array, inv.GetAllocator()); 
+                    }
+                    else if (m_raptor)
+                    {
+                        // NS_LOG_INFO("m_raptor in Standard protocol "<< m_raptor<<std::endl);
+                        // rapidjson::Value value;
+                        // rapidjson::Value array(rapidjson::kArrayType);
+
+                        inv.RemoveMember("type");
+
+                        value.SetString("raptor"); //Remove
+                        inv.AddMember("type", value, inv.GetAllocator());
+
+
+                        value = RAPTORCODE;
+                        inv.AddMember("message", value, inv.GetAllocator());
+
+                        int symbolSize = 100000.0;
+                        value = symbolSize;
+                        raptorInfo.AddMember("symbolSize", value, inv.GetAllocator());
+
+                        value = newBlock.GetBlockSizeBytes();
+                        raptorInfo.AddMember("blockSize", value, inv.GetAllocator());
+
+                        // value = m_nextBlockSize/symbolSize;
+                        value = 6;
+                        raptorInfo.AddMember("symbolCount", value, inv.GetAllocator());
+
+                        value = static_cast<int>(m_nextBlockSize/symbolSize);
+                        raptorInfo.AddMember("symbolsRequired", value, inv.GetAllocator());
+
+                        value.SetString(blockHash.c_str(), blockHash.size(), inv.GetAllocator());
+                        raptorInfo.AddMember("hash", value, inv.GetAllocator ());
+
+                        raptor_array.PushBack(raptorInfo, inv.GetAllocator());
+                        inv.AddMember("raptors", raptor_array, inv.GetAllocator()); 
+
+                        value = newBlock.GetBlockHeight ();
+                        blockInfo.AddMember("height", value, inv.GetAllocator ());
+
+                        value = newBlock.GetMinerId ();
+                        blockInfo.AddMember("minerId", value, inv.GetAllocator ());
+
+                        value = newBlock.GetParentBlockMinerId ();
+                        blockInfo.AddMember("parentBlockMinerId", value, inv.GetAllocator ());
+
+                        value = newBlock.GetBlockSizeBytes ();
+                        blockInfo.AddMember("size", value, inv.GetAllocator ());
+
+                        value = newBlock.GetTimeCreated ();
+                        blockInfo.AddMember("timeCreated", value, inv.GetAllocator ());
+
+                        value = newBlock.GetTimeReceived ();							
+                        blockInfo.AddMember("timeReceived", value, inv.GetAllocator ());
+
+                        array.PushBack(blockInfo, inv.GetAllocator());
+                        inv.AddMember("blocks", array, inv.GetAllocator()); 
+
+
                     }
                     else
                     {
@@ -747,13 +797,13 @@ DashMiner::MineBlock (void)
     m_meanBlockSize = (m_blockchain.GetTotalBlocks() - 1)/static_cast<double>(m_blockchain.GetTotalBlocks())*m_meanBlockSize  
         + (m_nextBlockSize)/static_cast<double>(m_blockchain.GetTotalBlocks());
 
-    if(!m_blockchain.HasBlock(newBlock))
-    {
-        std::cout<< "New Block Added to Blockchain\n";
-        std::cout<< "Block count for miner : "<<GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << "\n";
-        // std::cout<<"Block size: " << m_nextBlockSize << "\n";
-        NS_LOG_INFO("Block height: " << newBlock.GetBlockHeight() << " miner Id: " << newBlock.GetMinerId() );
-    }
+    // if(!m_blockchain.HasBlock(newBlock))
+    // {
+    //     std::cout<< "New Block Added to Blockchain\n";
+    //     std::cout<< "Block count for miner : "<<GetNode()->GetId() << " is: " << m_blockchain.GetTotalBlocks() << "\n";
+    //     // std::cout<<"Block size: " << m_nextBlockSize << "\n";
+    //     NS_LOG_INFO("Block height: " << newBlock.GetBlockHeight() << " miner Id: " << newBlock.GetMinerId() );
+    // }
     m_blockchain.AddBlock(newBlock);
 
     // m_mempool.DeleteTransactionsFromBegin(newBlock.GetTransactionCount());
@@ -767,8 +817,8 @@ DashMiner::MineBlock (void)
     rapidjson::Writer<rapidjson::StringBuffer> blockWriter(blockInfo);
     block.Accept(blockWriter);
 
-    uint256 toPrintInv = GetHash(invInfo.GetString());
-    uint256 toPrintBlock = GetHash(blockInfo.GetString());
+    // uint256 toPrintInv = GetHash(invInfo.GetString());
+    // uint256 toPrintBlock = GetHash(blockInfo.GetString());
 
     //std::cout<<"My uint256 cheaphash for Inv is : "<< toPrintInv.GetCheapHash()<<'\n';
     //std::cout<<"My uint256 cheaphash for Block is : "<< toPrintBlock.GetCheapHash()<<'\n';
@@ -789,7 +839,7 @@ DashMiner::MineBlock (void)
             case STANDARD:
                 {
 
-                    if (m_protocolType == STANDARD_PROTOCOL && !m_blockTorrent)
+                    if (m_protocolType == STANDARD_PROTOCOL && !m_blockTorrent && !m_raptor)
                     {
                         m_peersSockets[*i]->Send (reinterpret_cast<const uint8_t*>(invInfo.GetString()), invInfo.GetSize(), 0);
                         m_peersSockets[*i]->Send (delimiter, 1, 0);
@@ -826,6 +876,31 @@ DashMiner::MineBlock (void)
                                 m_nodeStats->extHeadersSentBytes += inv["inv"][j]["availableChunks"].Size();
                         }	
                     }
+                    else if (m_protocolType ==STANDARD_PROTOCOL &&  m_raptor)
+                    {
+                        int symbolCount =inv["raptors"][0]["symbolCount"].GetInt() ;
+                        double symbolSize =inv["raptors"][0]["symbolSize"].GetDouble() ;
+
+                        for (int j=0;j< symbolCount ; ++j)
+                        {
+                            double sendTime = symbolSize/m_uploadSpeed;
+                            double eventTime = 0;
+                            m_nodeStats->raptorSentBytes += symbolSize; 
+                            if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
+                            {
+                                eventTime = 0; 
+                            }
+                            else
+                            {
+                                eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+                            }
+                            m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
+                            std::string packet = invInfo.GetString();
+                            Simulator::Schedule (Seconds(eventTime), &DashMiner::SendRaptorSymbol, this, packet, m_peersSockets[*i]);
+                            Simulator::Schedule (Seconds(eventTime + sendTime), &DashMiner::RemoveSendTime, this);
+
+                        }
+                    }
 
                     break;
                 }
@@ -836,17 +911,12 @@ DashMiner::MineBlock (void)
                     double sendTime = m_nextBlockSize / m_uploadSpeed;
                     double eventTime;	
 
-                    /*                 std::cout << "Node " << GetNode()->GetId() << "-" << InetSocketAddress::ConvertFrom(from).GetIpv4 () 
-                                       << " " << m_peersDownloadSpeeds[InetSocketAddress::ConvertFrom(from).GetIpv4 ()] << " Mbps , time = "
-                                       << Simulator::Now ().GetSeconds() << "s \n"; */
-
                     if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
                     {
                         eventTime = 0; 
                     }
                     else
                     {
-                        //std::cout << "m_sendBlockTimes.back() = m_sendBlockTimes.back() = " << m_sendBlockTimes.back() << std::endl;
                         eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
                     }
                     m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
@@ -1059,6 +1129,25 @@ rapidjson::Document d;
 
     SendMessage(NO_MESSAGE, BLOCK, d, to);
     m_nodeStats->blockSentBytes -= m_dashMessageHeader + d["blocks"][0]["size"].GetInt();
+}
+
+void
+DashMiner::SendRaptorSymbol(std::string packetInfo, Ptr<Socket> to)
+{
+    NS_LOG_INFO ("SendRaptor: At time " << Simulator::Now ().GetSeconds ()
+    		<< "s dash miner " << GetNode ()->GetId () << " send " 
+    		<< packetInfo << " to " << to);
+    rapidjson::Document d;
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+    d.Parse(packetInfo.c_str());  
+    d.Accept(writer);
+
+    SendMessage(NO_MESSAGE, RAPTORCODE, d, to);
+    m_nodeStats->raptorSentBytes -= d["raptors"][0]["symbolSize"].GetDouble();
+
 }
 
 } // Namespace ns3

@@ -31,7 +31,9 @@ enum Messages
   EXT_HEADERS,      //9
   EXT_GET_BLOCKS,   //10
   CHUNK,            //11
-  EXT_GET_DATA      //12
+  EXT_GET_DATA,     //12
+  RAPTORCODE,            //13
+  GETRAPTORCODE
 
 
 };
@@ -140,6 +142,8 @@ typedef struct {
   long     blockTimeouts;
   long     chunkTimeouts;
   int      minedBlocksInMainChain;
+  long     raptorSentBytes;
+  long     raptorReceivedBytes;
 
 } nodeStatistics;
 

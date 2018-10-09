@@ -57,6 +57,7 @@ main (int argc, char *argv[])
   bool relayNetwork = false;
   bool unsolicitedRelayNetwork = false;
   bool sendheaders = false;
+  bool raptor = false;
   bool compact = false;
   bool fillBlock = false;
   bool xthin=false;
@@ -84,7 +85,7 @@ main (int argc, char *argv[])
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
   // int noMasterNodes = 5000;
-  int noMasterNodes = 16;
+  int noMasterNodes = 8;
 
 #ifdef MPI_TEST
 
@@ -152,6 +153,7 @@ main (int argc, char *argv[])
     cmd.AddValue ("sendheaders", "Change the protocol to sendheaders", sendheaders);
     cmd.AddValue ("blockTorrent", "Enable the BlockTorrent protocol", blockTorrent);
     cmd.AddValue ("spv", "Enable the spv mechanism", spv);
+    cmd.AddValue("raptor", "Enable raptor code mechanis,", raptor);
 
     cmd.Parse(argc, argv);
 
@@ -280,10 +282,12 @@ main (int argc, char *argv[])
                     dashMinerHelper.SetAttribute("SPV", BooleanValue(true));
             }
 
-            if (fillBlock)
+            if (raptor)
             {
-                dashMinerHelper.SetAttribute("fillBlock", BooleanValue(true));
+                // dashMinerHelper.SetProtocolType(RAPTOR);
+                dashMinerHelper.SetAttribute("raptor", BooleanValue(true));
             }
+
 
             dashMinerHelper.SetPeersAddresses (nodesConnections[miner]);
             dashMinerHelper.SetPeersDownloadSpeeds (peersDownloadSpeeds[miner]);
@@ -313,8 +317,8 @@ main (int argc, char *argv[])
         }
     }
 
-    // dashMiners.Start (Seconds (start));
-    // dashMiners.Stop (Minutes (stop));
+    dashMiners.Start (Seconds (start));
+    dashMiners.Stop (Minutes (stop));
     // // dashMiners.Stop (Seconds (stop));
 
     int noMasterNodesTempCount = noMasterNodes; 
@@ -361,10 +365,13 @@ main (int argc, char *argv[])
                     if (spv)
                         dashNodeHelper.SetAttribute("SPV", BooleanValue(true));
                 }
-                if (fillBlock)
+
+                if (raptor)
                 {
-                    dashMinerHelper.SetAttribute("fillBlock", BooleanValue(true));
+                    // dashNodeHelper.SetProtocolType(RAPTOR);
+                    dashNodeHelper.SetAttribute("raptor", BooleanValue(true));
                 }
+
                 dashNodes.Add(dashNodeHelper.Install (targetNode));
 
                 // std::cout << "SystemId " << systemId << ": Node " << node.first << " with systemId = " << targetNode->GetSystemId() 
@@ -376,8 +383,8 @@ main (int argc, char *argv[])
         }	  
     }
 
-    dashMiners.Start (Seconds (start));
-    dashMiners.Stop (Minutes (stop));
+    // dashMiners.Start (Seconds (start));
+    // dashMiners.Stop (Minutes (stop));
     // dashMiners.Stop (Seconds (stop));
 
     dashNodes.Start (Seconds (start));
@@ -447,6 +454,9 @@ main (int argc, char *argv[])
     disp[35] = offsetof(nodeStatistics, blockTimeouts);
     disp[36] = offsetof(nodeStatistics, chunkTimeouts);
     disp[37] = offsetof(nodeStatistics, minedBlocksInMainChain);
+    disp[38] = offsetof(nodeStatistics, raptorSentBytes);
+    disp[39] = offsetof(nodeStatistics, raptorReceivedBytes);
+
 
     MPI_Type_create_struct (40, blocklen, disp, dtypes, &mpi_nodeStatisticsType);
     MPI_Type_commit (&mpi_nodeStatisticsType);
@@ -519,6 +529,8 @@ main (int argc, char *argv[])
             stats[recv.nodeId].blockTimeouts = recv.blockTimeouts;
             stats[recv.nodeId].chunkTimeouts = recv.chunkTimeouts;
             stats[recv.nodeId].minedBlocksInMainChain = recv.minedBlocksInMainChain;
+            stats[recv.nodeId].raptorSentBytes= recv.raptorSentBytes;
+            stats[recv.nodeId].raptorReceivedBytes= recv.raptorReceivedBytes;
             count++;
         }
     }	  
@@ -679,6 +691,8 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     double     connectionsPerMiner = 0;
     double     download = 0;
     double     upload = 0;
+    double     raptorSentBytes=0;
+    double     raptorReceivedBytes=0;
 
     uint32_t   nodes = 0;
     uint32_t   miners = 0;
@@ -722,18 +736,20 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         chunkSentBytes = chunkSentBytes*it/static_cast<double>(it + 1) + stats[it].chunkSentBytes/static_cast<double>(it + 1);
         longestFork = longestFork*it/static_cast<double>(it + 1) + stats[it].longestFork/static_cast<double>(it + 1);
         blocksInForks = blocksInForks*it/static_cast<double>(it + 1) + stats[it].blocksInForks/static_cast<double>(it + 1);
+        raptorSentBytes =raptorSentBytes *it/static_cast<double>(it + 1) + stats[it].raptorSentBytes/static_cast<double>(it + 1);
+        raptorReceivedBytes =raptorReceivedBytes *it/static_cast<double>(it + 1) + stats[it].raptorReceivedBytes/static_cast<double>(it + 1);
 
         propagationTimes.push_back(stats[it].meanBlockPropagationTime);
 
         download = stats[it].invReceivedBytes + stats[it].getHeadersReceivedBytes + stats[it].headersReceivedBytes
             + stats[it].getDataReceivedBytes + stats[it].blockReceivedBytes
             + stats[it].extInvReceivedBytes + stats[it].extGetHeadersReceivedBytes + stats[it].extHeadersReceivedBytes
-            + stats[it].extGetDataReceivedBytes + stats[it].chunkReceivedBytes; 
+            + stats[it].extGetDataReceivedBytes + stats[it].chunkReceivedBytes + stats[it].raptorReceivedBytes; 
 
         upload = stats[it].invSentBytes + stats[it].getHeadersSentBytes + stats[it].headersSentBytes
             + stats[it].getDataSentBytes + stats[it].blockSentBytes
             + stats[it].extInvSentBytes + stats[it].extGetHeadersSentBytes + stats[it].extHeadersSentBytes
-            + stats[it].extGetDataSentBytes + stats[it].chunkSentBytes;
+            + stats[it].extGetDataSentBytes + stats[it].chunkSentBytes + stats[it].raptorSentBytes;
         download = download / (1000 *(stats[it].totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8;
         upload = upload / (1000 *(stats[it].totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8;
         downloadBandwidths.push_back(download);  
@@ -759,7 +775,7 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     averageBandwidthPerNode = invReceivedBytes + invSentBytes + getHeadersReceivedBytes + getHeadersSentBytes + headersReceivedBytes
         + headersSentBytes + getDataReceivedBytes + getDataSentBytes + blockReceivedBytes + blockSentBytes 
         + extInvReceivedBytes + extInvSentBytes + extGetHeadersReceivedBytes + extGetHeadersSentBytes + extHeadersReceivedBytes
-        + extHeadersSentBytes + extGetDataReceivedBytes + extGetDataSentBytes + chunkReceivedBytes + chunkSentBytes ;
+        + extHeadersSentBytes + extGetDataReceivedBytes + extGetDataSentBytes + chunkReceivedBytes + chunkSentBytes + raptorSentBytes + raptorReceivedBytes;
 
     totalBlocks /= totalNodes;
     staleBlocks /= totalNodes;
@@ -855,6 +871,8 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         << 100. * (extGetDataReceivedBytes +  extGetDataSentBytes) / averageBandwidthPerNode << "%)\n";
     std::cout << "Total average traffic due to CHUNK messages = " << chunkReceivedBytes +  chunkSentBytes << " Bytes(" 
         << 100. * (chunkReceivedBytes +  chunkSentBytes) / averageBandwidthPerNode << "%)\n";
+    std::cout << "Total average traffic due to RAPTOR symbols= " << raptorReceivedBytes + raptorSentBytes << " Bytes(" 
+        << 100. * (raptorReceivedBytes +  raptorSentBytes) / averageBandwidthPerNode << "%)\n";
     std::cout << "Total average traffic/node = " << averageBandwidthPerNode << " Bytes (" 
         << averageBandwidthPerNode / (1000 *(totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8
         << " Kbps and " << averageBandwidthPerNode / (1000 * (totalBlocks - 1)) << " KB/block)\n";
