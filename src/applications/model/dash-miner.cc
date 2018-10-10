@@ -459,7 +459,7 @@ DashMiner::MineBlock (void)
                         value = RAPTORCODE;
                         inv.AddMember("message", value, inv.GetAllocator());
 
-                        int symbolSize = 100000.0;
+                        int symbolSize = static_cast<double>(m_nextBlockSize/100);
                         value = symbolSize;
                         raptorInfo.AddMember("symbolSize", value, inv.GetAllocator());
 
