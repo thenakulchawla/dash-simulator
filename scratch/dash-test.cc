@@ -407,13 +407,13 @@ main (int argc, char *argv[])
 
 #ifdef MPI_TEST
 
-    int            blocklen[40] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    int            blocklen[42] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; 
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; 
     MPI_Aint       disp[42]; 
-    MPI_Datatype   dtypes[40] = {MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT,
+    MPI_Datatype   dtypes[42] = {MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT,
         MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG,
-        MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT, MPI_LONG, MPI_LONG, MPI_INT, MPI_DOUBLE, MPI_DOUBLE}; 
+        MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT, MPI_LONG, MPI_LONG, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE}; 
     MPI_Datatype   mpi_nodeStatisticsType;
 
     disp[0] = offsetof(nodeStatistics, nodeId);
@@ -460,7 +460,7 @@ main (int argc, char *argv[])
     disp[41] = offsetof(nodeStatistics, getRaptorSentBytes);
 
 
-    MPI_Type_create_struct (40, blocklen, disp, dtypes, &mpi_nodeStatisticsType);
+    MPI_Type_create_struct (42, blocklen, disp, dtypes, &mpi_nodeStatisticsType);
     MPI_Type_commit (&mpi_nodeStatisticsType);
 
     if (systemId != 0 && systemCount > 1)
@@ -827,6 +827,8 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         << 100. * headersReceivedBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average received GET_DATA messages were " << getDataReceivedBytes << " Bytes (" 
         << 100. * getDataReceivedBytes / averageBandwidthPerNode << "%)\n";
+    std::cout << "The average received GETRAPTOR messages were " << getRaptorReceivedBytes << " Bytes (" 
+        << 100. * getRaptorReceivedBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average received BLOCK messages were " << blockReceivedBytes << " Bytes (" 
         << 100. * blockReceivedBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average sent INV messages were " << invSentBytes << " Bytes (" 
@@ -837,6 +839,8 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         << 100. * headersSentBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average sent GET_DATA messages were " << getDataSentBytes << " Bytes (" 
         << 100. * getDataSentBytes / averageBandwidthPerNode << "%)\n";
+    std::cout << "The average sent GETRAPTOR messages were " << getRaptorSentBytes << " Bytes (" 
+        << 100. * getRaptorSentBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average sent BLOCK messages were " << blockSentBytes << " Bytes (" 
         << 100. * blockSentBytes / averageBandwidthPerNode << "%)\n";
     std::cout << "The average received EXT_INV messages were " << extInvReceivedBytes << " Bytes (" 

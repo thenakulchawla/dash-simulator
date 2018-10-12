@@ -304,6 +304,8 @@ DashNode::StartApplication ()    // Called at time specified by Start
   m_nodeStats->minedBlocksInMainChain = 0;
   m_nodeStats->raptorSentBytes = 0;
   m_nodeStats->raptorReceivedBytes = 0;
+  m_nodeStats->getRaptorReceivedBytes = 0;
+  m_nodeStats->getRaptorSentBytes = 0;
 
 }
 
@@ -3682,6 +3684,16 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
           m_nodeStats->extGetDataSentBytes += d["chunks"][j]["availableChunks"].Size();
       }
       break;
+    }
+    case GETRAPTORCODE:
+    {
+      m_nodeStats->getRaptorSentBytes += 36; 
+        break;
+    }
+    case RAPTORCODE:
+    {
+      m_nodeStats->raptorSentBytes +=d["raptors"][0]["symbolSize"].GetDouble();;
+        break;
     }
   } 
 }
