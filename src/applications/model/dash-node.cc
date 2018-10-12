@@ -493,7 +493,11 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 SendMessage(INV, GET_HEADERS, d, from);				
                 if (m_raptor)
                 {
-                    SendMessage(INV, GETRAPTORCODE, d, from);	
+                    
+                    for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
+                    {
+                        SendMessage(INV, GETRAPTORCODE, d, m_peersSockets[*i]);	
+                    }
                 }
                 else
                 {
@@ -908,6 +912,174 @@ DashNode::HandleRead (Ptr<Socket> socket)
             case GETRAPTORCODE:
             {
                 NS_LOG_INFO("GETRAPTORCODE at : " << GetNode()->GetId());
+
+                int j;
+                std::vector<Block> requestBlocks;
+                std::vector<Block>::iterator block_it;
+                int totalRaptorMessageSize =0;
+
+                m_nodeStats->getRaptorReceivedBytes += d["blocks"].Size() * 36;
+
+
+
+                for (j =0; j <d["blocks"].Size(); ++j)
+                {
+                    std::string    invDelimiter = "/";
+                    std::string    parsedInv = d["blocks"][j].GetString();
+                    size_t         invPos = parsedInv.find(invDelimiter);
+
+                    int height = atoi(parsedInv.substr(0, invPos).c_str());
+                    int minerId = atoi(parsedInv.substr(invPos+1, parsedInv.size()).c_str());
+
+                    if (m_blockchain.HasBlock(height, minerId))
+                    {
+                        NS_LOG_INFO("GETRAPTORCODE: Dash node " << GetNode ()->GetId () 
+                                << " has already received the block with height = " 
+                                << height << " and minerId = " << minerId);
+                        Block newBlock (m_blockchain.ReturnBlock (height, minerId));
+                        requestBlocks.push_back(newBlock);
+                    }
+                    else
+                    {
+                        NS_LOG_INFO("GETRAPTORCODE: Dash node " << GetNode ()->GetId () 
+                                << " does not have the block with height = " 
+                                << height << " and minerId = " << minerId);                
+                    }	
+
+                    if (!requestBlocks.empty())
+                    { 
+                        rapidjson::Value value;
+                        rapidjson::Value array(rapidjson::kArrayType);
+                        rapidjson::Value raptorArray(rapidjson::kArrayType);
+
+                        d.RemoveMember("blocks");
+
+                        for (block_it = requestBlocks.begin(); block_it < requestBlocks.end(); block_it++) 
+                        {
+                            rapidjson::Value blockInfo(rapidjson::kObjectType);
+                            NS_LOG_INFO ("In requestBlocks " << *block_it);
+
+                            value = block_it->GetBlockHeight ();
+                            blockInfo.AddMember("height", value, d.GetAllocator ());
+
+                            value = block_it->GetMinerId ();
+                            blockInfo.AddMember("minerId", value, d.GetAllocator ());
+
+                            value = block_it->GetParentBlockMinerId ();
+                            blockInfo.AddMember("parentBlockMinerId", value, d.GetAllocator ());
+
+                            value = block_it->GetBlockSizeBytes ();
+                            // totalBlockMessageSize += value.GetInt();
+                            blockInfo.AddMember("size", value, d.GetAllocator ());
+
+                            value = block_it->GetTimeCreated ();
+                            blockInfo.AddMember("timeCreated", value, d.GetAllocator ());
+
+                            value = block_it->GetTimeReceived ();							
+                            blockInfo.AddMember("timeReceived", value, d.GetAllocator ());
+
+                            array.PushBack(blockInfo, d.GetAllocator());
+                        }	
+
+                        d.AddMember("blocks", array, d.GetAllocator());
+
+                        for (block_it = requestBlocks.begin(); block_it < requestBlocks.end(); block_it++) 
+                        {
+                            rapidjson::Value raptorInfo(rapidjson::kObjectType);
+                            NS_LOG_INFO ("In requestBlocks " << *block_it);
+
+                            value = block_it->GetBlockHeight ();
+                            raptorInfo.AddMember("height", value, d.GetAllocator ());
+
+                            value = block_it->GetMinerId ();
+                            raptorInfo.AddMember("minerId", value, d.GetAllocator ());
+
+                            value = block_it->GetParentBlockMinerId ();
+                            raptorInfo.AddMember("parentBlockMinerId", value, d.GetAllocator ());
+
+                            value = block_it->GetBlockSizeBytes ();
+                            raptorInfo.AddMember("blockSize", value, d.GetAllocator ());
+
+                            value = block_it->GetTimeCreated ();
+                            raptorInfo.AddMember("timeCreated", value, d.GetAllocator ());
+
+                            value = block_it->GetTimeReceived();
+                            raptorInfo.AddMember("timeReceived", value, d.GetAllocator ());
+
+                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/100);
+                            value = symbolSize;
+                            totalRaptorMessageSize += symbolSize ;
+                            raptorInfo.AddMember("symbolSize", value, d.GetAllocator());
+
+                            value = 10;
+                            raptorInfo.AddMember("symbolCount", value, d.GetAllocator());
+
+                            value = static_cast<int>(block_it->GetBlockSizeBytes()/symbolSize);
+                            raptorInfo.AddMember("symbolsRequired", value, d.GetAllocator());
+
+                            std::string blockHash;
+                            std::ostringstream help;
+
+                            help << height << "/" << minerId;
+                            blockHash = help.str();
+
+                            value.SetString(blockHash.c_str(), blockHash.size(), d.GetAllocator());
+                            raptorInfo.AddMember("hash", value, d.GetAllocator ());
+
+                            raptorArray.PushBack(raptorInfo, d.GetAllocator());
+                        }	
+
+                        d.AddMember("raptors", raptorArray, d.GetAllocator());
+
+                    
+
+
+                        double sendTime = totalRaptorMessageSize / m_uploadSpeed;
+                        double eventTime;
+
+                        if (m_sendBlockTimes.size() == 0 || Simulator::Now ().GetSeconds() >  m_sendBlockTimes.back())
+                        {
+                            eventTime = 0; 
+                        }
+                        else
+                        {
+                            eventTime = m_sendBlockTimes.back() - Simulator::Now ().GetSeconds(); 
+                        }
+                        m_sendBlockTimes.push_back(Simulator::Now ().GetSeconds() + eventTime + sendTime);
+
+                        NS_LOG_INFO("Node " << GetNode()->GetId() << " will start sending the raptor symbols to " << InetSocketAddress::ConvertFrom(from).GetIpv4 () 
+                                << " at " << Simulator::Now ().GetSeconds() + eventTime << "\n");
+
+
+                        // rapidjson::Value value;
+
+                        d.RemoveMember("type");
+                        value.SetString("raptor"); //Remove
+                        d.AddMember("type", value, d.GetAllocator());
+
+                        d.RemoveMember("message");
+                        value = RAPTORCODE;
+                        d.AddMember("message", value, d.GetAllocator());
+
+                        // Stringify the DOM
+                        rapidjson::StringBuffer packetInfo;
+                        rapidjson::Writer<rapidjson::StringBuffer> writer(packetInfo);
+                        d.Accept(writer);
+                        std::string packet = packetInfo.GetString();
+                        NS_LOG_INFO ("DEBUG: " << packetInfo.GetString());
+
+                        // get symbol count and to address
+                        int symbolCount = d["raptors"][0]["symbolCount"].GetInt();
+                        int count=0;
+                        for (int i=0;i<symbolCount;++i)
+                        {
+                            count = count + 1;
+                            NS_LOG_INFO("sending symbol" << count <<std::endl);
+                            Simulator::Schedule (Seconds(eventTime), &DashNode::SendRaptorSymbolFrom, this, packet, from);
+                            Simulator::Schedule (Seconds(eventTime + sendTime), &DashNode::RemoveSendTime, this);
+                        }
+                    }
+                }
 
                 break;
             }
@@ -1854,6 +2026,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
             }
             case RAPTORCODE:
             {
+                NS_LOG_INFO("RAPTORCODE at: " << GetNode()->GetId());
                 int j;
                 double receiveTime = 0;
                 double eventTime = 0;
@@ -1889,29 +2062,6 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
                     Simulator::Schedule (Seconds(eventTime), &DashNode::ReceivedRaptorCode, this, help, from);
                     Simulator::Schedule (Seconds(receiveTime), &DashNode::RemoveReceiveTime, this);
-
-
-                    // int totalRequired = d["raptors"][j]["symbolsRequired"].GetInt();
-                    // if (m_symbolsReceived[blockHash] >= totalRequired)
-                    // {
-                    //     NS_LOG_INFO("We can reconstruct now");
-                    //
-                    //     // Stringify the DOM
-                    //     rapidjson::StringBuffer raptorInfo;
-                    //     rapidjson::Writer<rapidjson::StringBuffer> blockWriter(raptorInfo);
-                    //     d.Accept(blockWriter);
-                    //
-                    //     std::string help = raptorInfo.GetString();
-                    //
-                    //     Simulator::Schedule (Seconds(eventTime), &DashNode::ReceivedBlockMessage, this, help, from);
-                    //     Simulator::Schedule (Seconds(receiveTime), &DashNode::RemoveReceiveTime, this);
-                    //
-                    // }
-                    // else
-                    // {
-                    //     // NS_LOG_INFO("Wait for more symbols");
-                    // }
-
                 }
 
                 break;
@@ -2028,7 +2178,7 @@ DashNode::ReceivedRaptorCode(std::string &raptorInfo, Address &from)
     rapidjson::Document d;
     d.Parse(raptorInfo.c_str());
 
-  NS_LOG_INFO ("ReceivedRaptorMessage: At time " << Simulator::Now ().GetSeconds ()
+  NS_LOG_INFO ("ReceivedRaptorCode: At time " << Simulator::Now ().GetSeconds ()
               << "s dash node " << GetNode ()->GetId () << " received a  message " << raptorInfo);
 
   for (int j=0; j< d["raptors"].Size();++j)
@@ -2069,7 +2219,7 @@ DashNode::ReceivedRaptorCode(std::string &raptorInfo, Address &from)
                         << " is a new valid block\n");
 
                 Block newBlock (d["raptors"][j]["height"].GetInt(), d["raptors"][j]["minerId"].GetInt(), d["raptors"][j]["parentBlockMinerId"].GetInt(), 
-                        d["raptors"][j]["size"].GetInt(), d["raptors"][j]["timeCreated"].GetDouble(), 
+                        d["raptors"][j]["blockSize"].GetInt(), d["raptors"][j]["timeCreated"].GetDouble(), 
                         Simulator::Now ().GetSeconds (), InetSocketAddress::ConvertFrom(from).GetIpv4 ());
 
                 ReceivedLastRaptorSymbol (newBlock);
@@ -2519,7 +2669,7 @@ DashNode::ReceivedChunkMessage(std::string &chunkInfo, Address &from)
 void 
 DashNode::ReceiveBlock(const Block &newBlock) 
 {
-	NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this);
 
   // NS_LOG_INFO ("ReceiveBlock: At time " << Simulator::Now ().GetSeconds ()
   //               << "s dash node " << GetNode ()->GetId () << " received " << newBlock);
@@ -2573,7 +2723,7 @@ void
 DashNode::ReceivedLastRaptorSymbol(const Block &newBlock) 
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_INFO ("ReceivedLastaptorSymbol:" << Simulator::Now ().GetSeconds ()
+  NS_LOG_INFO ("ReceivedLastRaptorSymbol:" << Simulator::Now ().GetSeconds ()
                 << "s dash node " << GetNode ()->GetId () 
                 << " received the last chunk of block " << newBlock);
 				
@@ -2633,7 +2783,7 @@ void
 DashNode::SendRaptorSymbol(std::string packetInfo, Ptr<Socket> to)
 {
     NS_LOG_INFO ("SendRaptor: At time " << Simulator::Now ().GetSeconds ()
-    		<< "s dash miner " << GetNode ()->GetId () << " send " 
+    		<< "s dash node " << GetNode ()->GetId () << " send " 
     		<< packetInfo << " to " << to);
     rapidjson::Document d;
 
@@ -2645,6 +2795,19 @@ DashNode::SendRaptorSymbol(std::string packetInfo, Ptr<Socket> to)
 
     SendMessage(NO_MESSAGE, RAPTORCODE, d, to);
     m_nodeStats->raptorSentBytes -= d["raptors"][0]["symbolSize"].GetDouble();
+}
+
+void 
+DashNode::SendRaptorSymbolFrom(std::string packetInfo, Address& from) 
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_LOG_INFO ("SendRaptorSymbolFrom: At time " << Simulator::Now ().GetSeconds ()
+                << "s dash node " << GetNode ()->GetId () << " sent " 
+                << packetInfo << " to " << InetSocketAddress::ConvertFrom(from).GetIpv4 ());
+
+  //m_sendBlockTimes.erase(m_sendBlockTimes.begin());
+  SendMessage(GETRAPTORCODE, RAPTORCODE, packetInfo, from);
 }
 
 void 
@@ -3260,13 +3423,23 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
       }
       break;
     }
+    case GETRAPTORCODE:
+    {
+      m_nodeStats->getRaptorSentBytes += 36; 
+        break;
+    }
+    case RAPTORCODE:
+    {
+      m_nodeStats->raptorSentBytes +=d["raptors"][0]["symbolSize"].GetDouble();;
+        break;
+    }
   }  
 }
 
 void
 DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMessage, rapidjson::Document &d, Address &outgoingAddress)
 {
-  // NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);
   
   const uint8_t delimiter[] = "#";
 
@@ -3377,6 +3550,16 @@ DashNode::SendMessage(enum Messages receivedMessage,  enum Messages responseMess
           m_nodeStats->extGetDataSentBytes += d["chunks"][j]["availableChunks"].Size();
       }
       break;
+    }
+    case GETRAPTORCODE:
+    {
+      m_nodeStats->getRaptorSentBytes += 36; 
+        break;
+    }
+    case RAPTORCODE:
+    {
+      m_nodeStats->raptorSentBytes +=d["raptors"][0]["symbolSize"].GetDouble();;
+        break;
     }
   } 
 }
@@ -3804,10 +3987,15 @@ DashNode::HasChunk (std::string blockHash, int chunk)
 void 
 DashNode::RemoveSendTime ()
 {
-  // NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);
 
   // NS_LOG_INFO ("RemoveSendTime: At Time " << Simulator::Now ().GetSeconds () << " " << m_sendBlockTimes.front() << " was removed");
-  m_sendBlockTimes.erase(m_sendBlockTimes.begin());
+  NS_LOG_INFO("m_sendBlockTimes.size: " << m_sendBlockTimes.size() << std::endl);
+  if ( m_sendBlockTimes.size() > 0)
+  {
+      m_sendBlockTimes.erase(m_sendBlockTimes.begin());
+
+  }
 }
 
 

@@ -144,6 +144,8 @@ typedef struct {
   int      minedBlocksInMainChain;
   long     raptorSentBytes;
   long     raptorReceivedBytes;
+  long     getRaptorReceivedBytes;
+  long     getRaptorSentBytes;
 
 } nodeStatistics;
 

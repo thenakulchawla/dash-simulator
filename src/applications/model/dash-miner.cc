@@ -467,7 +467,7 @@ DashMiner::MineBlock (void)
                         raptorInfo.AddMember("blockSize", value, inv.GetAllocator());
 
                         // value = m_nextBlockSize/symbolSize;
-                        value = 6;
+                        value = 10;
                         raptorInfo.AddMember("symbolCount", value, inv.GetAllocator());
 
                         value = static_cast<int>(m_nextBlockSize/symbolSize);
@@ -485,8 +485,8 @@ DashMiner::MineBlock (void)
                         value = newBlock.GetParentBlockMinerId ();
                         raptorInfo.AddMember("parentBlockMinerId", value, inv.GetAllocator ());
 
-                        value = newBlock.GetBlockSizeBytes ();
-                        raptorInfo.AddMember("size", value, inv.GetAllocator ());
+                        // value = newBlock.GetBlockSizeBytes ();
+                        // raptorInfo.AddMember("size", value, inv.GetAllocator ());
 
                         value = newBlock.GetTimeCreated ();
                         raptorInfo.AddMember("timeCreated", value, inv.GetAllocator ());

@@ -161,6 +161,7 @@ public:
    */
   void SendBlock(std::string packetInfo, Address &from);
   void SendRaptorSymbol(std::string packetInfo, Ptr<Socket> to);
+  void SendRaptorSymbolFrom(std::string packetInfo, Address& from);
 
 
   /**

@@ -410,7 +410,7 @@ main (int argc, char *argv[])
     int            blocklen[40] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; 
-    MPI_Aint       disp[40]; 
+    MPI_Aint       disp[42]; 
     MPI_Datatype   dtypes[40] = {MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT,
         MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG,
         MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT, MPI_LONG, MPI_LONG, MPI_INT, MPI_DOUBLE, MPI_DOUBLE}; 
@@ -456,6 +456,8 @@ main (int argc, char *argv[])
     disp[37] = offsetof(nodeStatistics, minedBlocksInMainChain);
     disp[38] = offsetof(nodeStatistics, raptorSentBytes);
     disp[39] = offsetof(nodeStatistics, raptorReceivedBytes);
+    disp[40] = offsetof(nodeStatistics, getRaptorReceivedBytes);
+    disp[41] = offsetof(nodeStatistics, getRaptorSentBytes);
 
 
     MPI_Type_create_struct (40, blocklen, disp, dtypes, &mpi_nodeStatisticsType);
@@ -531,6 +533,8 @@ main (int argc, char *argv[])
             stats[recv.nodeId].minedBlocksInMainChain = recv.minedBlocksInMainChain;
             stats[recv.nodeId].raptorSentBytes= recv.raptorSentBytes;
             stats[recv.nodeId].raptorReceivedBytes= recv.raptorReceivedBytes;
+            stats[recv.nodeId].getRaptorReceivedBytes= recv.getRaptorReceivedBytes;
+            stats[recv.nodeId].getRaptorSentBytes= recv.getRaptorSentBytes;
             count++;
         }
     }	  
@@ -693,6 +697,8 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     double     upload = 0;
     double     raptorSentBytes=0;
     double     raptorReceivedBytes=0;
+    double     getRaptorReceivedBytes=0;
+    double     getRaptorSentBytes=0;
 
     uint32_t   nodes = 0;
     uint32_t   miners = 0;
@@ -738,18 +744,20 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
         blocksInForks = blocksInForks*it/static_cast<double>(it + 1) + stats[it].blocksInForks/static_cast<double>(it + 1);
         raptorSentBytes =raptorSentBytes *it/static_cast<double>(it + 1) + stats[it].raptorSentBytes/static_cast<double>(it + 1);
         raptorReceivedBytes =raptorReceivedBytes *it/static_cast<double>(it + 1) + stats[it].raptorReceivedBytes/static_cast<double>(it + 1);
+        getRaptorReceivedBytes = getRaptorReceivedBytes *it/static_cast<double>(it + 1) + stats[it].getRaptorReceivedBytes/static_cast<double>(it + 1);
+        getRaptorSentBytes = getRaptorSentBytes *it/static_cast<double>(it + 1) + stats[it].getRaptorSentBytes/static_cast<double>(it + 1);
 
         propagationTimes.push_back(stats[it].meanBlockPropagationTime);
 
         download = stats[it].invReceivedBytes + stats[it].getHeadersReceivedBytes + stats[it].headersReceivedBytes
             + stats[it].getDataReceivedBytes + stats[it].blockReceivedBytes
             + stats[it].extInvReceivedBytes + stats[it].extGetHeadersReceivedBytes + stats[it].extHeadersReceivedBytes
-            + stats[it].extGetDataReceivedBytes + stats[it].chunkReceivedBytes + stats[it].raptorReceivedBytes; 
+            + stats[it].extGetDataReceivedBytes + stats[it].chunkReceivedBytes + stats[it].raptorReceivedBytes + stats[it].getRaptorReceivedBytes;
 
         upload = stats[it].invSentBytes + stats[it].getHeadersSentBytes + stats[it].headersSentBytes
             + stats[it].getDataSentBytes + stats[it].blockSentBytes
             + stats[it].extInvSentBytes + stats[it].extGetHeadersSentBytes + stats[it].extHeadersSentBytes
-            + stats[it].extGetDataSentBytes + stats[it].chunkSentBytes + stats[it].raptorSentBytes;
+            + stats[it].extGetDataSentBytes + stats[it].chunkSentBytes + stats[it].raptorSentBytes + stats[it].getRaptorSentBytes;
         download = download / (1000 *(stats[it].totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8;
         upload = upload / (1000 *(stats[it].totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8;
         downloadBandwidths.push_back(download);  
@@ -775,7 +783,7 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     averageBandwidthPerNode = invReceivedBytes + invSentBytes + getHeadersReceivedBytes + getHeadersSentBytes + headersReceivedBytes
         + headersSentBytes + getDataReceivedBytes + getDataSentBytes + blockReceivedBytes + blockSentBytes 
         + extInvReceivedBytes + extInvSentBytes + extGetHeadersReceivedBytes + extGetHeadersSentBytes + extHeadersReceivedBytes
-        + extHeadersSentBytes + extGetDataReceivedBytes + extGetDataSentBytes + chunkReceivedBytes + chunkSentBytes + raptorSentBytes + raptorReceivedBytes;
+        + extHeadersSentBytes + extGetDataReceivedBytes + extGetDataSentBytes + chunkReceivedBytes + chunkSentBytes + raptorSentBytes + raptorReceivedBytes + getRaptorReceivedBytes + getRaptorSentBytes;
 
     totalBlocks /= totalNodes;
     staleBlocks /= totalNodes;
@@ -876,6 +884,8 @@ void PrintTotalStats (nodeStatistics *stats, int totalNodes, double start, doubl
     std::cout << "Total average traffic/node = " << averageBandwidthPerNode << " Bytes (" 
         << averageBandwidthPerNode / (1000 *(totalBlocks - 1) * averageBlockGenIntervalMinutes * secPerMin) * 8
         << " Kbps and " << averageBandwidthPerNode / (1000 * (totalBlocks - 1)) << " KB/block)\n";
+    std::cout << "Total average traffic due to GETRAPTOR = " << getRaptorReceivedBytes + getRaptorSentBytes << " Bytes(" 
+        << 100. * (getRaptorReceivedBytes +  getRaptorSentBytes) / averageBandwidthPerNode << "%)\n";
     std::cout << (finish - start)/ (totalBlocks - 1)<< "s per generated block\n";
 
 
