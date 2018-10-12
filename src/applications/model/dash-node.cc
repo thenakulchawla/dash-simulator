@@ -1598,7 +1598,18 @@ DashNode::HandleRead (Ptr<Socket> socket)
 
 					
                 SendMessage(HEADERS, GET_HEADERS, d, from);			
-                SendMessage(HEADERS, GET_DATA, d, from);	
+                if (m_raptor)
+                {
+                    
+                    for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
+                    {
+                        SendMessage(INV, GETRAPTORCODE, d, m_peersSockets[*i]);	
+                    }
+                }
+                else
+                {
+                    SendMessage(HEADERS, GET_DATA, d, from);	
+                }
               }
 			  
               if (!requestBlocks.empty())
@@ -1617,7 +1628,18 @@ DashNode::HandleRead (Ptr<Socket> socket)
 			  
                 d.AddMember("blocks", array, d.GetAllocator());
 
-                SendMessage(HEADERS, GET_DATA, d, from);	
+                if (m_raptor)
+                {
+                    
+                    for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
+                    {
+                        SendMessage(INV, GETRAPTORCODE, d, m_peersSockets[*i]);	
+                    }
+                }
+                else
+                {
+                    SendMessage(HEADERS, GET_DATA, d, from);	
+                }
               }
               break;
             }
