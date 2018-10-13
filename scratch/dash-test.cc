@@ -188,7 +188,7 @@ main (int argc, char *argv[])
     averageBlockGenIntervalSeconds = averageBlockGenIntervalMinutes * secsPerMin;
     // stop = 300;
     //the simulator should run enough time to complete all blocks as expected
-    stop = targetNumberOfBlocks * averageBlockGenIntervalSeconds; //seconds
+    stop =10 * targetNumberOfBlocks * averageBlockGenIntervalMinutes; //seconds
 
     nodeStatistics *stats = new nodeStatistics[totalNoNodes];
     averageBlockGenIntervalMinutes = averageBlockGenIntervalSeconds/secsPerMin;

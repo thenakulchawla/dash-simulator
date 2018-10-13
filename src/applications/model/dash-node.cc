@@ -496,6 +496,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 if (m_raptor)
                 {
                     
+                    NS_LOG_INFO("m_raptor: " << m_raptor << std::endl);
                     for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
                     {
                         SendMessage(INV, GETRAPTORCODE, d, m_peersSockets[*i]);	
@@ -503,6 +504,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 }
                 else
                 {
+                    NS_LOG_INFO("m_raptor: " << m_raptor << std::endl);
                     SendMessage(INV, GET_DATA, d, from);	
                 }
 				
@@ -1008,12 +1010,12 @@ DashNode::HandleRead (Ptr<Socket> socket)
                             value = block_it->GetTimeReceived();
                             raptorInfo.AddMember("timeReceived", value, d.GetAllocator ());
 
-                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/10);
+                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/1000);
                             value = symbolSize;
                             totalRaptorMessageSize += symbolSize ;
                             raptorInfo.AddMember("symbolSize", value, d.GetAllocator());
 
-                            value = 10;
+                            value = 50;
                             raptorInfo.AddMember("symbolCount", value, d.GetAllocator());
 
                             value = static_cast<int>(block_it->GetBlockSizeBytes()/symbolSize);
@@ -1600,6 +1602,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 SendMessage(HEADERS, GET_HEADERS, d, from);			
                 if (m_raptor)
                 {
+                    NS_LOG_INFO("m_raptor: " << m_raptor << std::endl);
                     
                     for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
                     {
@@ -1608,6 +1611,8 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 }
                 else
                 {
+                    
+                    NS_LOG_INFO("m_raptor: " << m_raptor << std::endl);
                     SendMessage(HEADERS, GET_DATA, d, from);	
                 }
               }
@@ -1631,6 +1636,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 if (m_raptor)
                 {
                     
+                    NS_LOG_INFO("m_raptor: " << m_raptor << std::endl);
                     for (std::vector<Ipv4Address>::const_iterator i = m_peersAddresses.begin(); i != m_peersAddresses.end(); ++i)
                     {
                         SendMessage(INV, GETRAPTORCODE, d, m_peersSockets[*i]);	
@@ -1638,6 +1644,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                 }
                 else
                 {
+                    NS_LOG_INFO("m_raptor: " << m_raptor << std::endl);
                     SendMessage(HEADERS, GET_DATA, d, from);	
                 }
               }
@@ -2951,10 +2958,10 @@ DashNode::AfterBlockValidation(const Block &newBlock)
 	}
 
 
-	if (!m_blockTorrent )
-			AdvertiseNewBlock(newBlock); 
-	else
-		AdvertiseFullBlock(newBlock);
+        if (!m_blockTorrent )
+            AdvertiseNewBlock(newBlock); 
+        else
+            AdvertiseFullBlock(newBlock);
 
   ValidateOrphanChildren(newBlock);
   
@@ -3910,7 +3917,20 @@ DashNode::InvTimeoutExpired(std::string blockHash)
     m_queueInv[blockHash][index] = temp;
     	
     SendMessage(INV, GET_HEADERS, d, *(m_queueInv[blockHash].begin()));				
-    SendMessage(INV, GET_DATA, d, *(m_queueInv[blockHash].begin()));	
+    if (m_raptor)
+    {
+        for (auto from : m_queueInv[blockHash])
+        {
+
+            SendMessage(INV, GETRAPTORCODE, d, from);	
+        }
+
+    }
+    else
+    {
+
+        SendMessage(INV, GET_DATA, d, *(m_queueInv[blockHash].begin()));	
+    }
 					
     timeout = Simulator::Schedule (m_invTimeoutMinutes, &DashNode::InvTimeoutExpired, this, blockHash);
     m_invTimeouts[blockHash] = timeout;
