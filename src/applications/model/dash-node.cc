@@ -1008,7 +1008,7 @@ DashNode::HandleRead (Ptr<Socket> socket)
                             value = block_it->GetTimeReceived();
                             raptorInfo.AddMember("timeReceived", value, d.GetAllocator ());
 
-                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/100);
+                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/10);
                             value = symbolSize;
                             totalRaptorMessageSize += symbolSize ;
                             raptorInfo.AddMember("symbolSize", value, d.GetAllocator());
