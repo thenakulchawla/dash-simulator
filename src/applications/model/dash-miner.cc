@@ -896,7 +896,7 @@ DashMiner::MineBlock (void)
                     }
                     else if (m_protocolType ==STANDARD_PROTOCOL &&  m_raptor)
                     {
-                        int symbolCount =inv["raptors"][0]["symbolCount"].GetInt() ;
+                        int symbolCount =inv["raptors"][0]["symbolsRequired"].GetInt() ;
                         double symbolSize =inv["raptors"][0]["symbolSize"].GetDouble() ;
 
                         for (int j=0;j< symbolCount ; ++j)
