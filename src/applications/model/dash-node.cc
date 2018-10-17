@@ -1010,12 +1010,12 @@ DashNode::HandleRead (Ptr<Socket> socket)
                             value = block_it->GetTimeReceived();
                             raptorInfo.AddMember("timeReceived", value, d.GetAllocator ());
 
-                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/1000);
+                            int symbolSize = static_cast<double>(block_it->GetBlockSizeBytes()/10);
                             value = symbolSize;
                             totalRaptorMessageSize += symbolSize ;
                             raptorInfo.AddMember("symbolSize", value, d.GetAllocator());
 
-                            value = 50;
+                            value = 5;
                             raptorInfo.AddMember("symbolCount", value, d.GetAllocator());
 
                             value = static_cast<int>(block_it->GetBlockSizeBytes()/symbolSize);
