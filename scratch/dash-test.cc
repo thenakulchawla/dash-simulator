@@ -76,7 +76,7 @@ main (int argc, char *argv[])
   int start = 0;
   
   // int totalNoNodes = 6000;
-  int totalNoNodes = 48;
+  int totalNoNodes = 96;
   int minConnectionsPerNode = -1;
   int maxConnectionsPerNode = -1;
   int minConnectionsPerMasterNode = -1;
@@ -85,7 +85,7 @@ main (int argc, char *argv[])
   enum DashRegion *minersRegions,*masterNodesRegions;
   int noMiners = 8;
   // int noMasterNodes = 5000;
-  int noMasterNodes = 16;
+  int noMasterNodes = 48;
 
 #ifdef MPI_TEST
 
